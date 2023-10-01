@@ -53,28 +53,29 @@ router.post('/create', async (req, res) => {
 router.get('/generateExamPhaseByCourse', async (req, res) => {
     try {
         let numCou
-        let FE,PE
         await countCourse().then(value => numCou = value)
-        FE = numCou.numFE
-        PE = numCou.numPE
-        
+
         let semesterId
         await createNewSemester().then(value => semesterId = value)
-        let examPhaseList = []
-        if(FE > 0) {
-            let examPhase = await ExamPhase.create({
-                semId : semesterId,
-            })
-            examPhaseList.push(examPhase)
-        }
-        if(PE > 0) {
-            let examPhase = await ExamPhase.create({
-                semId : semesterId,
-            })
-            examPhaseList.push(examPhase)
-        }
+
+
+        let examPhaseList
+        await createExamPhases().then(value => examPhaseList = value)
+
+        // if (FE > 0) {
+        //     let examPhase = await ExamPhase.create({
+        //         semId: semesterId,
+        //     })
+        //     examPhaseList.push(examPhase)
+        // }
+        // if (PE > 0) {
+        //     let examPhase = await ExamPhase.create({
+        //         semId: semesterId,
+        //     })
+        //     examPhaseList.push(examPhase)
+        // }
         res.json(DataResponse({
-            phaseList : examPhaseList,
+            phaseList: examPhaseList,
             numCourse: numCou
         }));
     } catch (error) {
@@ -84,7 +85,47 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
 });
 
 router.put('/updatePhase', (req, res) => {
-    
+
 })
+
+export async function createExamPhases(course, semesterId) {
+    try {
+        const date = new Date()
+        let month = date.getMonth() + 1
+        let blockNow = 10
+        let desNow = 0
+        // 0 is normal
+        //{numFE : FE, numPE : PE, numFEc : FEc, numPEc : PEc}
+
+        let examPhaseList = []
+
+        if (month == 4 || month == 8 || month == 12) blockNow = 5
+        course.forEach(async (val, key) => {
+            if(val > 0) {
+                if(key.includes("c")) desNow = 1
+                const examType = await ExamType.findOne({
+                    where : {
+                        type : key.slice(3, 5),
+                        block : blockNow,
+                        des : desNow,
+                    }
+                })
+                console.log(examType);
+                let examPhase = await ExamPhase.create({
+                    semId: semesterId,
+                    eTId: examType.id
+                })
+                console.log(examPhase);
+                examPhaseList.push(examPhase)
+            }
+        });
+
+        return examPhaseList
+
+    } catch (err) {
+        console.log(err)
+        res.json(InternalErrResponse());
+    }
+}
 
 export default router
