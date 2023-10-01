@@ -73,6 +73,7 @@ server.use('/subInSlots', subInSlotRouter)
 server.use('/examRooms', examRoomRouter)
 server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
+//tanBE test
 
 // khoaBE test
 
