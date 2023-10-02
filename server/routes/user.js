@@ -7,11 +7,6 @@ import { requireRole } from "../middlewares/auth.js";
 
 const router = express.Router()
 
-router.get('/', async (req, res) => {
-    const users = await User.findAll()
-    res.json(DataResponse(users))
-})
-
 router.post('/registers', async (req, res) => {
     const userData = req.body
     await User.create(
@@ -65,7 +60,7 @@ router.post('/login', async (req, res) => {
     }
 })
 
-router.get('/logout', requireRole('lecture'), (req, res) => {
+router.get('/logout', (req, res) => {
     res.clearCookie('token')
     res.json(DataResponse())
 })
