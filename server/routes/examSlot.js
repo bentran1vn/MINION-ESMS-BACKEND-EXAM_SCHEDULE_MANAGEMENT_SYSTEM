@@ -62,7 +62,7 @@ router.get('/', async (req, res) => {
         const diffInMs = Math.abs(endDay - startDay);
         const dayLength = diffInMs/(1000*60*60*24)
         //get the Different in a Examphase
-
+        
         for (let i = 0; i <= dayLength; i++) {
             let day = new Date(startDay);
             if (i !== 0) {

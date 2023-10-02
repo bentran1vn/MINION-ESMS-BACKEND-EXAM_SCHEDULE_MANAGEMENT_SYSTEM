@@ -142,7 +142,7 @@ router.put('/updatePhase', async (req, res) => {
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
-        }
+        }   
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -159,7 +159,7 @@ export async function createExamPhases(course, semesterId) {
 
         let examPhaseList = []
 
-        if (month == 4 || month == 8 || month == 12) blockNow = 5      
+        if (month == 4 || month == 8 || month == 12) blockNow = 5  
 
         const promises = [];
 
