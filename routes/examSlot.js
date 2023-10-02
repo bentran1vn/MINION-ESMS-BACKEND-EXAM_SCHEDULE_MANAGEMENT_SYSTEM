@@ -89,11 +89,9 @@ router.get('/', async (req, res) => {
             if (i !== 0) {
                 day.setDate(startDay.getDate() + i);
             }
-            for (const key in object) {
-                if (Object.hasOwnProperty.call(object, key)) {
-                    const element = object[key];
-                    
-                }
+            for (const key in course) {
+                const val = object[key];
+                console.log(val/15);
             }
             
         }
