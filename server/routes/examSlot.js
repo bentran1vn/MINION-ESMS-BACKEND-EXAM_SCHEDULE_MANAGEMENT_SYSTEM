@@ -63,4 +63,52 @@ router.delete('/', async (req, res) => {
     }
 })
 
+router.get('/', async (req, res) => {
+    const examPhaseList = await ExamPhase.findAll(
+        {
+            order: [
+                ['startDay', 'ASC'],
+            ]
+        }
+    )
+    //Ensuring the order of Examphase
+
+    const course = await Course.findAll()
+    console.log(course);
+
+    for (const key in examPhaseList) {
+        const startDay = new Date(examPhaseList[key].startDay)
+        const endDay = new Date(examPhaseList[key].endDay)
+        const diffInMs = Math.abs(endDay - startDay);
+        const dayLength = diffInMs / (1000 * 60 * 60 * 24)
+        //get the Different in a Examphase
+
+        for (let i = 0; i <= dayLength; i++) {
+            let day = new Date(startDay);
+            if (i !== 0) {
+                day.setDate(startDay.getDate() + i);
+            }
+            //set each day in Examphases
+
+        }
+    }
+    res.json('hihi')
+})
+
+export async function createExamSlot() {
+    try {
+        const examPhaseList = await ExamPhase.findAll(
+            {
+                order: [
+                    ['startDay', 'ASC'],
+                ]
+            }
+        )
+
+    } catch (error) {
+        console.log(err)
+        res.json(InternalErrResponse());
+    }
+}
+
 export default router

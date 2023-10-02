@@ -123,6 +123,31 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
     }
 });
 
+router.put('/updatePhase', async (req, res) => {
+    try {
+        const examPhaseId = req.body.examPhaseId
+        const { startDay, endDay } = req.body
+        const result = await ExamPhase.update(
+            {
+                startDay: startDay,
+                endDay: endDay,
+            },
+            {
+                where: {
+                    id: examPhaseId
+                }
+            }
+        )
+        if (result) {
+            res.json(MessageResponse("ExamPhase Update !"))
+        } else {
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
 export async function createExamPhases(course, semesterId) {
     try {
         const date = new Date()
@@ -135,6 +160,7 @@ export async function createExamPhases(course, semesterId) {
         let examPhaseList = []
 
         if (month == 4 || month == 8 || month == 12) blockNow = 5
+
         course.forEach(async (val, key) => {
             if (val > 0) {
                 if (key.includes("c")) desNow = 1
@@ -155,11 +181,35 @@ export async function createExamPhases(course, semesterId) {
             }
         });
 
-        return examPhaseList
+        const promises = [];
 
+        for (const key in course) {
+            if (course.hasOwnProperty(key)) {
+                const val = course[key];
+                if (val > 0) {
+                    if (key.includes("c")) desNow = 1;
+                    const promise = (async () => {
+                        const examType = await ExamType.findOne({
+                            where: {
+                                type: key.slice(3, 5),
+                                block: blockNow,
+                                des: desNow,
+                            },
+                        });
+                        const examPhase = await ExamPhase.create({
+                            semId: semesterId,
+                            eTId: examType.id,
+                        });
+                        return examPhase;
+                    })();
+                    promises.push(promise);
+                }
+            }
+        }
+
+        return Promise.all(promises)
     } catch (err) {
         console.log(err)
-        res.json(InternalErrResponse());
     }
 }
 
