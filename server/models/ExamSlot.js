@@ -14,10 +14,6 @@ const ExamSlot = sequelize.define(tableName, {
             key: 'id'
         }
     },
-    day: {
-        type: DataTypes.DATEONLY,
-        allowNull: false,
-    },
     timeSlotId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -26,13 +22,17 @@ const ExamSlot = sequelize.define(tableName, {
             key: 'id'
         }
     },
+    day: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+    },
 });
 
-ExamPhase.hasMany(ExamSlot)
-ExamSlot.belongsTo(ExamPhase)
+ExamPhase.hasMany(ExamSlot, { foreignKey: 'ePId' })
+ExamSlot.belongsTo(ExamPhase, { foreignKey: 'ePId' })
 
-TimeSlot.hasMany(ExamSlot)
-ExamSlot.belongsTo(TimeSlot)
+TimeSlot.hasMany(ExamSlot, { foreignKey: 'timeSlotId' })
+ExamSlot.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
 ExamSlot.sync().then(() => {
     console.log(`${tableName} table is created`);

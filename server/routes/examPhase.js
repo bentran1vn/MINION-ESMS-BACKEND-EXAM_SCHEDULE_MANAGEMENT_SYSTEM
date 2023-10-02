@@ -17,7 +17,6 @@ router.post('/create', async (req, res) => {
     const startDay = req.body.startDay;
     const endDay = req.body.endDay;
 
-
     try {
         const semester = await Semester.findOne({
             where: {
@@ -43,10 +42,50 @@ router.post('/create', async (req, res) => {
             res.json(DataResponse(examPhase))
         }
 
-
-    } catch (err) {
-        console.log(err)
+    } catch (errer) {
+        console.log(errer)
         res.json(InternalErrResponse());
+    }
+})
+
+router.put('/', async (req, res) => { // Update ExamPhase
+    const examPhaseUp = req.body
+    const id = parseInt(examPhaseUp.id)
+
+    try {
+        const check = await ExamPhase.update(examPhaseUp, {
+            where: {
+                id: id,
+            }
+        })
+        if (check[0] === 0) {
+            res.json(NotFoundResponse())
+        } else {
+            res.json(MessageResponse('Exam Phase updated'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
+    }
+})
+
+router.delete('/', async (req, res) => {
+    const id = parseInt(req.body.id)
+
+    try {
+        const result = await ExamPhase.destroy({
+            where: {
+                id: id,
+            }
+        })
+        if (result === 0) {
+            res.json(NotFoundResponse('Not found'))
+        } else {
+            res.json(MessageResponse('Exam Phase deleted'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
     }
 })
 
@@ -84,10 +123,6 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
     }
 });
 
-router.put('/updatePhase', (req, res) => {
-
-})
-
 export async function createExamPhases(course, semesterId) {
     try {
         const date = new Date()
@@ -101,13 +136,13 @@ export async function createExamPhases(course, semesterId) {
 
         if (month == 4 || month == 8 || month == 12) blockNow = 5
         course.forEach(async (val, key) => {
-            if(val > 0) {
-                if(key.includes("c")) desNow = 1
+            if (val > 0) {
+                if (key.includes("c")) desNow = 1
                 const examType = await ExamType.findOne({
-                    where : {
-                        type : key.slice(3, 5),
-                        block : blockNow,
-                        des : desNow,
+                    where: {
+                        type: key.slice(3, 5),
+                        block: blockNow,
+                        des: desNow,
                     }
                 })
                 console.log(examType);

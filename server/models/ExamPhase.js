@@ -5,20 +5,20 @@ import ExamType from "./ExamType.js";
 
 let tableName = 'examPhases'
 
-const ExamPhase = sequelize.define( tableName , {
-    semId:{
+const ExamPhase = sequelize.define(tableName, {
+    semId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references:{
+        references: {
             model: Semester,
             key: 'id'
         }
     },
-    eTId:{
+    eTId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1,
-        references:{
+        references: {
             model: ExamType,
             key: 'id'
         },
@@ -33,13 +33,13 @@ const ExamPhase = sequelize.define( tableName , {
     },
 });
 
-Semester.hasMany(ExamPhase)
-ExamPhase.belongsTo(Semester)
+Semester.hasMany(ExamPhase, { foreignKey: 'semId' })
+ExamPhase.belongsTo(Semester, { foreignKey: 'semId' })
 
-ExamType.hasMany(ExamPhase)
-ExamPhase.belongsTo(ExamType)
+ExamType.hasMany(ExamPhase, { foreignKey: 'eTId' })
+ExamPhase.belongsTo(ExamType, { foreignKey: 'eTId' })
 
-ExamPhase.sync().then(()=> {
+ExamPhase.sync().then(() => {
     console.log(`${tableName} table is created`);
 })
 

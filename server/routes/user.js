@@ -1,4 +1,4 @@
-import express from "express"; 
+import express from "express";
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import Jwt from "jsonwebtoken";
@@ -16,8 +16,8 @@ router.post('/registers', async (req, res) => {
     const userData = req.body
     await User.create(
         {
-            email : userData.email,
-            name : userData.name
+            email: userData.email,
+            name: userData.name
         }
     )
     res.json(DataResponse("check"))
@@ -71,12 +71,7 @@ router.delete('/', async (req, res) => { // Delete User by email
     }
 })
 
-router.get('/', async (req, res) => {
-    const user = await User.findAll()
-    res.json(DataResponse(user))
-})
-
-router.get('/logout', requireRole('lecture'), (req, res) => {
+router.get('/logout', (req, res) => {
     res.clearCookie('token')
     res.json(DataResponse())
 })
