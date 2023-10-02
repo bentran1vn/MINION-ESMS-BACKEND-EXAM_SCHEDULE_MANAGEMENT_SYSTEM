@@ -44,6 +44,26 @@ router.post('/create', async (req, res) => {
     }
 })
 
+router.delete('/', async (req, res) => {
+    const id = parseInt(req.body.id)
+
+    try {
+        const result = await ExamSlot.destroy({
+            where: {
+                id: id,
+            }
+        })
+        if (result === 0) {
+            res.json(NotFoundResponse('Not found'))
+        } else {
+            res.json(MessageResponse('Exam Slot deleted'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
+    }
+})
+
 router.get('/', async (req, res) => {
     const examPhaseList = await ExamPhase.findAll(
         {
