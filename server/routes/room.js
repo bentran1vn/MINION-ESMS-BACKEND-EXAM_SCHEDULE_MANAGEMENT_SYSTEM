@@ -6,20 +6,41 @@ import Rooms from '../models/Room.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
-    const { roomNum, location } = req.body;
+router.post('/', async (req, res) => {
+    const roomNum = parseInt(req.body.roomNum);
+    const location = req.body.location;
 
     try {
-        const room = await Rooms.create({
-            roomNum: parseInt(roomNum),
+        const room = await Room.create({
+            roomNum: roomNum,
             location: location
         })
-        console.log(room);
         res.json(DataResponse(room))
 
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
+    }
+})
+
+router.delete('/', async (req, res) => {
+    const roomNum = parseInt(req.body.roomNum);
+
+    try {
+        const result = await Room.destroy({
+            where: {
+                roomNum: roomNum
+            }
+        })
+        console.log(result);
+        if (result === 0) {
+            res.json(NotFoundResponse('Not found'))
+        } else {
+            res.json(MessageResponse('Delete Success !'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'));
     }
 })
 

@@ -17,10 +17,10 @@ router.post('/create', async (req, res) => {
                 id: userId
             }
         })
-        if(!user){
+        if (!user) {
             res.json(NotFoundResponse());
             return;
-        }else{
+        } else {
             const lecturer = await Lecture.create({
                 userId: userId,
                 lecId: lecId
@@ -28,13 +28,12 @@ router.post('/create', async (req, res) => {
             console.log(lecturer);
             res.json(DataResponse(lecturer))
         }
-        
+
 
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
     }
 })
-
 export default router
 //add được

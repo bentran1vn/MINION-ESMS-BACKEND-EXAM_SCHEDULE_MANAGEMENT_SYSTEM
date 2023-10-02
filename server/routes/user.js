@@ -1,4 +1,4 @@
-import express from "express"; 
+import express from "express";
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import Jwt from "jsonwebtoken";
@@ -11,52 +11,58 @@ router.post('/registers', async (req, res) => {
     const userData = req.body
     await User.create(
         {
-            email : userData.email,
-            name : userData.name
+            email: userData.email,
+            name: userData.name
         }
     )
     res.json(DataResponse("check"))
 })
 
-router.get('/', async (req, res) => {
-    const user = await User.findAll()
-    res.json(DataResponse(user))
-})
+router.get('/getById', async (req, res) => { // Get User or Users by Id 
+    const id = req.body.id.split(",")
 
-router.post('/login', async (req, res) => {
-    const userData = req.body
-    console.log(userData.email, userData.password);
-    const user = await User.findOne({
+    const users = await User.findAll({
         where: {
-            email: userData.enmail
+            id: {
+                [Op.or]: id
+            }
         }
     })
 
-    if (!user) {
-        res.json(NotFoundResponse())
-        return
-    }
+    res.json(DataResponse(users))
+})
 
-    const isMatch = await bcrypt.compare(
-        userData.password,
-        user.password
-    )
+router.get('/getByName', async (req, res) => { // Get User or Users by name 
+    const name = req.body.name
 
-    if (isMatch) {
-        const payload = {
-            id: user.id,
-            email: user.email,
-            role: user.role
+    const users = await User.findAll({
+        where: {
+            name: {
+                [Op.like]: '%' + name + '%'
+            }
         }
-        const token = Jwt.sign(payload, process.env.SECRET, {
-            expiresIn: '3h'
+    })
+    console.log(users);
+    res.json(DataResponse(users))
+})
+
+router.delete('/', async (req, res) => { // Delete User by email
+    const email = req.body.email
+
+    try {
+        const result = await User.destroy({
+            where: {
+                email: email,
+            }
         })
-        res.cookie('token', token)
-        res.json(DataResponse({
-            token: token
-        }))
-    } else {
-        res.json(ErrorResponse(401, 'Invalid email or password'))
+        if (result === 0) {
+            res.json(NotFoundResponse('Not found'))
+        } else {
+            res.json(MessageResponse('User deleted'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
     }
 })
 

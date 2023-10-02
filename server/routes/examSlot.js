@@ -38,7 +38,6 @@ router.post('/create', async (req, res) => {
             res.json(DataResponse(examSlot))
         }
 
-
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());

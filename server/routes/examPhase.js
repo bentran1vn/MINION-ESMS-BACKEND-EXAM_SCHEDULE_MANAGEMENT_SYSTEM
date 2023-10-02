@@ -17,7 +17,6 @@ router.post('/create', async (req, res) => {
     const startDay = req.body.startDay;
     const endDay = req.body.endDay;
 
-
     try {
         const semester = await Semester.findOne({
             where: {
@@ -43,10 +42,50 @@ router.post('/create', async (req, res) => {
             res.json(DataResponse(examPhase))
         }
 
-
-    } catch (err) {
-        console.log(err)
+    } catch (errer) {
+        console.log(errer)
         res.json(InternalErrResponse());
+    }
+})
+
+router.put('/', async (req, res) => { // Update ExamPhase
+    const examPhaseUp = req.body
+    const id = parseInt(examPhaseUp.id)
+
+    try {
+        const check = await ExamPhase.update(examPhaseUp, {
+            where: {
+                id: id,
+            }
+        })
+        if (check[0] === 0) {
+            res.json(NotFoundResponse())
+        } else {
+            res.json(MessageResponse('Exam Phase updated'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
+    }
+})
+
+router.delete('/', async (req, res) => {
+    const id = parseInt(req.body.id)
+
+    try {
+        const result = await ExamPhase.destroy({
+            where: {
+                id: id,
+            }
+        })
+        if (result === 0) {
+            res.json(NotFoundResponse('Not found'))
+        } else {
+            res.json(MessageResponse('Exam Phase deleted'))
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(MessageResponse('Error found'))
     }
 })
 
