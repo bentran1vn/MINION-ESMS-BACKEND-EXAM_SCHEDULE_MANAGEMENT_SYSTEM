@@ -159,7 +159,7 @@ export async function createExamPhases(course, semesterId) {
 
         let examPhaseList = []
 
-        if (month == 4 || month == 8 || month == 12) blockNow = 5  
+        if (month == 4 || month == 8 || month == 12) blockNow = 5
 
         const promises = [];
 
