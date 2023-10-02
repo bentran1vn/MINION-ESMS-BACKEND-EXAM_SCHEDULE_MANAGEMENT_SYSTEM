@@ -73,7 +73,7 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
 });
 
 router.put('/updatePhase', (req, res) => {
-
+    
 })
 
 export async function createExamPhases(course, semesterId) {
