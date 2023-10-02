@@ -76,4 +76,103 @@ export async function countCourse(){
     return {numFE : FE, numPE : PE, numFEc : FEc, numPEc : PEc}
 }
 
+router.get('/getAll', requireRole("staff"), async (req, res) => {
+    try {
+        const course = await Course.findAll()
+        if(!course){
+            res.json(NotFoundResponse())
+        }else{
+            res.json(DataResponse(course))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})
+
+router.post('/create', async (req, res) => {
+    const {subId, numOfStu} = req.body;
+
+    try{
+        const subject = await Subject.findOne({
+            where: {
+                id: parseInt(subId)
+            }
+        })
+        if(!subject){
+            res.json(NotFoundResponse());
+        }else{
+            const course = await Course.create({
+                subId: parseInt(subId),
+                numOfStu: parseInt(numOfStu)
+            })
+            console.log(course);
+            res.json(DataResponse(course))
+        }
+    }catch(error){
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})
+
+router.delete('/delete', requireRole("staff"), async (req, res) => {
+    const id = parseInt(req.body.id)
+    try {
+        const rowAffected = await Course.destroy({
+            where: {
+                id: id
+            }
+        })
+        if (rowAffected === 0) {
+            res.json(NotFoundResponse());
+        } else {
+            res.json(MessageResponse('Course deleted'));
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(InternalErrResponse())
+    }
+})
+
+router.delete('/deleteAll', requireRole("staff"), async (req, res) => {
+    try {
+        const rowAffected = await Course.destroy({
+            where: {}
+        });
+        if (rowAffected === 0) {
+            res.json(NotFoundResponse());
+        } else {
+            res.json(MessageResponse('All courses deleted'));
+        }
+    } catch (error) {
+        console.log(error)
+        res.json(InternalErrResponse())
+    }
+})
+
+
+router.put('/update', requireRole("staff"), async (req, res) => {
+    const courseData = req.body
+    const id = parseInt(req.body.id)
+
+    try {
+        const rowAffected = await Course.update(courseData, {
+            where: {
+                id: id,
+            }
+        })
+        if (rowAffected[0] === 0) {
+            res.json(NotFoundResponse());
+        } else {
+            res.json(MessageResponse('Course updated'))
+        }
+
+    } catch (err) {
+        console.log(err);
+        res.json(InternalErrResponse())
+    }
+})
+
+
+
 export default router
