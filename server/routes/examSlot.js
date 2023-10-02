@@ -74,8 +74,8 @@ router.get('/', async (req, res) => {
     )
     //Ensuring the order of Examphase
 
+
     const course = await Course.findAll()
-    console.log(course);
 
     for (const key in examPhaseList) {
         const startDay = new Date(examPhaseList[key].startDay)
@@ -89,7 +89,12 @@ router.get('/', async (req, res) => {
             if (i !== 0) {
                 day.setDate(startDay.getDate() + i);
             }
-            //set each day in Examphases
+            for (const key in object) {
+                if (Object.hasOwnProperty.call(object, key)) {
+                    const element = object[key];
+                    
+                }
+            }
             
         }
     }
