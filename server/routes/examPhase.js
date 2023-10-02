@@ -138,7 +138,7 @@ router.put('/updatePhase', async (req, res) => {
                 }
             }
         )
-        if (result) {
+        if(result){
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -159,27 +159,7 @@ export async function createExamPhases(course, semesterId) {
 
         let examPhaseList = []
 
-        if (month == 4 || month == 8 || month == 12) blockNow = 5
-
-        course.forEach(async (val, key) => {
-            if (val > 0) {
-                if (key.includes("c")) desNow = 1
-                const examType = await ExamType.findOne({
-                    where: {
-                        type: key.slice(3, 5),
-                        block: blockNow,
-                        des: desNow,
-                    }
-                })
-                console.log(examType);
-                let examPhase = await ExamPhase.create({
-                    semId: semesterId,
-                    eTId: examType.id
-                })
-                console.log(examPhase);
-                examPhaseList.push(examPhase)
-            }
-        });
+        if (month == 4 || month == 8 || month == 12) blockNow = 5      
 
         const promises = [];
 
