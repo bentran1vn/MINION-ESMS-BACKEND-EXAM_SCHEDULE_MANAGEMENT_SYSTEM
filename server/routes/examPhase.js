@@ -72,8 +72,29 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
     }
 });
 
-router.put('/updatePhase', (req, res) => {
-    
+router.put('/updatePhase', async (req, res) => {
+    try {
+        const examPhaseId = req.body.examPhaseId
+        const { startDay, endDay } = req.body
+        const result = await ExamPhase.update(
+            {
+                startDay: startDay,
+                endDay: endDay,
+            },
+            {
+                where: {
+                    id: examPhaseId
+                }
+            }
+        )
+        if(result){
+            res.json(MessageResponse("ExamPhase Update !"))
+        } else {
+            res.status(500).json({ error: 'Internal Server Error' });
+        }   
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 })
 
 export async function createExamPhases(course, semesterId) {
