@@ -38,6 +38,9 @@ router.get('/google/callback', passport.authenticate('google', {
                 })
                 res.cookie('token', token)
                 if(user.role == 'admin') res.redirect(`${process.env.CLIENT_URL}/admin`)
+                if(user.role == 'lecturer') res.redirect(`${process.env.CLIENT_URL}/lecturer`)
+                if(user.role == 'staff') res.redirect(`${process.env.CLIENT_URL}/staff`)
+                if(user.role == 'student') res.redirect(`${process.env.CLIENT_URL}/student`)
             }
         }
     } catch (err) {
