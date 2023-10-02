@@ -60,20 +60,8 @@ router.get('/generateExamPhaseByCourse', async (req, res) => {
 
 
         let examPhaseList
-        await createExamPhases().then(value => examPhaseList = value)
+        await createExamPhases(numCou, semesterId).then(value => examPhaseList = value)
 
-        // if (FE > 0) {
-        //     let examPhase = await ExamPhase.create({
-        //         semId: semesterId,
-        //     })
-        //     examPhaseList.push(examPhase)
-        // }
-        // if (PE > 0) {
-        //     let examPhase = await ExamPhase.create({
-        //         semId: semesterId,
-        //     })
-        //     examPhaseList.push(examPhase)
-        // }
         res.json(DataResponse({
             phaseList: examPhaseList,
             numCourse: numCou
@@ -100,31 +88,36 @@ export async function createExamPhases(course, semesterId) {
         let examPhaseList = []
 
         if (month == 4 || month == 8 || month == 12) blockNow = 5
-        course.forEach(async (val, key) => {
-            if(val > 0) {
-                if(key.includes("c")) desNow = 1
-                const examType = await ExamType.findOne({
-                    where : {
-                        type : key.slice(3, 5),
-                        block : blockNow,
-                        des : desNow,
-                    }
-                })
-                console.log(examType);
-                let examPhase = await ExamPhase.create({
-                    semId: semesterId,
-                    eTId: examType.id
-                })
-                console.log(examPhase);
-                examPhaseList.push(examPhase)
+
+        const promises = [];
+
+        for (const key in course) {
+            if (course.hasOwnProperty(key)) {
+                const val = course[key];
+                if (val > 0) {
+                    if (key.includes("c")) desNow = 1;
+                    const promise = (async () => {
+                        const examType = await ExamType.findOne({
+                            where: {
+                                type: key.slice(3, 5),
+                                block: blockNow,
+                                des: desNow,
+                            },
+                        });
+                        const examPhase = await ExamPhase.create({
+                            semId: semesterId,
+                            eTId: examType.id,
+                        });
+                        return examPhase;
+                    })();
+                    promises.push(promise);
+                }
             }
-        });
+        }
 
-        return examPhaseList
-
+        return Promise.all(promises)
     } catch (err) {
         console.log(err)
-        res.json(InternalErrResponse());
     }
 }
 

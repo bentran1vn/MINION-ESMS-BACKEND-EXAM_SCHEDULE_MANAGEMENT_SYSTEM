@@ -37,7 +37,7 @@ router.get('/google/callback', passport.authenticate('google', {
                     expiresIn: '3h'
                 })
                 res.cookie('token', token)
-                res.redirect(process.env.CLIENT_URL)
+                if(role == 'admin') res.redirect(`${process.env.CLIENT_URL}/admin`)
             }
         }
     } catch (err) {
