@@ -89,9 +89,10 @@ router.get('/', async (req, res) => {
             if (i !== 0) {
                 day.setDate(startDay.getDate() + i);
             }
+            let countSlot = 0 
             for (const key in course) {
-                const val = object[key];
-                console.log(val/15);
+                const val = course[key];
+                console.log(val.numOfStu/process.env.NUMBER_OF_STUDENT_IN_ROOM);
             }
             
         }
