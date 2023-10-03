@@ -26,5 +26,14 @@ router.post('/create', async (req, res) => {
     }
 })
 
+export async function subjectById(id){
+    const subject = await Subject.findOne({
+        where : {
+            id : id
+        }
+    })
+    return subject
+}
+
 export default router
 //add xong
