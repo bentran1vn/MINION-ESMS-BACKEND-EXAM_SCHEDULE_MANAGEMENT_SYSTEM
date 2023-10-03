@@ -67,7 +67,7 @@ router.delete('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const examPhaseList = await ExamPhase.findAll(
         {
-            order : [
+            order: [
                 ['startDay', 'ASC'],
             ]
         }
@@ -77,22 +77,55 @@ router.get('/', async (req, res) => {
 
     const course = await Course.findAll()
 
+    const slotList = await TimeSlot.findAll()
+
     for (const key in examPhaseList) {
         const startDay = new Date(examPhaseList[key].startDay)
         const endDay = new Date(examPhaseList[key].endDay)
         const diffInMs = Math.abs(endDay - startDay);
-        const dayLength = diffInMs/(1000*60*60*24)
+        const dayLength = diffInMs / (1000 * 60 * 60 * 24)
         //get the Different in a Examphase
-        
+
+        let dayList = []
+
         for (let i = 0; i <= dayLength; i++) {
             let day = new Date(startDay);
             if (i !== 0) {
                 day.setDate(startDay.getDate() + i);
             }
-            let countSlot = 0 
-            for (const key in course) {
-                const val = course[key];
-                console.log(val.numOfStu/process.env.NUMBER_OF_STUDENT_IN_ROOM);
+            dayList.push(day)
+
+        }
+
+        let roomSlot = 0
+        let dayCount = 0
+        let slotCount = 0
+
+        for (let i = 0; i < course.length; i++) {
+            let daySlot = dayList[dayCount]
+            let slot = slotList[slotCount].id
+
+            if (roomSlot > process.env.NUMBER_OF_ROOM_IN_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR){
+                roomSlot = 0
+                slotCount++;
+                
+                if(slotCount > process.env.NUMBER_OF_SLOT){
+                    slotCount = 0
+                    dayCount++;
+                }
+            }
+            
+            
+            const val = course[i];
+            let roomCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM)
+            console.log(roomCourse);
+            roomSlot += roomCourse
+            if(roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM* process.env.NUMBER_OF_ROOM_IN_FLOOR){
+                for (let i = 0; i < roomCourse; i++) {
+                    console.log(val.id + ".." + daySlot.getDate() + ".." + slot);   
+                }
+            } else {
+                i--
             }
             
         }
@@ -100,16 +133,16 @@ router.get('/', async (req, res) => {
     res.json('hihi')
 })
 
-export async function createExamSlot(){
+export async function createExamSlot() {
     try {
         const examPhaseList = await ExamPhase.findAll(
             {
-                order : [
+                order: [
                     ['startDay', 'ASC'],
                 ]
             }
         )
-        
+
     } catch (error) {
         console.log(err)
         res.json(InternalErrResponse());
