@@ -11,7 +11,7 @@ import { countCourse } from './course.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const semId = parseInt(req.body.semId);
     const eTId = parseInt(req.body.eTId);
     const startDay = req.body.startDay;
@@ -69,7 +69,7 @@ router.put('/', async (req, res) => { // Update ExamPhase
     }
 })
 
-router.delete('/', async (req, res) => {
+router.delete('/', async (req, res) => { // Delete Exam Phase
     const id = parseInt(req.body.id)
 
     try {
