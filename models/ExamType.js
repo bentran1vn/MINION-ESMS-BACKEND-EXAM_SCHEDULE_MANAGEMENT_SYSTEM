@@ -22,7 +22,7 @@ const ExamType = sequelize.define( tableName , {
 
 
 ExamType.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default ExamType

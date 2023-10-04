@@ -35,7 +35,7 @@ TimeSlot.hasMany(LecturerLogTime)
 LecturerLogTime.belongsTo(TimeSlot)
 
 LecturerLogTime.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default LecturerLogTime

@@ -23,7 +23,7 @@ Subject.hasMany(Course)
 Course.belongsTo(Subject)
 
 Course.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default Course

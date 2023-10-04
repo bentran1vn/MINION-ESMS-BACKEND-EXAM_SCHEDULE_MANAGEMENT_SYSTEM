@@ -32,7 +32,7 @@ ExamRoom.hasMany(StudentExam)
 StudentExam.belongsTo(ExamRoom)
 
 StudentExam.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default StudentExam

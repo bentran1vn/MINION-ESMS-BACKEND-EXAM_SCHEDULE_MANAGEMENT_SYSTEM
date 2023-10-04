@@ -82,9 +82,10 @@ router.get('/', async (req, res) => {
     console.log(slotList.length);
 
     for (const key in examPhaseList) {
+
         let dataT = "----------------------"
         fs.appendFileSync("test.txt", dataT + "\n");
-        //console.log("----------------------");
+        console.log("----------------------");
         const startDay = new Date(examPhaseList[key].startDay)
         const endDay = new Date(examPhaseList[key].endDay)
         const diffInMs = Math.abs(endDay - startDay);
@@ -106,8 +107,6 @@ router.get('/', async (req, res) => {
         let dayCount = 0
         let slotCount = 0
 
-
-
         for (let i = 0; i < course.length; i++) {
             let daySlot = dayList[dayCount]
             let slot = slotList[slotCount].id
@@ -122,28 +121,36 @@ router.get('/', async (req, res) => {
                 }
             }
 
+            // let examSlot = await ExamSlot.create({
+            //     ePId: examPhaseList[key].id,
+            //     day: daySlot,
+            //     timeSlotId: slot
+            // })
 
             const val = course[i];
             let roomCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM)
-            //fs.appendFileSync("test.txt", roomCourse + "\n");
+
+            fs.appendFileSync("test.txt", roomCourse + "\n");
             roomSlot += roomCourse
+
+            if(dayCount == 0 && slotCount == 0){
+                let examSlot = await ExamSlot.create({
+                    ePId: examPhaseList[key].id,
+                    day: dayList[0],
+                    timeSlotId: slotList[0].id
+                })    
+                console.log(val.id);
+            }
+            
             if(roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM* process.env.NUMBER_OF_ROOM_IN_FLOOR){
                 for (let i = 0; i < roomCourse; i++) {
                     let data = val.id + ".." + daySlot.getDate() + ".." + slot
-                    //fs.appendFileSync("test.txt", data + "\n");
-                    //console.log();   
+                    fs.appendFileSync("test.txt", data + "\n"); 
                 }
             } else {
-                let examSlot = await ExamSlot.create({
-                    ePId: examPhaseList[key].id,
-                    day: daySlot,
-                    timeSlotId: slot
-                })
                 i--
             }
-
         }
-
     }
     res.json('hihi')
 })

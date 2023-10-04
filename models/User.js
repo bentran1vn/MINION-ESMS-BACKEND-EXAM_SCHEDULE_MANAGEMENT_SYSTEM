@@ -22,7 +22,7 @@ const User = sequelize.define( tableName , {
 });
 
 User.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default User

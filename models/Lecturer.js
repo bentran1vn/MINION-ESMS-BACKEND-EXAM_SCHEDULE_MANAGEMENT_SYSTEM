@@ -23,7 +23,7 @@ User.hasOne(Lecturer);
 Lecturer.belongsTo(User);
 
 Lecturer.sync().then(()=> {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default Lecturer

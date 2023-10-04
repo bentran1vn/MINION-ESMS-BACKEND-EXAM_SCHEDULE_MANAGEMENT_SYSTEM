@@ -31,7 +31,7 @@ User.hasOne(Student);
 Student.belongsTo(User);
 
 Student.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default Student
