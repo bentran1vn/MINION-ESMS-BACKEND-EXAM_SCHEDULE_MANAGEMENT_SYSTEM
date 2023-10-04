@@ -118,11 +118,20 @@ router.get('/', async (req, res) => {
     for (const key in subjectList) {
         if(subjectList[key][examType.type.toLowerCase()] > 0) {
             // console.log(subjectList[key][examType.type.toLowerCase()]);
-            listSubByPhase.push(subjectList[key])
+            listSubByPhase.push(subjectList[key].id)
         };
     }
 
     console.log(listSubByPhase.length);
+
+    let courseByPhase = await Course.findAll({
+        where:{
+            subId: listSubByPhase
+        }
+    })
+
+    console.log(courseByPhase.length);
+
     //-----
 
     // const slotList = await TimeSlot.findAll()
