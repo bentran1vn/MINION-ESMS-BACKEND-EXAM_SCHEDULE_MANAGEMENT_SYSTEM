@@ -7,7 +7,18 @@ import { requireRole } from "../middlewares/auth.js";
 
 const router = express.Router()
 
-router.post('/registers', async (req, res) => {
+router.get('/', async (req, res) => {
+    const pageNo = parseInt(req.query.page_no) || 1
+    const limit = parseInt(req.query.limit) || 20
+
+    const users = await User.findAll({
+        limit: limit,
+        offset: (pageNo - 1) * limit
+    })
+    res.json(DataResponse(users))
+})
+
+router.post('/', async (req, res) => {
     const userData = req.body
     await User.create(
         {

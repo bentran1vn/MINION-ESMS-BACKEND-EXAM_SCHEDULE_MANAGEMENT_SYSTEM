@@ -9,7 +9,7 @@ import fs from 'fs'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const ePId = parseInt(req.body.ePId);
     const timeSlotId = parseInt(req.body.timeSlotId);
     const day = req.body.day;
@@ -106,34 +106,27 @@ router.get('/', async (req, res) => {
         let dayCount = 0
         let slotCount = 0
 
-        
+
 
         for (let i = 0; i < course.length; i++) {
             let daySlot = dayList[dayCount]
             let slot = slotList[slotCount].id
-            
-            if (roomSlot > process.env.NUMBER_OF_ROOM_IN_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR){
+
+            if (roomSlot > process.env.NUMBER_OF_ROOM_IN_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
                 roomSlot = 0
                 slotCount++;
-                
-                if(slotCount > process.env.NUMBER_OF_SLOT - 1){
+
+                if (slotCount > process.env.NUMBER_OF_SLOT - 1) {
                     slotCount = 0
                     dayCount++;
                 }
             }
-            
-            
+
+
             const val = course[i];
             let roomCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM)
             //fs.appendFileSync("test.txt", roomCourse + "\n");
             roomSlot += roomCourse
-
-            let examSlot = await ExamSlot.create({
-                ePId: examPhaseList[key].id,
-                day: dayList[0],
-                timeSlotId: slotList[0]
-            })
-
             if(roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM* process.env.NUMBER_OF_ROOM_IN_FLOOR){
                 for (let i = 0; i < roomCourse; i++) {
                     let data = val.id + ".." + daySlot.getDate() + ".." + slot
@@ -148,9 +141,9 @@ router.get('/', async (req, res) => {
                 })
                 i--
             }
-            
+
         }
-        
+
     }
     res.json('hihi')
 })
