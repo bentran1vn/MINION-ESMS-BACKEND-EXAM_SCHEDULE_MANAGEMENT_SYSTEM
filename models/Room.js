@@ -14,7 +14,7 @@ const Room = sequelize.define(tableName, {
     }
 });
 Room.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default Room

@@ -40,7 +40,7 @@ ExamType.hasMany(ExamPhase, { foreignKey: 'eTId' })
 ExamPhase.belongsTo(ExamType, { foreignKey: 'eTId' })
 
 ExamPhase.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default ExamPhase

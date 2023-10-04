@@ -32,7 +32,7 @@ const Subject = sequelize.define(tableName, {
 // giá trị fe và pe tính bằng phút
 
 Subject.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default Subject

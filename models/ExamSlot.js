@@ -35,7 +35,7 @@ TimeSlot.hasMany(ExamSlot, { foreignKey: 'timeSlotId' })
 ExamSlot.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
 ExamSlot.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default ExamSlot

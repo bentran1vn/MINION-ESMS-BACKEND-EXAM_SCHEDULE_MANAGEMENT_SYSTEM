@@ -45,7 +45,7 @@ Lecturer.hasMany(ExamRoom, { foreignKey: 'lecturerId' })
 ExamRoom.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
 
 ExamRoom.sync().then(() => {
-    console.log(`${tableName} table is created`);
+    console.log(`${tableName} table is ready`);
 })
 
 export default ExamRoom
