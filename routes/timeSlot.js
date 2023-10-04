@@ -30,18 +30,18 @@ router.get('/getAll', async (req, res) => {
     //get All timeSlot
     try {
         const timeSlots = await TimeSlot.findAll();
-        if(!timeSlots){
+        if (!timeSlots) {
             res.json(NotFoundResponse());
-        }else{
+        } else {
             res.json(DataResponse(timeSlots));
         }
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
-    }  
+    }
 })
 
-router.get('/getMultipleId', async (req,res) => {
+router.get('/getMultipleId', async (req, res) => {
     //tìm theo id khi người dùng nhập dạng "id" = "1,2,3,4,5,6,7"
     const id = req.body.id.split(',');
     console.log(id);
@@ -49,7 +49,7 @@ router.get('/getMultipleId', async (req,res) => {
         const timeSlots = await TimeSlot.findAll({
             where: {
                 id: {
-                    [Op.or] : id
+                    [Op.or]: id
                 }
             }
         }
@@ -127,7 +127,7 @@ router.delete('/deleteAll', async (req, res) => {
 })
 
 
-router.put('/update', async (req, res) => {
+router.put('/', async (req, res) => {
     //update time slot theo id
     const id = parseInt(req.body.id)
     const timeSlotData = req.body;
