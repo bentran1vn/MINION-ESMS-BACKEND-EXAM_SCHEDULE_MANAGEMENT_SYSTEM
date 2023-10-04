@@ -5,6 +5,7 @@ import ExamPhase from '../models/ExamPhase.js'
 import TimeSlot from '../models/TimeSlot.js'
 import ExamSlot from '../models/ExamSlot.js'
 import Course from '../models/Course.js'
+import fs from 'fs'
 
 const router = express.Router()
 
@@ -78,8 +79,12 @@ router.get('/', async (req, res) => {
     const course = await Course.findAll()
 
     const slotList = await TimeSlot.findAll()
+    console.log(slotList.length);
 
     for (const key in examPhaseList) {
+        let dataT = "----------------------"
+        fs.appendFileSync("test.txt", dataT + "\n");
+        //console.log("----------------------");
         const startDay = new Date(examPhaseList[key].startDay)
         const endDay = new Date(examPhaseList[key].endDay)
         const diffInMs = Math.abs(endDay - startDay);
@@ -101,15 +106,17 @@ router.get('/', async (req, res) => {
         let dayCount = 0
         let slotCount = 0
 
+        
+
         for (let i = 0; i < course.length; i++) {
             let daySlot = dayList[dayCount]
             let slot = slotList[slotCount].id
-
+            
             if (roomSlot > process.env.NUMBER_OF_ROOM_IN_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR){
                 roomSlot = 0
                 slotCount++;
                 
-                if(slotCount > process.env.NUMBER_OF_SLOT){
+                if(slotCount > process.env.NUMBER_OF_SLOT - 1){
                     slotCount = 0
                     dayCount++;
                 }
@@ -118,17 +125,20 @@ router.get('/', async (req, res) => {
             
             const val = course[i];
             let roomCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM)
-            console.log(roomCourse);
+            fs.appendFileSync("test.txt", roomCourse + "\n");
             roomSlot += roomCourse
             if(roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM* process.env.NUMBER_OF_ROOM_IN_FLOOR){
                 for (let i = 0; i < roomCourse; i++) {
-                    console.log(val.id + ".." + daySlot.getDate() + ".." + slot);   
+                    let data = val.id + ".." + daySlot.getDate() + ".." + slot
+                    fs.appendFileSync("test.txt", data + "\n");
+                    //console.log();   
                 }
             } else {
                 i--
             }
             
         }
+        
     }
     res.json('hihi')
 })
