@@ -125,15 +125,20 @@ router.get('/', async (req, res) => {
 
             const val = course[i];
             let roomCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM)
-            fs.appendFileSync("test.txt", roomCourse + "\n");
+            //fs.appendFileSync("test.txt", roomCourse + "\n");
             roomSlot += roomCourse
-            if (roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
+            if(roomSlot <= process.env.NUMBER_OF_STUDENT_IN_ROOM* process.env.NUMBER_OF_ROOM_IN_FLOOR){
                 for (let i = 0; i < roomCourse; i++) {
                     let data = val.id + ".." + daySlot.getDate() + ".." + slot
-                    fs.appendFileSync("test.txt", data + "\n");
+                    //fs.appendFileSync("test.txt", data + "\n");
                     //console.log();   
                 }
             } else {
+                let examSlot = await ExamSlot.create({
+                    ePId: examPhaseList[key].id,
+                    day: daySlot,
+                    timeSlotId: slot
+                })
                 i--
             }
 
