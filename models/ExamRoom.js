@@ -18,7 +18,7 @@ const ExamRoom = sequelize.define(tableName, {
     },
     roomId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: Room,
             key: 'id'
@@ -26,7 +26,7 @@ const ExamRoom = sequelize.define(tableName, {
     },
     lecturerId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: Lecturer,
             key: 'id'
