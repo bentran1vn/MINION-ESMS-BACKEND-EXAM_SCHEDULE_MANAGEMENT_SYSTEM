@@ -27,6 +27,8 @@ import subInSlotRouter from './routes/subInSlot.js'
 import examRoomRouter from './routes/examRoom.js'
 import studentExamRouter from './routes/studentExam.js'
 import authenticateRouter from './routes/authenticate.js'
+import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
+import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
 
 
@@ -73,6 +75,8 @@ server.use('/subInSlots', subInSlotRouter)
 server.use('/examRooms', examRoomRouter)
 server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
+server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
+server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
 //tanBE test
 
 // khoaBE test

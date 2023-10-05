@@ -89,28 +89,6 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
     }
 })
 
-router.get('/generateExamPhaseByCourse', async (req, res) => {
-    try {
-        let numCou
-        await countCourse().then(value => numCou = value)
-
-        let semesterId
-        await createNewSemester().then(value => semesterId = value)
-
-
-        let examPhaseList
-        await createExamPhases(numCou, semesterId).then(value => examPhaseList = value)
-
-        res.json(DataResponse({
-            phaseList: examPhaseList,
-            numCourse: numCou
-        }));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 router.put('/updatePhase', async (req, res) => {
     try {
         const examPhaseId = req.body.examPhaseId
