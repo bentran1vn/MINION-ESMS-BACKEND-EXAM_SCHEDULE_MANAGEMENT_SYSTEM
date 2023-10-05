@@ -211,6 +211,7 @@ router.get('/', async (req, res) => {
                         // fs.appendFileSync("test.txt", data1 + "\n");
                         // fs.appendFileSync("test.txt", data + "\n");
                     */
+                    console.log(room.id);
                     await ExamRoom.create({
                         sSId: subjectInSlot.id,
                         roomId: room.id
