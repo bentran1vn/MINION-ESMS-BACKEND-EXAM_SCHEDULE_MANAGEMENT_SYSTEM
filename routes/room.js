@@ -46,7 +46,8 @@ router.delete('/', async (req, res) => {
 
 export async function randomRoom(){
     let roomList = await Room.findAll()
-    let ranId = Math.floor(Math.random()*(roomList.length))
+    let ranId = Math.floor(Math.random()*(roomList.length - 1)) + 1
+    console.log("log Function ranId: " + ranId);
     let room = await Room.findOne({
         where : {
             id : ranId
