@@ -50,7 +50,7 @@ router.get('/', async (req, res) => { // Get all room
     res.json(DataResponse(room))
 })
 
-router.get('/roomInUse', async (req, res) => { // Get all room in use
+router.get('/roomInUse', async (req, res) => { // Get room has been used in day + which slots
     const roomId = parseInt(req.body.roomId)
 
     try {
