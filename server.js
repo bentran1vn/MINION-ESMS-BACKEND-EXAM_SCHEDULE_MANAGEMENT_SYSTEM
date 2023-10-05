@@ -77,9 +77,6 @@ server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
-//tanBE test
-
-// khoaBE test
 
 server.listen(PORT, () => {
     console.log(`Server is listening at PORT=${PORT}`)
