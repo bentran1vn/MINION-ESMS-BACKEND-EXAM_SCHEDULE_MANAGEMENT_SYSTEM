@@ -3,6 +3,7 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
+import ExamType from '../models/ExamType.js'
 
 const router = express.Router()
 
@@ -74,6 +75,47 @@ export async function countCourse(){
     });
 
     return {numFE : FE, numPE : PE, numFEc : FEc, numPEc : PEc}
+}
+
+export async function courseByPhase(examPhase){
+
+    const course = await Course.findAll()
+    
+    let subList = []
+
+    for (const key in course) {
+        subList.push(course[key].subId)
+    }//Lấy ra các SubID Với Course Tương Ứng
+
+    const subjectList = await Subject.findAll({
+        where: {
+            id: subList
+        }
+    })//Lấy ra các Subject với SubID tương ứng
+
+    const examType = await ExamType.findOne({
+        where : {
+            id: examPhase.eTId
+        }
+    })//Lấy ra Loại Examtype của ExamPhase tương ứng
+
+    let listSubByPhase = []
+
+    for (const key in subjectList) {
+        if(subjectList[key][examType.type.toLowerCase()] > 0) {
+            listSubByPhase.push(subjectList[key].id)
+        };
+    }//Lấy ra các Subject tương ứng với ExamType của Examphase
+
+
+    let courseByPhase = await Course.findAll({
+        where:{
+            subId: listSubByPhase
+        }
+    })//Lấy ra các Course tương ứng với SubId, những thằng mà có cùng loại với ExamPhase
+
+    return courseByPhase
+
 }
 
 router.get('/getAll', requireRole("staff"), async (req, res) => {

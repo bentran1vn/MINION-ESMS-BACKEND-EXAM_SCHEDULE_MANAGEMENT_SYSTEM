@@ -44,5 +44,16 @@ router.delete('/', async (req, res) => {
     }
 })
 
+export async function randomRoom(){
+    let roomList = await Room.findAll()
+    let ranId = Math.floor(Math.random()*(roomList.length))
+    let room = await Room.findOne({
+        where : {
+            id : ranId
+        }
+    })
+    return room
+}
+
 export default router
 //add xong
