@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
 
 router.put('/', async (req, res) => { // Update ExamPhase
     const examPhaseUp = req.body
-    const id = parseInt(examPhaseUp.id)
+    const id = parseInt(examPhaseUp.examPhaseId)
 
     try {
         const check = await ExamPhase.update(examPhaseUp, {
@@ -59,13 +59,13 @@ router.put('/', async (req, res) => { // Update ExamPhase
             }
         })
         if (check[0] === 0) {
-            res.json(NotFoundResponse())
+            res.json(MessageResponse("ExamPhase Update !"))
         } else {
-            res.json(MessageResponse('Exam Phase updated'))
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     } catch (error) {
         console.log(error)
-        res.json(MessageResponse('Error found'))
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 })
 
@@ -88,29 +88,6 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
         res.json(MessageResponse('Error found'))
     }
 })
-
-router.get('/generateExamPhaseByCourse', async (req, res) => {
-    try {
-        let numCou
-        await countCourse().then(value => numCou = value)
-
-        let semesterId
-        await createNewSemester().then(value => semesterId = value)
-
-
-        let examPhaseList
-        await createExamPhases(numCou, semesterId).then(value => examPhaseList = value)
-
-        res.json(DataResponse({
-            phaseList: examPhaseList,
-            numCourse: numCou
-        }));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 
 export async function createExamPhases(course, semesterId) {
     try {
