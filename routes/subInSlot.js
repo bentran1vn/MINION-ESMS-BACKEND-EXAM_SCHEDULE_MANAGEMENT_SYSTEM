@@ -4,6 +4,9 @@ import { requireRole } from '../middlewares/auth.js'
 import ExamSlot from '../models/ExamSlot.js'
 import Course from '../models/Course.js'
 import SubInSlot from '../models/SubInSlot.js'
+import ExamRoom from '../models/ExamRoom.js'
+import { Op } from 'sequelize'
+
 
 const router = express.Router()
 
@@ -41,4 +44,64 @@ router.post('/create', async (req, res) => {
     }
 })
 
+//bảng subInSlot này chứa courseId
+//nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
+//id của subinslotid
+router.delete('/subId', async (req, res) => {
+    const subId = parseInt(req.body.subId); 
+
+    try {
+        const course = await Course.findOne({
+            where: { subId: subId },
+        })
+        if(!course){
+            res.json(MessageResponse("This subject is not exist!"))
+            return;
+        }
+
+        const subjectInSlot = await SubInSlot.findAll({
+            where: { courId: course.id }
+        });
+
+        const subInSlotArray = subjectInSlot.map(subInSlot => subInSlot.dataValues);
+        const idArray = subInSlotArray.map(item => item.id); //lấy ra mảng các id của subInSlot có môn thi là courId = subId
+
+
+        let rowAffected;
+        if(idArray.length === 0){
+            res.json(MessageResponse("This subject is not scheduled"));
+            return;
+        } else{
+            rowAffected = await ExamRoom.destroy({
+                where: { 
+                    sSId: {
+                        [Op.or] : idArray
+                    } 
+                }
+            });
+        }      
+        if(rowAffected != 0){
+            const lineAffected = await SubInSlot.destroy({
+                where: {
+                    courId: course.id
+                }
+            })
+            if(lineAffected != 0){
+                res.json(MessageResponse("All exam room of this subject are deleted"))
+            } 
+            return;   
+        }else{
+            res.json(MessageResponse("This subject hasn't have any exam room"));   
+            const rows = await SubInSlot.destroy({
+                where: {
+                    courId: course.id
+                }
+            })    
+            return; 
+        }
+    } catch (error) {
+        console.error(error);
+        res.json(InternalErrResponse());
+    }
+})
 export default router

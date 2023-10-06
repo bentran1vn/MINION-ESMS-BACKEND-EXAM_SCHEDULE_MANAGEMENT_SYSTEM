@@ -8,7 +8,7 @@ let tableName = 'subInSlot'
 const SubInSlot = sequelize.define( tableName , {
     courId:{
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references:{
             model: Course,
             key: 'id'
@@ -16,7 +16,7 @@ const SubInSlot = sequelize.define( tableName , {
     },
     exSlId:{
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references:{
             model: ExamSlot,
             key: 'id'
@@ -24,11 +24,11 @@ const SubInSlot = sequelize.define( tableName , {
     },
 });
 
-Course.hasMany(SubInSlot)
-SubInSlot.belongsTo(Course)
+Course.hasMany(SubInSlot, { foreignKey: 'courId' })
+SubInSlot.belongsTo(Course, { foreignKey: 'courId' })
 
-ExamSlot.hasMany(SubInSlot)
-SubInSlot.belongsTo(ExamSlot)
+ExamSlot.hasMany(SubInSlot, { foreignKey: 'exSlId' })
+SubInSlot.belongsTo(ExamSlot, { foreignKey: 'exSlId' })
 
 SubInSlot.sync().then(()=> {
     console.log(`${tableName} table is ready`);

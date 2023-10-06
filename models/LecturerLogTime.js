@@ -28,11 +28,11 @@ const LecturerLogTime = sequelize.define( tableName , {
     },
 });
 
-Lecturer.hasMany(LecturerLogTime)
-LecturerLogTime.belongsTo(Lecturer)
+Lecturer.hasMany(LecturerLogTime, { foreignKey: 'lecturerId' })
+LecturerLogTime.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
 
-TimeSlot.hasMany(LecturerLogTime)
-LecturerLogTime.belongsTo(TimeSlot)
+TimeSlot.hasMany(LecturerLogTime, { foreignKey: 'timeSlotId' })
+LecturerLogTime.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
 LecturerLogTime.sync().then(()=> {
     console.log(`${tableName} table is ready`);
