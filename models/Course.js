@@ -19,8 +19,8 @@ const Course = sequelize.define( tableName , {
     },
 });
 
-Subject.hasMany(Course)
-Course.belongsTo(Subject)
+Subject.hasMany(Course, { foreignKey: 'subId' })
+Course.belongsTo(Subject, { foreignKey: 'subId' })
 
 Course.sync().then(()=> {
     console.log(`${tableName} table is created`);

@@ -10,7 +10,7 @@ let tableName = 'examRooms'
 const ExamRoom = sequelize.define(tableName, {
     sSId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: SubInSlot,
             key: 'id'

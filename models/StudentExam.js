@@ -25,11 +25,11 @@ const StudentExam = sequelize.define( tableName , {
     
 });
 
-Student.hasMany(StudentExam)
-StudentExam.belongsTo(Student)
+Student.hasMany(StudentExam, { foreignKey: 'stuId' })
+StudentExam.belongsTo(Student, { foreignKey: 'stuId' })
 
-ExamRoom.hasMany(StudentExam)
-StudentExam.belongsTo(ExamRoom)
+ExamRoom.hasMany(StudentExam, { foreignKey: 'eRId' })
+StudentExam.belongsTo(ExamRoom, { foreignKey: 'eRId' })
 
 StudentExam.sync().then(()=> {
     console.log(`${tableName} table is created`);

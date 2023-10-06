@@ -28,11 +28,11 @@ const RoomLogTime = sequelize.define(tableName, {
     },
 });
 
-Room.hasMany(RoomLogTime)
-RoomLogTime.belongsTo(Room)
+Room.hasMany(RoomLogTime, { foreignKey: 'roomId' })
+RoomLogTime.belongsTo(Room, { foreignKey: 'roomId' })
 
-TimeSlot.hasMany(RoomLogTime)
-RoomLogTime.belongsTo(TimeSlot)
+TimeSlot.hasMany(RoomLogTime, { foreignKey: 'timeSlotId' })
+RoomLogTime.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
 RoomLogTime.sync().then(() => {
     console.log(`${tableName} table is created`);

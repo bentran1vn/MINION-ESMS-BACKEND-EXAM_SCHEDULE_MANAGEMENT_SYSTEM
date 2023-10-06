@@ -19,8 +19,8 @@ const Lecturer = sequelize.define( tableName , {
     }
 });
 
-User.hasOne(Lecturer);
-Lecturer.belongsTo(User);
+User.hasOne(Lecturer, { foreignKey: 'userId' });
+Lecturer.belongsTo(User, { foreignKey: 'userId' });
 
 Lecturer.sync().then(()=> {
     console.log(`${tableName} table is created`);
