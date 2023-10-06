@@ -34,7 +34,7 @@ router.post('/create', async (req, res) => {
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
-    }   
+    }
 })
 
 export default router

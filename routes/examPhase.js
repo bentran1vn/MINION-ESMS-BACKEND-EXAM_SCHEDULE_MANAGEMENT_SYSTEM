@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
 
 router.put('/', async (req, res) => { // Update ExamPhase
     const examPhaseUp = req.body
-    const id = parseInt(examPhaseUp.id)
+    const id = parseInt(examPhaseUp.examPhaseId)
 
     try {
         const check = await ExamPhase.update(examPhaseUp, {
@@ -59,13 +59,13 @@ router.put('/', async (req, res) => { // Update ExamPhase
             }
         })
         if (check[0] === 0) {
-            res.json(NotFoundResponse())
+            res.json(MessageResponse("ExamPhase Update !"))
         } else {
-            res.json(MessageResponse('Exam Phase updated'))
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     } catch (error) {
         console.log(error)
-        res.json(MessageResponse('Error found'))
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 })
 
@@ -104,11 +104,11 @@ router.put('/updatePhase', async (req, res) => {
                 }
             }
         )
-        if(result){
+        if (result) {
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
-        }   
+        }
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
