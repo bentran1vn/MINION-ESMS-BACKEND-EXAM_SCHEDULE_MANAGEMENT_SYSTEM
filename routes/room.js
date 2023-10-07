@@ -45,12 +45,12 @@ router.delete('/', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => { // Get all room
+router.get('/', async (req, res) => {
     const room = await Room.findAll()
     res.json(DataResponse(room))
-})
+})// Get all room
 
-router.get('/roomInUse', async (req, res) => { // Get room has been used in day + which slots
+router.get('/roomInUse', async (req, res) => {
     const roomId = parseInt(req.body.roomId)
 
     try {
@@ -64,47 +64,9 @@ router.get('/roomInUse', async (req, res) => { // Get room has been used in day 
         console.log(error)
         res.json(MessageResponse('Error found'));
     }
-})
+})// Get room has been used in day + which slots
 
-router.get('/roomFree', async (req, res) => { // Get room not in use
-    const roomIdInUse = []
-    const roomIdNotUse = []
-
-    try {
-        const roomLogTime = await RoomLogTime.findAll()
-        const room = await Room.findAll()
-
-        for (let i = 0; i < roomLogTime.length; i++) {
-            const index = roomIdInUse.indexOf(roomLogTime[i].roomId);
-
-            if (index === -1) {
-                roomIdInUse.push(roomLogTime[i].roomId);
-            }
-        }
-
-        room.forEach(element => {
-            if (!roomIdInUse.includes(element.id)) {
-                roomIdNotUse.push(element.id)
-            }
-        });
-
-        const roomNotUse = await Room.findAll({
-            where: {
-                id: {
-                    [Op.or]: roomIdNotUse
-                }
-            }
-        })
-
-        res.json(DataResponse(roomNotUse))
-    } catch (error) {
-        console.log(error);
-        res.json(MessageResponse("Error found"))
-    }
-
-})
-
-router.get('/roomFreeSlot', async (req, res) => { // Get room not in use in 1 day and slot
+router.get('/roomFreeSlot', async (req, res) => {
     const { day, timeSlotId } = req.body
     const roomIdInUse = []
     const roomIdNotUse = []
@@ -147,9 +109,9 @@ router.get('/roomFreeSlot', async (req, res) => { // Get room not in use in 1 da
         console.log(error);
         res.json(MessageResponse("Error found"))
     }
-})
+})// Get room not in use in 1 day and slot
 
-router.get('/roomUseSlot', async (req, res) => { // Get room in use in 1 day and 1 slot specifically
+router.get('/roomUseSlot', async (req, res) => {
     const { day, timeSlotId } = req.body
     const roomIdInUse = []
     const roomIdUseInSLot = []
@@ -192,7 +154,7 @@ router.get('/roomUseSlot', async (req, res) => { // Get room in use in 1 day and
         console.log(error);
         res.json(MessageResponse("Error found"))
     }
-})
+})// Get room in use in 1 day and 1 slot specifically
 
 export async function randomRoom() {
     let roomList = await Room.findAll()

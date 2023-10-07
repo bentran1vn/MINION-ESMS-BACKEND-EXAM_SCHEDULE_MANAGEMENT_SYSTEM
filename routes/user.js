@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import Jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 import { DataResponse, ErrorResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
 
@@ -29,35 +30,25 @@ router.post('/', async (req, res) => {
     res.json(DataResponse("check"))
 })
 
-router.get('/getById', async (req, res) => { // Get User or Users by Id 
-    const id = req.body.id.split(",")
+router.get('/getByString', async (req, res) => {
+    const string = req.body.string
 
     const users = await User.findAll({
         where: {
-            id: {
-                [Op.or]: id
+            [Op.or]: {
+                name: {
+                    [Op.like]: '%' + string + '%'
+                },
+                email: {
+                    [Op.like]: '%' + string + '%'
+                }
             }
         }
     })
-
     res.json(DataResponse(users))
-})
+})// Get User or Users by name 
 
-router.get('/getByName', async (req, res) => { // Get User or Users by name 
-    const name = req.body.name
-
-    const users = await User.findAll({
-        where: {
-            name: {
-                [Op.like]: '%' + name + '%'
-            }
-        }
-    })
-    console.log(users);
-    res.json(DataResponse(users))
-})
-
-router.delete('/', async (req, res) => { // Delete User by email
+router.delete('/', async (req, res) => {
     const email = req.body.email
 
     try {
@@ -75,7 +66,7 @@ router.delete('/', async (req, res) => { // Delete User by email
         console.log(error)
         res.json(MessageResponse('Error found'))
     }
-})
+})// Delete User by email
 
 router.get('/logout', (req, res) => {
     res.clearCookie('token')

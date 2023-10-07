@@ -5,7 +5,7 @@ import ExamType from '../models/ExamType.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const { type, block, des } = req.body;
 
     try {
