@@ -1,20 +1,20 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import ExamRoom from '../models/ExamRoom.js'
+import Course from '../models/Course.js'
 import Student from '../models/Student.js'
-import StudentExam from '../models/StudentExam.js'
+import StudentCourse from '../models/StudentCourse.js'
 
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const eRId = parseInt(req.body.eRId);
+    const courId = parseInt(req.body.courId);
     const stuId = parseInt(req.body.stuId);
 
     try {
-        const examRoom = await ExamRoom.findOne({
+        const course = await Course.findOne({
             where: {
-                id: eRId
+                id: courId
             }
         })
         const student = await Student.findOne({
@@ -22,19 +22,17 @@ router.post('/', async (req, res) => {
                 id: stuId
             }
         })
-        if (!examRoom || !student) {
+        if (!course || !student) {
             res.json(NotFoundResponse());
             return;
         } else {
-            const studentExam = await StudentExam.create({
-                eRId: eRId,
+            const studentCourse = await StudentCourse.create({
+                courId: courId,
                 stuId: stuId
             })
-            console.log(studentExam);
-            res.json(DataResponse(studentExam))
+            console.log(studentCourse);
+            res.json(DataResponse(studentCourse))
         }
-
-
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());

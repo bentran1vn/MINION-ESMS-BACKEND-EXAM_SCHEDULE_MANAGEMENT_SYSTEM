@@ -17,7 +17,7 @@ import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const { userId, uniId, semester, major } = req.body;
 
     try {
