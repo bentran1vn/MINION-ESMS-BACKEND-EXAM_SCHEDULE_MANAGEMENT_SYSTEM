@@ -5,7 +5,7 @@ import Semester from '../models/Semester.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.year;
 
@@ -28,9 +28,9 @@ export async function createNewSemester() {
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let season
-    if(month >= 1 && month <= 4) season = "SPRING"
-    if(month >= 5 && month <= 8) season = "SUMMER"
-    if(month >= 9 && month <= 12) season = "FALL"
+    if (month >= 1 && month <= 4) season = "SPRING"
+    if (month >= 5 && month <= 8) season = "SUMMER"
+    if (month >= 9 && month <= 12) season = "FALL"
     try {
         const semester = await Semester.create({
             season: season,

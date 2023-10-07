@@ -89,6 +89,40 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
     }
 })
 
+router.get('/', async (req, res) => {
+    const detailExamPhase = []
+    function insertExamPhase(ss, y, t, bl, sd, ed) {
+        const EPDetail = {
+            sesson: ss, year: y, type: t, block: bl, SDay: sd, EDay: ed
+        }
+        detailExamPhase.push(EPDetail)
+    }
+    try {
+        const examPhases = await ExamPhase.findAll()
+
+        for (let i = 0; i < examPhases.length; i++) {
+            const semester = await Semester.findOne({
+                where: {
+                    id: examPhases[i].semId
+                }
+            })
+
+            const examType = await ExamType.findOne({
+                where: {
+                    id: examPhases[i].eTId
+                }
+            })
+
+            if (semester && examType) {
+                insertExamPhase(semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(MessageResponse('Error found'))
+    }
+    res.json(DataResponse(detailExamPhase))
+})
 export async function createExamPhases(course, semesterId) {
     try {
         const date = new Date()
