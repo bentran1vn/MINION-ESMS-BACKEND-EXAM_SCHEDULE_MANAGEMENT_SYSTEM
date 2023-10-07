@@ -30,6 +30,7 @@ import authenticateRouter from './routes/authenticate.js'
 import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
 import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
+import studentCourseRouter from './routes/studentCourse.js'
 
 
 // ===== Config =====
@@ -77,6 +78,7 @@ server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
+server.use('/studentCourses', studentCourseRouter)
 
 server.listen(PORT, () => {
     console.log(`Server is listening at PORT=${PORT}`)

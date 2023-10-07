@@ -6,7 +6,7 @@ import { requireRole } from '../middlewares/auth.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const { code, name, semesterNo, fe, pe } = req.body;
 
     try {
@@ -26,10 +26,10 @@ router.post('/create', async (req, res) => {
     }
 })
 
-export async function subjectById(id){
+export async function subjectById(id) {
     const subject = await Subject.findOne({
-        where : {
-            id : id
+        where: {
+            id: id
         }
     })
     return subject
