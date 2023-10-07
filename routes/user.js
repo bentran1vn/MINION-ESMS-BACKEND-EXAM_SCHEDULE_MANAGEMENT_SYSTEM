@@ -5,6 +5,47 @@ import Jwt from "jsonwebtoken";
 import { DataResponse, ErrorResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    Users:
+ *       type: object
+ *       required:
+ *          - email
+ *          - name
+ *          - role
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          email:
+ *              type: string
+ *              description: Describe User Email
+ *          name:
+ *              type: string
+ *              description: Describe User Name
+ *          role:
+ *              type: string
+ *              description: Describe User Role
+ */
+
+/**
+ * @swagger
+ * /users :
+ *    get :
+ *      summary : Return the list of all the users
+ *      parameters:
+ *          
+ *      respones :
+ *          200 :
+ *              descriptions: The list of the users
+ *              content: 
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items: '#/components/schemas/Users'
+ */
 const router = express.Router()
 
 router.get('/', async (req, res) => {

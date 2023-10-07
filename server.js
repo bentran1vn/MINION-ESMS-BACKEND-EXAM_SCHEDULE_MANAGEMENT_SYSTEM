@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import passport from 'passport'
 import { Strategy as GoogleStrategy, Strategy } from 'passport-google-oauth2'
+import swaggerUI from "swagger-ui-express";
+import swaggerJsDoc from "swagger-jsdoc"
 
 // ===== Import routes ========
 import './database/database.js'
@@ -30,7 +32,6 @@ import authenticateRouter from './routes/authenticate.js'
 import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
 import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
-
 
 // ===== Config =====
 const server = express()
@@ -77,6 +78,26 @@ server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
+
+const options = {
+    definition : {
+        openapi : "3.0.0",
+        info: {
+            title : "Library API",
+            version : "1.0.0",
+            description: "ESMS Express Library API"
+        },
+        servers: [
+            {
+                url: process.env.SERVER_URL
+            },
+        ],
+    },
+    apis: ["./routes/*.js"],
+};
+
+const specs = swaggerJsDoc(options)
+server.use("/", swaggerUI.serve, swaggerUI.setup(specs))
 
 server.listen(PORT, () => {
     console.log(`Server is listening at PORT=${PORT}`)

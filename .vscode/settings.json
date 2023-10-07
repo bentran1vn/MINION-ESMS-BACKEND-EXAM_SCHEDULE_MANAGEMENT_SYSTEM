@@ -2,5 +2,7 @@
     "appService.zipIgnorePattern": [
         "node_modules{,/**}",
         ".vscode{,/**}"
-    ]
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/6297cddb-332c-46ac-af73-8c1d27f62f29/resourceGroups/minions/providers/Microsoft.Web/sites/minionesms",
+    "appService.deploySubpath": "."
 }

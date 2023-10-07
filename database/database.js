@@ -3,7 +3,7 @@ import Sequelize from 'sequelize'
 const sequelize = new Sequelize(process.env.MYSQL_DB, process.env.MYSQL_USERNAME, process.env.MYSQL_PASSWORD, {
     host: process.env.MYSQL_HOST,
     dialect: 'mysql',
-    post: process.env.MYSQL_PORT,
+    port: process.env.MYSQL_PORT,
     logging: false,
     pool: {
       max: 100,
