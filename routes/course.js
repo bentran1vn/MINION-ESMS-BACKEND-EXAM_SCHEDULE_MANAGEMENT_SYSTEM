@@ -4,10 +4,11 @@ import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import ExamType from '../models/ExamType.js'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const subId = parseInt(req.body.subId);
     const numOfStu = parseInt(req.body.numOfStu);
 
@@ -25,7 +26,7 @@ router.post('/create', async (req, res) => {
                 subId: subId,
                 numOfStu: numOfStu
             })
-            res.json(DataResponse(course))
+            res.json(MessageResponse("Create Success !"));
         }
     } catch (err) {
         console.log(err)
@@ -33,7 +34,7 @@ router.post('/create', async (req, res) => {
     }
 })
 
-export async function countCourse(){
+export async function countCourse() {
 
     const courses = await Course.findAll();
     let FE = 0
@@ -57,7 +58,7 @@ export async function countCourse(){
     const subjects = await Promise.all(subjectPromises);
 
     subjects.forEach(subject => {
-        if(subject.dataValues.code.slice(-1) != 'c'){
+        if (subject.dataValues.code.slice(-1) != 'c') {
             if (subject.dataValues.fe) {
                 FE = FE + 1;
             }
@@ -74,13 +75,13 @@ export async function countCourse(){
         }
     });
 
-    return {numFE : FE, numPE : PE, numFEc : FEc, numPEc : PEc}
+    return { numFE: FE, numPE: PE, numFEc: FEc, numPEc: PEc }
 }
 
-export async function courseByPhase(examPhase){
+export async function courseByPhase(examPhase) {
 
     const course = await Course.findAll()
-    
+
     let subList = []
 
     for (const key in course) {
@@ -94,7 +95,7 @@ export async function courseByPhase(examPhase){
     })//Lấy ra các Subject với SubID tương ứng
 
     const examType = await ExamType.findOne({
-        where : {
+        where: {
             id: examPhase.eTId
         }
     })//Lấy ra Loại Examtype của ExamPhase tương ứng
@@ -102,14 +103,14 @@ export async function courseByPhase(examPhase){
     let listSubByPhase = []
 
     for (const key in subjectList) {
-        if(subjectList[key][examType.type.toLowerCase()] > 0) {
+        if (subjectList[key][examType.type.toLowerCase()] > 0) {
             listSubByPhase.push(subjectList[key].id)
         };
     }//Lấy ra các Subject tương ứng với ExamType của Examphase
 
 
     let courseByPhase = await Course.findAll({
-        where:{
+        where: {
             subId: listSubByPhase
         }
     })//Lấy ra các Course tương ứng với SubId, những thằng mà có cùng loại với ExamPhase
@@ -117,74 +118,75 @@ export async function courseByPhase(examPhase){
     return courseByPhase
 
 }
-
-router.get('/getAll', requireRole("staff"), async (req, res) => {
+//requireRole("staff")
+router.get('/', requireRole("staff"),async (req, res) => {
     try {
-        const course = await Course.findAll()
-        if(!course){
-            res.json(NotFoundResponse())
-        }else{
-            res.json(DataResponse(course))
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse())
-    }
-})
-
-router.post('/create', async (req, res) => {
-    const {subId, numOfStu} = req.body;
-
-    try{
-        const subject = await Subject.findOne({
-            where: {
-                id: parseInt(subId)
+        const result = await Course.findAll({
+            include: [{
+                model: Subject,
+                attributes: ['code', 'name', 'semesterNo', 'fe', 'pe']
+            }],
+            attributes: ['id', 'subId']
+        });
+        let listCourse = [];
+        let i = 1;
+        result.forEach(course => {     
+            const subject = course.subject;
+            const sub = {
+                "No " : i++,
+                "Course Id": course.dataValues.id,
+                "Subject Id": course.dataValues.subId,
+                "Subject Code" : subject.code,
+                "Subject Name" : subject.name,
+                "Semester " : subject.semesterNo,
+                "FE " : subject.fe,
+                "PE " : subject.pe
             }
-        })
-        if(!subject){
-            res.json(NotFoundResponse());
+            listCourse.push(sub);
+        });
+        console.log(listCourse);
+        if(listCourse.length == 0){
+            res.json(NotFoundResponse);
         }else{
-            const course = await Course.create({
-                subId: parseInt(subId),
-                numOfStu: parseInt(numOfStu)
-            })
-            console.log(course);
-            res.json(DataResponse(course))
+            res.json(DataResponse(listCourse));
         }
-    }catch(error){
-        console.log(error);
-        res.json(InternalErrResponse())
+        
+    } catch (error) {
+        console.error(error);
+        res.json(InternalErrResponse());
+        return;
     }
 })
 
-router.delete('/delete', requireRole("staff"), async (req, res) => {
+
+//requireRole("staff"),
+router.delete('/', requireRole("staff"), async (req, res) => {
     const id = parseInt(req.body.id)
     try {
-        const rowAffected = await Course.destroy({
-            where: {
-                id: id
+        if(id !== undefined && id !== null){
+            const rowAffected = await Course.destroy({
+                where: {
+                    id: id
+                }
+            })
+            if (rowAffected === 0) {
+                res.json(NotFoundResponse());
+                return;
+            } else {
+                res.json(MessageResponse('Course deleted'));
+                return;
             }
-        })
-        if (rowAffected === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('Course deleted'));
-        }
-    } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse())
-    }
-})
-
-router.delete('/deleteAll', requireRole("staff"), async (req, res) => {
-    try {
-        const rowAffected = await Course.destroy({
-            where: {}
-        });
-        if (rowAffected === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('All courses deleted'));
+        }else{
+            const rowAffected = await Course.destroy({
+                where: {}
+            });
+            if (rowAffected === 0) {
+                res.json(NotFoundResponse());
+                return;
+            } else {
+                res.json(MessageResponse('All courses deleted'));
+                return;
+            }
         }
     } catch (error) {
         console.log(error)
@@ -193,12 +195,14 @@ router.delete('/deleteAll', requireRole("staff"), async (req, res) => {
 })
 
 
-router.put('/update', requireRole("staff"), async (req, res) => {
+router.put('/', requireRole("staff"), async (req, res) => {
     const courseData = req.body
     const id = parseInt(req.body.id)
 
     try {
-        const rowAffected = await Course.update(courseData, {
+        const rowAffected = await Course.update({
+            numOfStu: parseInt(courseData.numOfStu)
+        }, {
             where: {
                 id: id,
             }

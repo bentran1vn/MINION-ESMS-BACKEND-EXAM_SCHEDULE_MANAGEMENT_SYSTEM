@@ -10,7 +10,7 @@ const Subject = sequelize.define(tableName, {
         allowNull: false,
     },
     name: {
-        type: DataTypes.STRING(30),
+        type: DataTypes.STRING(60),
         allowNull: false,
     },
     semesterNo: {

@@ -6,11 +6,10 @@ import { Op } from 'sequelize'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const { startTime, endTime } = req.body;
     // const startTime = req.body.startTime
     // const endTime = req.body.endTime
-    console.log(startTime, endTime)
 
     try {
         const timeSlot = await TimeSlot.create({
@@ -18,7 +17,7 @@ router.post('/create', async (req, res) => {
             endTime: endTime
         })
         console.log(timeSlot);
-        res.json(DataResponse(timeSlot))
+        res.json(MessageResponse("Create Success !"))
 
     } catch (err) {
         console.log(err)
@@ -26,106 +25,71 @@ router.post('/create', async (req, res) => {
     }
 })
 
-router.get('/getAll', async (req, res) => {
-    //get All timeSlot
-    try {
-        const timeSlots = await TimeSlot.findAll();
-        if (!timeSlots) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(DataResponse(timeSlots));
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse());
-    }
-})
-
-router.get('/getMultipleId', async (req, res) => {
-    //tìm theo id khi người dùng nhập dạng "id" = "1,2,3,4,5,6,7"
-    const id = req.body.id.split(',');
-    console.log(id);
-    try {
-        const timeSlots = await TimeSlot.findAll({
-            where: {
-                id: {
-                    [Op.or]: id
-                }
-            }
-        }
-        );
-        if (!timeSlots) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(DataResponse(timeSlots));
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse());
-    }
-})
-
 router.get('/', async (req, res) => {
-    // get all timeslot like % startTime
-    // const id = parseInt(req.body.id);
-    const startTime = req.body.startTime;
-
-    try {
-        const timeSlots = await TimeSlot.findAll({
-            where: {
-                startTime: {
-                    [Op.like]: '%' + startTime
-                }
-            }
-        })
-        if (!timeSlots) {
-            res.json(NotFoundResponse())
-        } else {
-            res.json(DataResponse(timeSlots));
-        }
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
-    }
-})
-
-router.delete('/delete', async (req, res) => {
-    //delete timeSlot
+    //get All timeSlot nếu không nhập gì
+    //get 1 theo id nếu có
+    //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime
     const id = parseInt(req.body.id);
     try {
-        const rowAffected = await TimeSlot.destroy({
-            where: {
-                id: id
+        if (id !== undefined && id !== null) {
+            const timeSlot = await TimeSlot.findOne({
+                where: {
+                    id: id
+                }
+            })
+            if (timeSlot) {
+                res.json(DataResponse(timeSlot));
+                return;
+            } else {
+                res.json(MessageResponse("This id doesn't belong to any time slot"));
+                return;
             }
-        })
-        if (rowAffected === 0) {
-            res.json(NotFoundResponse());
         } else {
-            res.json(MessageResponse('TimeSlot deleted'));
+            const timeSlots = await TimeSlot.findAll();
+            if (!timeSlots) {
+                res.json(NotFoundResponse());
+            } else {
+                res.json(DataResponse(timeSlots));
+            }
         }
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse())
+        console.log(error);
+        res.json(InternalErrResponse());
     }
 })
 
-router.delete('/deleteAll', async (req, res) => {
-    //delete all timeslot
+router.delete('/', requireRole("admin"), async (req, res) => {
+    //delete timeSlot
+    //nếu id có thì xóa 1 không thì xóa hết
+    //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
+    const id = parseInt(req.body.id);
     try {
-        const rowAffected = await TimeSlot.destroy({
-            where: {}
-        });
-        if (rowAffected === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('All timeSlots deleted'));
+        if(id !== undefined && id !== null){
+            const rowAffected = await TimeSlot.destroy({
+                where: {
+                    id: id
+                }
+            })
+            if (rowAffected === 0) {
+                res.json(NotFoundResponse());
+            } else {
+                res.json(MessageResponse('Delete Success !'));
+            }
+        }else{
+            const rowAffected = await TimeSlot.destroy({
+                where: {}
+            })
+            if (rowAffected === 0) {
+                res.json(NotFoundResponse());
+            } else {
+                res.json(MessageResponse('Delete Success !'));
+            }
         }
     } catch (error) {
         console.log(error)
         res.json(InternalErrResponse())
     }
 })
-
 
 router.put('/', async (req, res) => {
     //update time slot theo id
@@ -141,7 +105,7 @@ router.put('/', async (req, res) => {
         if (rowAffected[0] === 0) {
             res.json(NotFoundResponse());
         } else {
-            res.json(MessageResponse('Time slot updated'))
+            res.json(MessageResponse('Update Success !'))
         }
 
     } catch (err) {
