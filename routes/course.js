@@ -80,7 +80,11 @@ export async function countCourse() {
 
 export async function courseByPhase(examPhase) {
 
-    const course = await Course.findAll()
+    const course = await Course.findAll({
+        order: [
+            ['numOfStu', 'ASC']
+        ]
+    })
 
     let subList = []
 
