@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import Jwt from "jsonwebtoken";
 import { Op } from "sequelize";
-import { DataResponse, ErrorResponse, NotFoundResponse } from "../common/reponses.js";
+import { DataResponse, ErrorResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
 
 /**
@@ -29,24 +29,134 @@ import { requireRole } from "../middlewares/auth.js";
  *          role:
  *              type: string
  *              description: Describe User Role
+ *       example:
+ *           id: 1
+ *           email: tan182205@gmail.com
+ *           name: Tran Dinh Thien Tan
+ *           role: Admin
  */
 
 /**
  * @swagger
- * /users :
- *    get :
- *      summary : Return the list of all the users
- *      parameters:
- *          
- *      respones :
- *          200 :
- *              descriptions: The list of the users
- *              content: 
- *                  application/json:
- *                      schema:
- *                          type: array
- *                          items: '#/components/schemas/Users'
+ * tags:
+ *    name: Users
+ *    description: The users managing API
  */
+
+/**
+ * @swagger
+ * /users/ :
+ *   get :
+ *     summary : Return the list of all the users with paging .
+ *     tags: [Users]
+ *     parameters:
+ *        - in: query
+ *          name: page_no
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The page number Client want to get.
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *          description: The users limitation in a page.
+ *     responses :
+ *       200 :
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Users'
+ */
+
+/**
+ * @swagger
+ * /users/{searchValue} :
+ *   get :
+ *     summary : Return the users with specific search value .
+ *     tags: [Users]
+ *     parameters:
+ *        - in: path
+ *          name: searchValue
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The value you want to search. It can be a name or email.
+ *     responses :
+ *       200 :
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Users'
+ */
+
+/**
+ * @swagger
+ * /users/logout:
+ *   get:
+ *     summary: Logout.
+ *     tags: [Users]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Create a new user.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: tan1822@gmail.com
+ *               name:
+ *                 type: string
+ *                 example: ahihi
+ *           required:
+ *             - email
+ *             - name
+ *     responses:
+ *       '200':
+ *         description: Create Successfully!
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   delete:
+ *     summary: Delete a user.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: tan1822@gmail.com
+ *           required:
+ *             - email
+ *     responses:
+ *       '200':
+ *         description: Delete Successfully!
+ */
+
 const router = express.Router()
 
 router.get('/', async (req, res) => {
@@ -68,11 +178,11 @@ router.post('/', async (req, res) => {
             name: userData.name
         }
     )
-    res.json(DataResponse("check"))
+    res.json(MessageResponse("Create Successfully !"))
 })
 
-router.get('/getByString', async (req, res) => {
-    const string = req.body.string
+router.get('/:searchValue', async (req, res) => {
+    const string = req.params.searchValue
 
     const users = await User.findAll({
         where: {
