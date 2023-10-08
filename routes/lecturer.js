@@ -92,14 +92,14 @@ router.get('/scheduled', async (req, res) => {
                 const examSlot = schedule.subInSlot.examSlot;
                 const timeSlot = schedule.subInSlot.examSlot.timeSlot;
                 const sche = {
-                    "No ": i++,
-                    "Subject Code": subject.code,
-                    "Subject Name": subject.name,
-                    "Start Time ": timeSlot.startTime || "no data",
-                    "End Time ": timeSlot.endTime || "no data",
-                    "Day ": examSlot.day || "no data",
-                    "Room No ": room.roomNum,
-                    "Location ": room.location
+                    "no": i++,
+                    "subCode": subject.code,
+                    "subName": subject.name,
+                    "sTime": timeSlot.startTime || "no data",
+                    "eTime": timeSlot.endTime || "no data",
+                    "day": examSlot.day || "no data",
+                    "roomNum": room.roomNum,
+                    "location": room.location
                 }
                 listSchedule.push(sche);
             });
