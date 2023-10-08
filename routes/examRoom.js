@@ -251,6 +251,7 @@ router.get('/', async (req, res) => {
             endTime: "",
             day: "",
             subCode: "",
+            subName: "",
             roomCode: "",
             roomLocation: "",
             lecturerCode: "",
@@ -288,6 +289,7 @@ router.get('/', async (req, res) => {
                 }
             })
             item.subCode = subject.code
+            item.subName = subject.name
             const examSlot = await ExamSlot.findOne({
                 where : {
                     id : subInSlot.exSlId
