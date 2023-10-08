@@ -30,6 +30,12 @@ router.get('/', async (req, res) => {
     //get 1 theo id nếu có
     //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime
     const id = parseInt(req.body.id);
+    let count = 1;
+    const timeSlotItem = {
+        id: "",
+        timeSlot: ""
+    }
+    const timeSlotList = []
     try {
         if (id !== undefined && id !== null) {
             const timeSlot = await TimeSlot.findOne({
@@ -39,7 +45,10 @@ router.get('/', async (req, res) => {
             })
             if (timeSlot) {
                 res.json(DataResponse(timeSlot));
-                return;
+                timeSlotItem.id = 1
+                timeSlotItem.timeSlot = timeSlot
+                timeSlotList.push(timeSlotItem)
+                res.json(DataResponse(timeSlotList))
             } else {
                 res.json(MessageResponse("This id doesn't belong to any time slot"));
                 return;
@@ -49,7 +58,15 @@ router.get('/', async (req, res) => {
             if (!timeSlots) {
                 res.json(NotFoundResponse());
             } else {
-                res.json(DataResponse(timeSlots));
+                for (const key in timeSlots) {
+                    if (Object.hasOwnProperty.call(timeSlots, key)) {
+                        const element = timeSlots[key];
+                        timeSlotItem.id = count++
+                        timeSlotItem.timeSlot = element
+                        timeSlotList.push(timeSlotItem)
+                    }
+                }
+                res.json(DataResponse(timeSlotList))
             }
         }
     } catch (error) {
@@ -64,7 +81,7 @@ router.delete('/', requireRole("admin"), async (req, res) => {
     //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
     const id = parseInt(req.body.id);
     try {
-        if(id !== undefined && id !== null){
+        if (id !== undefined && id !== null) {
             const rowAffected = await TimeSlot.destroy({
                 where: {
                     id: id
@@ -75,7 +92,7 @@ router.delete('/', requireRole("admin"), async (req, res) => {
             } else {
                 res.json(MessageResponse('Delete Success !'));
             }
-        }else{
+        } else {
             const rowAffected = await TimeSlot.destroy({
                 where: {}
             })
