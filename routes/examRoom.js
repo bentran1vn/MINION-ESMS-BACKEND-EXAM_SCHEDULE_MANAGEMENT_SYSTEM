@@ -239,6 +239,7 @@ router.put('/delRoom', async (req, res) => {
     }
 })
 
+//get examList By Staff
 router.get('/', async (req, res) => {
     const examRoomList = await ExamRoom.findAll();
     let examList = [];
@@ -260,14 +261,16 @@ router.get('/', async (req, res) => {
                     id : element.roomId
                 }
             })
-            item[roomCode] = room.roomNum
-            item[roomLocation] = room.location
-            const lecturer = await Lecturer.findOne({
-                where : {
-                    id : element.lecturerId
-                }
-            })
-            item[lecturerCode] = lecturer.lecId
+            item.roomCode = room.roomNum
+            item.roomLocation = room.location
+            if(element.lecturerId){
+                const lecturer = await Lecturer.findOne({
+                    where : {
+                        id : element.lecturerId
+                    }
+                })
+                item.lecturerCode = lecturer.lecId
+            }
             const subInSlot = await SubInSlot.findOne({
                 where : {
                     id : element.sSId
@@ -283,22 +286,21 @@ router.get('/', async (req, res) => {
                     id : course.subId
                 }
             })
-            item[subCode] = subject.code
+            item.subCode = subject.code
             const examSlot = await ExamSlot.findOne({
                 where : {
                     id : subInSlot.exSlId
                 }
             })
-            item[day] = examSlot.day
+            item.day = examSlot.day
             const timeSlot = await TimeSlot.findOne({
                 where : {
                     id : examSlot.timeSlotId
                 }
             })
-            item[startTime] = timeSlot.startTime
-            item[endTime] = timeSlot.endTime
+            item.startTime = timeSlot.startTime
+            item.endTime = timeSlot.endTime
         }
-        examList.push(item)
     }
     console.log(examList);
     if(examList.length === 0){
