@@ -58,7 +58,7 @@ router.put('/', async (req, res) => { // Update ExamPhase
                 id: id,
             }
         })
-        if (check[0] === 0) {
+        if (check[0] === 1) {
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
