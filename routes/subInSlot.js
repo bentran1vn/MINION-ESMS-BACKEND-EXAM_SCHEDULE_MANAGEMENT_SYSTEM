@@ -47,7 +47,7 @@ router.post('/create', async (req, res) => {
 //bảng subInSlot này chứa courseId
 //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
 //id của subinslotid
-router.delete('/subId', async (req, res) => {
+router.delete('/', async (req, res) => {
     const subId = parseInt(req.body.subId); 
 
     try {
