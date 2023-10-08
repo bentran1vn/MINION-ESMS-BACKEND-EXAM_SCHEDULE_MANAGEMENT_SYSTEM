@@ -243,13 +243,15 @@ router.put('/delRoom', async (req, res) => {
 router.get('/', async (req, res) => {
     const examRoomList = await ExamRoom.findAll();
     let examList = [];
-    console.log("test: " + examRoomList.length);
+    let i = 1
     for (const key in examRoomList) {
         let item = {
+            no: "",
             startTime: "",
             endTime: "",
             day: "",
             subCode: "",
+            subName: "",
             roomCode: "",
             roomLocation: "",
             lecturerCode: "",
@@ -287,6 +289,7 @@ router.get('/', async (req, res) => {
                 }
             })
             item.subCode = subject.code
+            item.subName = subject.name
             const examSlot = await ExamSlot.findOne({
                 where : {
                     id : subInSlot.exSlId
@@ -300,6 +303,7 @@ router.get('/', async (req, res) => {
             })
             item.startTime = timeSlot.startTime
             item.endTime = timeSlot.endTime
+            item.id = i++
         }
     }
     console.log(examList);
