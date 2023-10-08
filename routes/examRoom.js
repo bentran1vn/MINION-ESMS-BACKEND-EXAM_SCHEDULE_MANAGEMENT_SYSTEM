@@ -239,4 +239,74 @@ router.put('/delRoom', async (req, res) => {
     }
 })
 
+router.get('/', async (req, res) => {
+    const examRoomList = await ExamRoom.findAll();
+    let examList = [];
+    console.log("test: " + examRoomList.length);
+    for (const key in examRoomList) {
+        let item = {
+            startTime: "",
+            endTime: "",
+            day: "",
+            subCode: "",
+            roomCode: "",
+            roomLocation: "",
+            lecturerCode: "",
+        }
+        if (Object.hasOwnProperty.call(examRoomList, key)) {
+            const element = examRoomList[key];
+            const room = await Room.findOne({
+                where : {
+                    id : element.roomId
+                }
+            })
+            item[roomCode] = room.roomNum
+            item[roomLocation] = room.location
+            const lecturer = await Lecturer.findOne({
+                where : {
+                    id : element.lecturerId
+                }
+            })
+            item[lecturerCode] = lecturer.lecId
+            const subInSlot = await SubInSlot.findOne({
+                where : {
+                    id : element.sSId
+                }
+            })
+            const course = await Course.findOne({
+                where : {
+                    id : subInSlot.courId
+                }
+            })
+            const subject = await Subject.findOne({
+                where : {
+                    id : course.subId
+                }
+            })
+            item[subCode] = subject.code
+            const examSlot = await ExamSlot.findOne({
+                where : {
+                    id : subInSlot.exSlId
+                }
+            })
+            item[day] = examSlot.day
+            const timeSlot = await TimeSlot.findOne({
+                where : {
+                    id : examSlot.timeSlotId
+                }
+            })
+            item[startTime] = timeSlot.startTime
+            item[endTime] = timeSlot.endTime
+        }
+        examList.push(item)
+    }
+    console.log(examList);
+    if(examList.length === 0){
+        res.json(InternalErrResponse())
+    } else {
+        res.json(DataResponse(examList))
+    }
+    
+})
+
 export default router
