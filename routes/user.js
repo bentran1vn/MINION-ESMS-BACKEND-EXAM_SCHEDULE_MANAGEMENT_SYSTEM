@@ -159,7 +159,7 @@ import { requireRole } from "../middlewares/auth.js";
 
 const router = express.Router()
 
-router.get('/', async (req, res) => {
+router.get('/', requireRole('admin'), async (req, res) => {
     const pageNo = parseInt(req.query.page_no) || 1
     const limit = parseInt(req.query.limit) || 20
 
@@ -170,7 +170,7 @@ router.get('/', async (req, res) => {
     res.json(DataResponse(users))
 })
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('admin'), async (req, res) => {
     const userData = req.body
     await User.create(
         {
@@ -181,7 +181,7 @@ router.post('/', async (req, res) => {
     res.json(MessageResponse("Create Successfully !"))
 })
 
-router.get('/:searchValue', async (req, res) => {
+router.get('/:searchValue', requireRole('staff'), async (req, res) => {
     const string = req.params.searchValue
 
     const users = await User.findAll({
@@ -199,7 +199,7 @@ router.get('/:searchValue', async (req, res) => {
     res.json(DataResponse(users))
 })// Get User or Users by name 
 
-router.delete('/', async (req, res) => {
+router.delete('/', requireRole('admin'), async (req, res) => {
     const email = req.body.email
 
     try {
@@ -219,7 +219,7 @@ router.delete('/', async (req, res) => {
     }
 })// Delete User by email
 
-router.get('/logout', (req, res) => {
+router.get('/logout', requireRole('lecturer'), (req, res) => {
     res.clearCookie('token')
     res.json(DataResponse())
 })
