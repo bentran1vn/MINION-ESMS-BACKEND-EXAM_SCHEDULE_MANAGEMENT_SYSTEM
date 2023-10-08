@@ -3,7 +3,7 @@ import { UnauthorizedResponse } from "../common/reponses.js";
 
 
 const roles = {
-    lecture: 0,
+    lecturer: 0,
     staff: 1,
     admin: 2
 }
