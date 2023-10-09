@@ -9,6 +9,162 @@ import Subject from '../models/Subject.js'
 import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    ExamPhases:
+ *       type: object
+ *       required:
+ *          - semId
+ *          - eTId
+ *          - startDay
+ *          - endDay
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          semId:
+ *              type: integer
+ *              description: Describe semester Id, reference to table Semester
+ *          eTId:
+ *              type: integer
+ *              description: Describe Exam Type Id, reference to table ExamType
+ *          startDay:
+ *              type: DATEONLY
+ *              description: Describe the exam start day
+ *          endDay:
+ *              type: DATEONLY
+ *              description: Describe the exam end day
+ *       example:
+ *           id: 1
+ *           semId: 1
+ *           eTId: 1
+ *           startDay: 2023-10-10
+ *           endDay: 2023-10-15
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: ExamPhases
+ *    description: The examPhases managing API
+ */
+
+/**
+ * @swagger
+ * /examPhases:
+ *   post:
+ *     summary: Create new exam phase.
+ *     tags: [ExamPhases]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               semId:
+ *                 type: int
+ *                 example: 1
+ *               eTId:
+ *                 type: int
+ *                 example: 1
+ *               startDay:
+ *                 type: DATEONLY
+ *                 example: 2023-10-10
+ *               endDay:
+ *                 type: DATEONLY
+ *                 example: 2023-10-15
+ *           required:
+ *             - semId
+ *             - eTId
+ *             - startDay
+ *             - endDay
+ *     responses:
+ *       '200':
+ *         description: Create Successfully!
+ */
+
+/**
+ * @swagger
+ * /examPhases:
+ *   put:
+ *     summary: Update exam phase.
+ *     tags: [ExamPhases]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: int
+ *                 example: 1
+ *               semId:
+ *                 type: int
+ *                 example: 1
+ *               eTId:
+ *                 type: int
+ *                 example: 1
+ *               startDay:
+ *                 type: DATEONLY
+ *                 example: 2023-10-10
+ *               endDay:
+ *                 type: DATEONLY
+ *                 example: 2023-10-15
+ *           required:
+ *             - id
+ *             - semId
+ *             - eTId
+ *             - startDay
+ *             - endDay
+ *     responses:
+ *       '200':
+ *         description: Create Successfully!
+ */
+
+/**
+ * @swagger
+ * /examPhases:
+ *   delete:
+ *     summary: Delete exam phase.
+ *     tags: [ExamPhases]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: int
+ *                 example: 1
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: Delete Successfully!
+ */
+
+/**
+ * @swagger
+ * /examPhases/ :
+ *   get :
+ *     summary : Return detail of all exam phase.
+ *     tags: [ExamPhases]
+ *     responses :
+ *       200 :
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Users'
+ */
+
 const router = express.Router()
 
 router.post('/', async (req, res) => {
@@ -123,6 +279,7 @@ router.get('/', async (req, res) => {
     }
     res.json(DataResponse(detailExamPhase))
 })
+
 export async function createExamPhases(course, semesterId) {
     try {
         const date = new Date()
