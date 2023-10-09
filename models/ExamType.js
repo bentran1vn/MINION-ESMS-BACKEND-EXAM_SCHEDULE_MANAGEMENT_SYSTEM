@@ -16,8 +16,8 @@ const ExamType = sequelize.define( tableName , {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    //des = 0 coursera
-    //des = 1 normal
+    //des = 0 normal
+    //des = 1 coursera
 });
 
 

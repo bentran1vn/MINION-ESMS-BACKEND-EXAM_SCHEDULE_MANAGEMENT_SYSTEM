@@ -87,8 +87,6 @@ router.get('/', async (req, res) => {
             timeSlotId: slotList[0].id
         })//Khởi tạo ExamSlot mặc định
 
-        
-
         for (let i = 0; i < course.length; i++) { //Duyệt danh sách Môn Thi
 
             /*TestFile-NewCouse
@@ -108,7 +106,7 @@ router.get('/', async (req, res) => {
                     examSlot = await ExamSlot.create({
                         ePId: examPhaseList[key].id,
                         day: daySlot,
-                        timeSlotId: slot
+                        timeSlotId: slot,
                     })
                 }// Cộng thêm 1 Slot mỗi khi không đủ phòng thi
 
@@ -122,7 +120,7 @@ router.get('/', async (req, res) => {
                         examSlot = await ExamSlot.create({
                             ePId: examPhaseList[key].id,
                             day: daySlot,
-                            timeSlotId: slot
+                            timeSlotId: slot,
                         })
 
                     }
@@ -187,7 +185,8 @@ router.get('/', async (req, res) => {
                     
                     await ExamRoom.create({
                         sSId: subjectInSlot.id,
-                        roomId: room.id
+                        roomId: room.id,
+                        des: examType.type
                     })
                     await RoomLogTime.create({
                         roomId: room.id,

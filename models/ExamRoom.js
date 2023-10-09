@@ -32,6 +32,10 @@ const ExamRoom = sequelize.define(tableName, {
             key: 'id'
         }
     },
+    des: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     ...SQLModel,
 });
 
