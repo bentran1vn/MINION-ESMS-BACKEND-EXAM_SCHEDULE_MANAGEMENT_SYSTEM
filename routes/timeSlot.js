@@ -29,26 +29,19 @@ router.get('/', async (req, res) => {
     //get All timeSlot nếu không nhập gì
     //get 1 theo id nếu có
     //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime
-    const id = parseInt(req.body.id);
-    let count = 1;
-    const timeSlotItem = {
-        id: "",
-        timeSlot: ""
-    }
+    const id = parseInt(req.body.id) || null;
+
     const timeSlotList = []
     try {
-        if (id !== undefined && id !== null) {
+        if (id != null) {
             const timeSlot = await TimeSlot.findOne({
                 where: {
                     id: id
                 }
             })
             if (timeSlot) {
-                res.json(DataResponse(timeSlot));
-                timeSlotItem.id = 1
-                timeSlotItem.timeSlot = timeSlot
-                timeSlotList.push(timeSlotItem)
-                res.json(DataResponse(timeSlotList))
+                res.json(DataResponse(timeSlot))
+                return;
             } else {
                 res.json(MessageResponse("This id doesn't belong to any time slot"));
                 return;
@@ -56,17 +49,19 @@ router.get('/', async (req, res) => {
         } else {
             const timeSlots = await TimeSlot.findAll();
             if (!timeSlots) {
-                res.json(NotFoundResponse());
+                res.json(MessageResponse("The time slot table has no data!"));
+                return;
             } else {
-                for (const key in timeSlots) {
-                    if (Object.hasOwnProperty.call(timeSlots, key)) {
-                        const element = timeSlots[key];
-                        timeSlotItem.id = count++
-                        timeSlotItem.timeSlot = element
-                        timeSlotList.push(timeSlotItem)
+                for (const key of timeSlots) {
+                    const time = {
+                        id: key.id,
+                        startTime: key.startTime,
+                        endTime: key.endTime
                     }
+                    timeSlotList.push(time);
                 }
                 res.json(DataResponse(timeSlotList))
+                return;
             }
         }
     } catch (error) {

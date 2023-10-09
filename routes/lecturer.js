@@ -11,6 +11,8 @@ import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
 import { Op } from 'sequelize'
+import Lecturer from '../models/Lecturer.js'
+import LecturerLogTime from '../models/LecturerLogTime.js'
 
 const router = express.Router()
 
@@ -44,8 +46,13 @@ router.post('/create', async (req, res) => {
     }
 })
 
+//PASS
 router.get('/scheduled', async (req, res) => {
     const id = parseInt(req.body.id);
+    if(!id){
+        res.json(MessageResponse("Lecturer id is required"));
+        return;
+    }
     try {
         const result = await ExamRoom.findAll({
             where: { lecturerId: id },
@@ -92,7 +99,6 @@ router.get('/scheduled', async (req, res) => {
                 const examSlot = schedule.subInSlot.examSlot;
                 const timeSlot = schedule.subInSlot.examSlot.timeSlot;
                 const sche = {
-                    no: i++,
                     subCode: subject.code,
                     subName: subject.name,
                     startTime: timeSlot.startTime,
@@ -116,9 +122,100 @@ router.get('/scheduled', async (req, res) => {
     }
 })
 
-router.get('/free', async (req, res) => {
-    const id = parseInt(req.body.id);
-    //list ra lịch rảnh của 1 giáo viên
+//tất cả những slot còn trống trong 1 ngày 1 giờ
+//PASS
+router.get('/availableSlot', async (req, res) => {
+    const lecturerId = parseInt(req.body.id);
+    if(!lecturerId){
+        res.json(MessageResponse("Lecturer id is required"));
+        return;
+    }
+    
+    let availableSlotList = [];
+    const slotNoLecturer = await ExamRoom.findAll({
+        where: {
+            lecturerId: null
+        }
+    });
+    if(!slotNoLecturer){
+        res.json(MessageResponse("All slot are scheduled!"));
+        return;
+    }
+    const slotAvailable = slotNoLecturer.map(examRoom => examRoom.dataValues);
+
+    for (const item of slotAvailable) {
+        const sSId = item.sSId;
+
+        const subjectInSlot = await SubInSlot.findOne({
+            where: {
+                id: sSId
+            }
+        })
+        const examSlot = await ExamSlot.findOne({
+            where: {
+                id: subjectInSlot.exSlId
+            }
+        })
+        const timeSlot = await TimeSlot.findOne({
+            where: {
+                id: examSlot.timeSlotId
+            }
+        })
+        const checkLecLogTime = await LecturerLogTime.findOne({
+            where: {
+                day: examSlot.day,
+                timeSlotId: timeSlot.id,
+                lecturerId: lecturerId
+            }
+        })
+        if (checkLecLogTime) {
+            const ob = {
+                day: examSlot.day,
+                startTime: timeSlot.startTime,
+                endTime: timeSlot.endTime,
+                status: true, //status = true là không được nhận lịch nữa, bận rồi
+            }
+            availableSlotList.push(ob);
+        } else {
+            const ob = {
+                day: examSlot.day,
+                startTime: timeSlot.startTime,
+                endTime: timeSlot.endTime,
+                status: false, //status = false là được nhận lịch nữa, rảnh
+            }
+            availableSlotList.push(ob);
+        }
+        
+    }
+    let result = [];
+    const counts = {};
+    // Duyệt qua danh sách slot available và đếm số lần xuất hiện của mỗi khung giờ khác nhau
+    availableSlotList.forEach(item => {
+        // Tạo một chuỗi duy nhất để đại diện cho mục
+        const key = JSON.stringify(item);
+        // Kiểm tra nếu đã có mục này trong counts, nếu chưa thì đặt giá trị mặc định là 0
+        if (!counts[key]) {
+            counts[key] = 0;
+        }
+        // Tăng số lần xuất hiện lên 1
+        counts[key]++;
+    });
+
+    // Hiển thị kết quả
+    for (const key in counts) {
+        const item = JSON.parse(key);
+        const kq = {
+            day: item.day,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            available: counts[key],
+            status: item.status
+        }
+        result.push(kq);
+    }
+    res.json(DataResponse(result));
+
 })
+
 export default router
 //add được
