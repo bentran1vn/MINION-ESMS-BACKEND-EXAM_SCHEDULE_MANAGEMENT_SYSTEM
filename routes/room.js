@@ -130,8 +130,8 @@ const router = express.Router()
  *               type: array
  *               items: 
  *                 $ref: '#/components/schemas/Rooms'
- *        '500':
- *          description: Internal Server Error!
+ *       '500':
+ *         description: Internal Server Error!
  */
 /**
  * @swagger
@@ -164,8 +164,8 @@ const router = express.Router()
  *               type: array
  *               items: 
  *                 $ref: '#/components/schemas/Rooms'
- *        '500':
- *          description: Internal Server Error!
+ *       '500':
+ *         description: Internal Server Error!
  */
 /**
  * @swagger
@@ -198,8 +198,8 @@ const router = express.Router()
  *               type: array
  *               items: 
  *                 $ref: '#/components/schemas/Rooms'
- *        '500':
- *          description: Internal Server Error!
+ *       '500':
+ *         description: Internal Server Error!
  */
 
 router.post('/', async (req, res) => {

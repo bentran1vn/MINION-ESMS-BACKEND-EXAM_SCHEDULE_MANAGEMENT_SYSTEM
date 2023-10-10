@@ -7,6 +7,100 @@ import ExamSlot from '../models/ExamSlot.js'
 
 const router = express.Router()
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    ExamSlots:
+ *       type: object
+ *       required:
+ *          - ePId
+ *          - timeSlotId
+ *          - day
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          ePId:
+ *              type: integer
+ *              description: Reference to ExamPhase id
+ *          timeSlotId:
+ *              type: integer
+ *              description: Reference to TimeSlot id
+ *          day:
+ *              type: DATEONLY
+ *              description: The exam day
+ *       example:
+ *           id: 1
+ *           ePId: 1
+ *           timeSlotId: 1
+ *           day: 2023-04-13
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: ExamSlots
+ *    description: The ExamSlots managing API
+ */
+/**
+ * @swagger
+ * /examSlots/:
+ *   post:
+ *     summary: Create a new ExamSlot
+ *     tags: [ExamSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ePId:
+ *                 type: integer
+ *                 example: 1, 2, 3
+ *               timeSlotId:
+ *                 type: integer
+ *                 example: 1, 2, 3
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-04-13
+ *           required:
+ *             - ePId
+ *             - timeSlotId
+ *             - day
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /examSlots/:
+ *   delete:
+ *     summary: Delete a ExamSlot
+ *     tags: [ExamSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3             
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: Delete Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+
 router.post('/', async (req, res) => {
     const ePId = parseInt(req.body.ePId);
     const timeSlotId = parseInt(req.body.timeSlotId);
@@ -34,7 +128,7 @@ router.post('/', async (req, res) => {
                 day: day
             })
             console.log(examSlot);
-            res.json(DataResponse(examSlot))
+            res.json(MessageResponse("Create Success !"))
         }
 
     } catch (err) {
@@ -55,11 +149,11 @@ router.delete('/', async (req, res) => {
         if (result === 0) {
             res.json(NotFoundResponse('Not found'))
         } else {
-            res.json(MessageResponse('Exam Slot deleted'))
+            res.json(MessageResponse('Delete Success !'))
         }
     } catch (error) {
         console.log(error)
-        res.json(MessageResponse('Error found'))
+        res.json(InternalErrResponse())
     }
 })
 
