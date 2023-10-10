@@ -16,7 +16,108 @@ import LecturerLogTime from '../models/LecturerLogTime.js'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    Lecturers:
+ *       type: object
+ *       required:
+ *          - userId
+ *          - lecId
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          userId:
+ *              type: integer
+ *              description: reference to User id
+ *          lecId:
+ *              type: String
+ *              description: Business ID for Lecturer
+ *       example:
+ *           id: 1
+ *           userId: 1
+ *           lecId: FU292939
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: Lecturers
+ *    description: The Lecturers managing API
+ */
+/**
+ * @swagger
+ * /lecturers/:
+ *   post:
+ *     summary: Create a new Lecturer
+ *     tags: [Lecturers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 example: 1, 2, 3
+ *               lecId:
+ *                 type: String
+ *                 example: FU291049
+ *           required:
+ *             - userId
+ *             - lecId
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ */
+/**
+ * @swagger
+ * /lecturers/scheduled/:
+ *   get:
+ *     summary: Return the exam schedule of 1 Lecturer by id
+ *     tags: [Lecturers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Lecturers'
+ */
+/**
+ * @swagger
+ * /lecturers/availableSlot/:
+ *   get:
+ *     summary: Return all slot that have no Lecturers
+ *     tags: [Lecturers]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Lecturers'
+ */
+router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
     const lecId = req.body.lecId;
 
@@ -36,7 +137,7 @@ router.post('/create', async (req, res) => {
                 lecId: lecId
             })
             console.log(lecturer);
-            res.json(DataResponse(lecturer))
+            res.json(MessageResponse("Create Success !"))
         }
 
 
