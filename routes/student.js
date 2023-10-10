@@ -145,9 +145,9 @@ router.get('/listScheOfStu', async (req, res) => {
     const studentId = parseInt(req.body.studentId)
 
     const listOfSche = []
-    function insertSchedule(st, et, d, sn, r, lc) {
+    function insertSchedule(sc, sn, st, et, d, r, lc) {
         const sche = {
-            STime: st, ETime: et, day: d, subName: sn, room: r, location: lc
+            subCode: sc, subName: sn, sTime: st, eTime: et, day: d, roomNum: r, location: lc
         }
         listOfSche.push(sche)
     }
@@ -163,21 +163,14 @@ router.get('/listScheOfStu', async (req, res) => {
             ERIdArr.push(element.eRId)
         });
 
-        //--------------------------------------------------------------------
-        ERIdArr.forEach(async element => {
+        for (let i = 0; i < ERIdArr.length; i++) {
             const examRoom = await ExamRoom.findOne({
                 where: {
-                    id: element
+                    id: ERIdArr[i]
                 }
             })
 
             if (examRoom) {
-                const room = await Room.findOne({
-                    where: {
-                        id: examRoom.roomId
-                    }
-                })
-
                 const subInSlot = await SubInSlot.findOne({
                     where: {
                         id: examRoom.sSId
@@ -185,21 +178,28 @@ router.get('/listScheOfStu', async (req, res) => {
                 })
 
                 if (subInSlot) {
+                    const room = await Room.findOne({
+                        where: {
+                            id: examRoom.roomId
+                        }
+                    })
+
+
                     const examSlot = await ExamSlot.findOne({
                         where: {
                             id: subInSlot.exSlId
                         }
                     })
 
-                    let STime, ETime
+                    let sTime, eTime
                     if (examSlot) {
                         const timeSlot = await TimeSlot.findOne({
                             where: {
                                 id: examSlot.timeSlotId
                             }
                         })
-                        STime = timeSlot.startTime
-                        ETime = timeSlot.endtTime
+                        sTime = timeSlot.startTime
+                        eTime = timeSlot.endTime
                     }
 
 
@@ -209,7 +209,7 @@ router.get('/listScheOfStu', async (req, res) => {
                         }
                     })
 
-                    let subCode
+                    let subCode, subName
                     if (course) {
                         const subject = await Subject.findOne({
                             where: {
@@ -217,8 +217,9 @@ router.get('/listScheOfStu', async (req, res) => {
                             }
                         })
                         subCode = subject.code
+                        subName = subject.name
                     }
-                    insertSchedule(STime, ETime, examSlot.day, subCode, room.roomNum, room.location)
+                    insertSchedule(subCode, subName, sTime, eTime, examSlot.day, room.roomNum, room.location)
                 }
             }
 
@@ -227,7 +228,7 @@ router.get('/listScheOfStu', async (req, res) => {
             //         id: examRoom.lecturerId
             //     }
             // }) 
-        });
+        };
         res.json(DataResponse(listOfSche))
     } catch (error) {
         console.log(error);
