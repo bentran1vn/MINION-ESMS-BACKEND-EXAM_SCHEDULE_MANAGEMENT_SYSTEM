@@ -8,6 +8,74 @@ import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    RoomLogTimes:
+ *       type: object
+ *       required:
+ *          - roomId
+ *          - day
+ *          - timeSlotId
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          roomId:
+ *              type: integer
+ *              description: Reference to Room id
+ *          day:
+ *              type: DATEONLY
+ *              description: 2023-04-14 , 2023-08-23
+ *          timeSlotId:
+ *              type: integer
+ *              description: Reference to TimeSlot id
+ *       example:
+ *           id: 1
+ *           roomId: 1
+ *           day: 2023-04-13
+ *           timeSlotId: 1
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: RoomLogTimes
+ *    description: The RoomLogTimes managing API
+ */
+/**
+ * @swagger
+ * /roomLogTimes/:
+ *   post:
+ *     summary: Create a new RoomLogTime
+ *     tags: [RoomLogTimes]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               roomId:
+ *                 type: integer
+ *                 example: 1, 2, 3
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-04-23, 2029-02-29
+ *               timeSlotId:
+ *                 type: integer
+ *                 example: 1, 2, 3
+ *           required:
+ *             - roomId
+ *             - day
+ *             - timeSlotId
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
 router.post('/', async (req, res) => {
     const { roomId, day, timeSlotId } = req.body;
 
@@ -32,7 +100,7 @@ router.post('/', async (req, res) => {
                 timeSlotId: parseInt(timeSlotId)
             })
             console.log(roomLogTime);
-            res.json(DataResponse(roomLogTime))
+            res.json(MessageResponse("Create Success !"))
         }
 
     } catch (err) {
