@@ -33,6 +33,7 @@ import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
 import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
 import studentCourseRouter from './routes/studentCourse.js'
+import autoFillStuInRoom from './routes/autoFillStuInRoom.js'
 
 // ===== Config =====
 const server = express()
@@ -80,13 +81,14 @@ server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
 server.use('/studentCourses', studentCourseRouter)
+server.use('/autoFillStuInRoom', autoFillStuInRoom)
 
 const options = {
-    definition : {
-        openapi : "3.0.0",
+    definition: {
+        openapi: "3.0.0",
         info: {
-            title : "Library API",
-            version : "1.0.0",
+            title: "Library API",
+            version: "1.0.0",
             description: "ESMS Express Library API"
         },
         servers: [
