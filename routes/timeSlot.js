@@ -6,6 +6,146 @@ import { Op } from 'sequelize'
 
 const router = express.Router()
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    TimeSlots:
+ *       type: object
+ *       required:
+ *          - startTime
+ *          - endTime
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          startTime:
+ *              type: TIME
+ *              description: The start time of 1 slot
+ *          endTime:
+ *              type: TIME
+ *              description: The end time of 1 slot
+ *       example:
+ *           id: 1
+ *           startTime: 07:30:00
+ *           endTime: 09:00:00
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: TimeSlots
+ *    description: The TimeSlots managing API
+ */
+/**
+ * @swagger
+ * /timeSlots/:
+ *   post:
+ *     summary: Create a new TimeSlot
+ *     tags: [TimeSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startTime:
+ *                 type: TIME
+ *                 example: 07:30:00
+ *               endTime:
+ *                 type: TIME
+ *                 example: 09:00:00
+ *           required:
+ *             - startTime
+ *             - endTime
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /timeSlots/:
+ *   get:
+ *     summary: Return all TimeSlots, Return a TimeSlot by id
+ *     tags: [TimeSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4... or null (null = get all)              
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/TimeSlots'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /timeSlots/:
+ *   delete:
+ *     summary: Delete all TimeSlots, Delete a TimeSlot by id required Admin role
+ *     tags: [TimeSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4... or null (null = get all)              
+ *     responses:
+ *       '200':
+ *         description: Delete Success !   
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /timeSlots/:
+ *   put:
+ *     summary: Update data for 1 TimeSlot
+ *     tags: [TimeSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *               startTime:
+ *                 type: TIME
+ *                 example: 07:30:30
+ *               endTime:
+ *                 type: TIME
+ *                 example: 09:00:00
+ *           required:
+ *              - id
+ *     responses:
+ *       '200':
+ *         description: Update Success !   
+ *       '500':
+ *         description: Internal Server Error !
+ */
 router.post('/', async (req, res) => {
     const { startTime, endTime } = req.body;
     // const startTime = req.body.startTime

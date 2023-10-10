@@ -10,7 +10,91 @@ import { Op } from 'sequelize'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    SubInSlots:
+ *       type: object
+ *       required:
+ *          - courId
+ *          - exSlId
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          courId:
+ *              type: integer
+ *              description: Reference to Course id
+ *          exSlId:
+ *              type: integer
+ *              description: Reference to ExamSlot id
+ *       example:
+ *           id: 1
+ *           courId: 1
+ *           exSlId: 1
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: SubInSlots
+ *    description: The SubInSlots managing API
+ */
+/**
+ * @swagger
+ * /subInSlots/:
+ *   post:
+ *     summary: Create a new SubInSlot
+ *     tags: [SubInSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *               exSlId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *           required:
+ *             - courId
+ *             - exSlId
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /subInSlots/:
+ *   delete:
+ *     summary: Delete a Subject in SubInSlot and it's relative rows in ExamRoom
+ *     tags: [SubInSlots]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               subId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *           required:
+ *             - subId
+ *     responses:
+ *       '200':
+ *         description: All exam room of this subject are deleted / This subject hasn't have any exam room
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+router.post('/', async (req, res) => {
     const courId = parseInt(req.body.courId);
     const exSlId = parseInt(req.body.exSlId);
 
@@ -34,7 +118,7 @@ router.post('/create', async (req, res) => {
                 exSlId: exSlId
             })
             console.log(subInSlot);
-            res.json(DataResponse(subInSlot))
+            res.json(MessageResponse("Create Success !"))
         }
 
 
