@@ -14,6 +14,90 @@ import Lecturer from '../models/Lecturer.js'
 import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 
+/**
+ * @swagger
+ * /students:
+ *   post:
+ *     summary: Create a new student.
+ *     tags: [Students]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: int
+ *                 example: 25
+ *               uniId:
+ *                 type: string
+ *                 example: SE141200
+ *               semester:
+ *                 type: int
+ *                 example: 5
+ *               major:
+ *                 type: string
+ *                 example: Software Engineer
+ *           required:
+ *             - userId
+ *             - uniId
+ *             - semester
+ *             - major
+ *     responses:
+ *       '200':
+ *         description: Create Successfully!
+ */
+
+/**
+ * @swagger
+ * /students/listOfStu:
+ *   get :
+ *     summary : Return the list of student based on subCode, roomNum
+ *     tags: [Students]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               subCode:
+ *                 type: string
+ *                 example: PRF192
+ *               roomNum:
+ *                 type: string
+ *                 example: 101
+ *           required:
+ *             - subCode
+ *             - roomNum
+ *     responses :
+ *       200 :
+ *         description: OK !
+ */
+
+/**
+ * @swagger
+ * /students/listScheOfStu:
+ *   get :
+ *     summary : Returns a list of exam schedules for a student
+ *     tags: [Students]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               studentId:
+ *                 type: int
+ *                 example: 1
+ *           required:
+ *             - studentId
+ *     responses :
+ *       200 :
+ *         description: OK !
+ */
 
 const router = express.Router()
 
@@ -219,24 +303,16 @@ router.get('/listScheOfStu', async (req, res) => {
                         subCode = subject.code
                         subName = subject.name
                     }
-                    insertSchedule(subCode, subName, sTime, eTime, examSlot.day, room.roomNum, room.location)
+                    insertSchedule(subCode, subName, sTime, eTime, examSlot.day, ERIdArr[i], room.location)
                 }
             }
 
-            // const lecturer = await Lecturer.findOne({
-            //     where: {
-            //         id: examRoom.lecturerId
-            //     }
-            // }) 
         };
         res.json(DataResponse(listOfSche))
     } catch (error) {
         console.log(error);
         res.json(MessageResponse('Error found'))
     }
-
-
-
 })
 
 export default router
