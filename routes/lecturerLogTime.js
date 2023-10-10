@@ -5,10 +5,40 @@ import LecturerLogTime from '../models/LecturerLogTime.js'
 import Lecturer from '../models/Lecturer.js'
 import TimeSlot from '../models/TimeSlot.js'
 
+/**
+ * @swagger
+ * /lecturerLogTimes:
+ *   post:
+ *     summary: Create a new exam types
+ *     tags: [LecturerLogTimes]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               lecturerId:
+ *                 type: int
+ *                 example: 10
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-05-19
+ *               timeSlotId:
+ *                 type: int
+ *                 example: 4
+ *           required:
+ *             - lecturerId
+ *             - day
+ *             - timeSlotId
+ *     responses:
+ *       '200':
+ *         description: Create Successfully!
+ */
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
     const { lecturerId, day, timeSlotId } = req.body;
 
     try {
