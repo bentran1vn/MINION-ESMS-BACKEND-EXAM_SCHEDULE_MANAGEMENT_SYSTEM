@@ -17,10 +17,310 @@ import { Op } from 'sequelize'
 
 const router = express.Router()
 
-router.post('/create', async (req, res) => {
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *    ExamRooms:
+ *       type: object
+ *       required:
+ *          - sSId
+ *          - roomId
+ *          - lecturerId
+ *          - des 
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          sSId:
+ *              type: integer
+ *              description: Reference to SubInSlot id
+ *          lecturerId:
+ *              type: integer
+ *              description:  Reference to Lecturer id
+ *          des: 
+ *              type: STRING
+ *              description:  FE or PE
+ *       example:
+ *           id: 1
+ *           sSId: 1
+ *           lecturerId: 1
+ *           des: FE
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: ExamRooms
+ *    description: The ExamRooms managing API
+ */
+/**
+ * @swagger
+ * /examRooms/:
+ *   post:
+ *     summary: Create a new ExamRoom
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sSId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               roomId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               lecturerId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               des:
+ *                 type: String
+ *                 example: PE
+ *           required:
+ *             - sSId
+ *             - roomId
+ *             - lecturerId
+ *             - des
+ *     responses:
+ *       '200':
+ *         description: Create Success !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/auto/:
+ *   post:
+ *     summary: Auto fill Lecturer to ExamRoom by Staff
+ *     tags: [ExamRooms]
+ *     responses:
+ *       '200':
+ *         description: All rooms assigned / Number of lecturers not enough to fill up exam room
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /examRooms/lecturer/:
+ *   put:
+ *     summary: Register to 1 slot in ExamRoom for role Lecturer
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               lecturerId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               startTime:
+ *                 type: TIME
+ *                 example: 07:30:00
+ *               endTime:
+ *                 type: TIME
+ *                 example: 09:00:00
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-04-13
+ *           required:
+ *             - lecturerId
+ *             - startTime
+ *             - endTime
+ *             - day
+ *     responses:
+ *       '200':
+ *         description: Lecturer added / All rooms full / This slot hasn't have any subject
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /examRooms/delLecturer/:
+ *   put:
+ *     summary: Un-Register to 1 slot in ExamRoom for role Lecturer
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               lecturerId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               startTime:
+ *                 type: TIME
+ *                 example: 07:30:00
+ *               endTime:
+ *                 type: TIME
+ *                 example: 09:00:00
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-04-13
+ *           required:
+ *             - lecturerId
+ *             - startTime
+ *             - endTime
+ *             - day
+ *     responses:
+ *       '200':
+ *         description: Lecturer ${lecturerId} is removed, lecturer log time updated
+ *       '500':
+ *         description: Internal Server Error !
+ */
+/**
+ * @swagger
+ * /examRooms/addLecturer/:
+ *   put:
+ *     summary: Register to 1 slot in ExamRoom for role Staff
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               lecturerId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *           required:
+ *             - id
+ *             - lecturerId
+ *     responses:
+ *       '200':
+ *         description: Add Success to exam room and update lecturer log time !
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/room/:
+ *   put:
+ *     summary: Register a room to 1 slot in ExamRoom for role Staff
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *               roomId:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *           required:
+ *             - id
+ *             - roomId
+ *     responses:
+ *       '200':
+ *         description: Add Success room to exam room and update room log time!
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/delRoom/:
+ *   put:
+ *     summary: Un-Register a room to 1 slot in ExamRoom for role Staff
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1, 2, 3, 4, 5
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: Room ${checkExRoom.roomId} is deleted, room log time updated
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/:
+ *   get:
+ *     summary: Get all exam schedule list for role Staff
+ *     tags: [ExamRooms]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/allFreeLecturersInSlot/:
+ *   get:
+ *     summary: Return all free lecturer in 1 slot 1 day for Staff role
+ *     tags: [ExamRooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startTime:
+ *                 type: TIME
+ *                 example: 07:30:00
+ *               endTime:
+ *                 type: TIME
+ *                 example: 09:00:00
+ *               day:
+ *                 type: DATEONLY
+ *                 example: 2023-04-14
+ *           required:
+ *             - startTime
+ *             - endTime
+ *             - day
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+router.post('/', async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
     const lecturerId = parseInt(req.body.lecturerId);
+    const des = req.body.des;
 
     try {
         const subInSlot = await SubInSlot.findOne({
@@ -46,9 +346,11 @@ router.post('/create', async (req, res) => {
                 sSId: sSId,
                 roomId: roomId,
                 lecturerId: lecturerId,
+                des: des
             })
             console.log(examRoom);
-            res.json(DataResponse(examRoom))
+            res.json(MessageResponse("Create Success !"));
+            return;
         }
 
 
@@ -138,7 +440,7 @@ router.post('/auto', async (req, res) => {
             res.json(MessageResponse("Number of lecturers not enough to fill up exam room"));
             return;
         }else{
-            res.json("All rooms assigned");
+            res.json(MessageResponse("All rooms assigned"));
             return;
         }
     }
@@ -664,8 +966,6 @@ router.get('/', async (req, res) => {
     }
 
 })
-
-
 
 //tất cả lecturer rảnh tại cùng 1 giờ 1 ngày
 //role staff

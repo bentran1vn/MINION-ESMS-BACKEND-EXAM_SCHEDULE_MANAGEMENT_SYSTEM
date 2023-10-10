@@ -20,7 +20,7 @@ const router = express.Router()
  *              description: Auto generate id
  *          season:
  *              type: STRING
- *              description: 1 of three seasons: SPRING, SUMMER, FALL
+ *              description: SPRING, SUMMER, FALL
  *          year:
  *              type: integer
  *              description: The year of the semester
@@ -54,7 +54,7 @@ const router = express.Router()
  *                 example: 2023, 2022, 2021
  *               season:
  *                 type: String
- *                 example: 1 of 3 seasons: SPRING, SUMMER, FALL
+ *                 example: SPRING, SUMMER, FALL
  *           required:
  *             - year
  *             - season
