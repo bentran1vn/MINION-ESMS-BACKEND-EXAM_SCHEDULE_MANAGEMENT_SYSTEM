@@ -251,7 +251,8 @@ export async function courseByPhase(examPhase) {
 
 }
 //requireRole("staff")
-router.get('/', requireRole("staff"),async (req, res) => {
+router.get('/', async (req, res) => {
+    let listCourse = [];
     try {
         const result = await Course.findAll({
             include: [{
@@ -289,7 +290,7 @@ router.get('/', requireRole("staff"),async (req, res) => {
 
 
 //requireRole("staff"),
-router.delete('/', requireRole("staff"), async (req, res) => {
+router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id) || null;
     try {
         if(id != null){
@@ -323,8 +324,8 @@ router.delete('/', requireRole("staff"), async (req, res) => {
     }
 })
 
-
-router.put('/', requireRole("staff"), async (req, res) => {
+//, requireRole("staff")
+router.put('/', async (req, res) => {
     const courseData = req.body
     const id = parseInt(req.body.id)
 

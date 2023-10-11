@@ -71,16 +71,13 @@ const router = express.Router()
  *   get:
  *     summary: Return all TimeSlots, Return a TimeSlot by id
  *     tags: [TimeSlots]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: integer
- *                 example: 1, 2, 3, 4... or null (null = get all)              
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: The time slot id Client want to get.             
  *     responses:
  *       '200':
  *         description: OK !
@@ -169,7 +166,7 @@ router.get('/', async (req, res) => {
     //get All timeSlot nếu không nhập gì
     //get 1 theo id nếu có
     //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime
-    const id = parseInt(req.body.id) || null;
+    const id = parseInt(req.query.id) || null;
 
     const timeSlotList = []
     try {
