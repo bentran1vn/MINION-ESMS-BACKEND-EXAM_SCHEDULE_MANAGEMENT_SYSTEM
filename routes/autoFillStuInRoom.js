@@ -9,9 +9,7 @@ import StudentCourse from '../models/StudentCourse.js'
 import SubInSlot from '../models/SubInSlot.js'
 import fs from 'fs'
 
-const router = express.Router()
-
-router.post('/', async (req, res) => {
+export async function autoFillStu() {
     try {
         console.log(`Start arranging rooms`);
         const course = await Course.findAll() // Lấy tất cả course
@@ -46,16 +44,14 @@ router.post('/', async (req, res) => {
                         }
                     })
                     if (!examRoom) {
-                        res.json(MessageResponse('Error found in examRoom'))
-                        return
+                        throw new Error('Error found in examRoom')
                     }
                     examRoom.forEach(e => {
                         ListExamRoom.push(e) // Có room thì nhét vào Array tổng
                     });
                 }
             } else {
-                res.json(MessageResponse('Error found in SubInSlot'))
-                return
+                throw new Error('Error found in SubInSlot')
             }
 
             let ListRoomPE = [] // Room cho type PE
@@ -75,22 +71,18 @@ router.post('/', async (req, res) => {
                     ListStudentIdInCoursePE.splice(0, numStuInRoom) // Bỏ những phần tử đã dc sử dụng trong Array tổng số student ID
 
                     for (let j = 0; j < listStu.length; j++) { // Duyệt từng student
-                        const item = await StudentExam.create({ // Tạo row trong StudentExam
+                        await StudentExam.create({ // Tạo row trong StudentExam
                             eRId: ListRoomPE[i],
                             stuId: listStu[j]
                         })
-                        let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
-                        fs.appendFileSync("test.txt", dataT + "\n");
                     }
                 }
                 while (ListStudentIdInCoursePE.length != 0) {
                     for (let i = 0; i <= ListRoomPE.length; i++) {
-                        const item = await StudentExam.create({
+                        await StudentExam.create({
                             eRId: ListRoomPE[i],
                             stuId: ListStudentIdInCoursePE[0]
                         })
-                        let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
-                        fs.appendFileSync("test.txt", dataT + "\n");
                         ListStudentIdInCoursePE.splice(0, 1)
                         if (ListStudentIdInCoursePE.length == 0) break
                     }
@@ -105,22 +97,18 @@ router.post('/', async (req, res) => {
                     ListStudentIdInCourseFE.splice(0, numStuInRoom)
 
                     for (let j = 0; j < listStu.length; j++) {
-                        const item = await StudentExam.create({
+                        await StudentExam.create({
                             eRId: ListRoomFE[i],
                             stuId: listStu[j]
                         })
-                        let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
-                        fs.appendFileSync("test.txt", dataT + "\n");
                     }
                 }
                 while (ListStudentIdInCourseFE.length != 0) {
                     for (let i = 0; i <= ListRoomFE.length; i++) {
-                        const item = await StudentExam.create({
+                        await StudentExam.create({
                             eRId: ListRoomFE[i],
                             stuId: ListStudentIdInCourseFE[0]
                         })
-                        let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
-                        fs.appendFileSync("test.txt", dataT + "\n");
                         ListStudentIdInCourseFE.splice(0, 1)
                         if (ListStudentIdInCourseFE.length == 0) break
                     }
@@ -129,40 +117,36 @@ router.post('/', async (req, res) => {
             }
         }
         console.log('Arrangement completed');
-        res.json(MessageResponse('Arrangement completed'))
     } catch (error) {
         console.log(error);
-        res.json(MessageResponse('Error found in Auto fill student completed'))
     }
-})
+}
 
-router.get('/', async (req, res) => {
-    try {
-        const fileContent = fs.readFileSync("test.txt", "utf8")
-        const lines = fileContent.split('\n');
+// router.get('/', async (req, res) => {
+//     try {
+//         const fileContent = fs.readFileSync("test.txt", "utf8")
+//         const lines = fileContent.split('\n');
 
-        let result = [];
-        const counts = {};
-        lines.forEach(item => {
-            const parts = item.trim().split('-');
-            const fpath = parts[0].trim();
-            if (fpath != "") {
-                if (!counts[fpath]) {
-                    counts[fpath] = 0;
-                }
-                counts[fpath]++;
-            }
-        });
+//         let result = [];
+//         const counts = {};
+//         lines.forEach(item => {
+//             const parts = item.trim().split('-');
+//             const fpath = parts[0].trim();
+//             if (fpath != "") {
+//                 if (!counts[fpath]) {
+//                     counts[fpath] = 0;
+//                 }
+//                 counts[fpath]++;
+//             }
+//         });
 
-        for (const key in counts) {
-            const kq = key + ": " + counts[key]
-            result.push(kq);
-        }
-        res.json(MessageResponse(result))
-    } catch (error) {
-        console.error(error);
-        res.json(MessageResponse('Error found'))
-    }
-})
-
-export default router
+//         for (const key in counts) {
+//             const kq = key + ": " + counts[key]
+//             result.push(kq);
+//         }
+//         res.json(MessageResponse(result))
+//     } catch (error) {
+//         console.error(error);
+//         res.json(MessageResponse('Error found'))
+//     }
+// })

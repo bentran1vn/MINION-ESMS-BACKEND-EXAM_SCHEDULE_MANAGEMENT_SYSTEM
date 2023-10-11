@@ -36,6 +36,13 @@ import TimeSlot from '../models/TimeSlot.js'
  *         description: Create Successfully!
  */
 
+/**
+ * @swagger
+ * tags:
+ *    name: Courses
+ *    description: The lecturerLogTime managing API
+ */
+
 const router = express.Router()
 
 router.post('/', async (req, res) => {

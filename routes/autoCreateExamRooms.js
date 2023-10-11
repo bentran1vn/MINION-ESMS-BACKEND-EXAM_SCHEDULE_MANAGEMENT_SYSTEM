@@ -12,11 +12,13 @@ import { courseByPhase } from './course.js'
 import { randomRoom } from './room.js'
 import ExamType from '../models/ExamType.js'
 import Room from '../models/Room.js'
+import { autoFillStu } from './autoFillStuInRoom.js'
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
     console.log("System is running !");
+    console.log("Creating Exam Room !");
     const examPhaseList = await ExamPhase.findAll(
         {
             order: [
@@ -24,27 +26,27 @@ router.get('/', async (req, res) => {
             ]
         }
     )//Đảm bảo thứ tự của ExamPhase từ ngày sớm nhất đến trễ nhất
-    
+
     const roomList = await Room.findAll()
-    
+
     for (const key in examPhaseList) {
 
         let slotList
 
         let examType = await ExamType.findOne({
-            where : {
-                id : examPhaseList[key].eTId
+            where: {
+                id: examPhaseList[key].eTId
             }
         })
 
-        if(examType.des == 0){
+        if (examType.des == 0) {
             slotList = await TimeSlot.findAll({
-                limit : 6,
+                limit: 6,
             })
         } else {
             slotList = await TimeSlot.findAll({
-                limit : 3,
-                offset : 6
+                limit: 3,
+                offset: 6
             })
         }
 
@@ -182,7 +184,7 @@ router.get('/', async (req, res) => {
                     // fs.appendFileSync("test.txt", data + "\n");
                     console.log(room.id);
                     */
-                    
+
                     await ExamRoom.create({
                         sSId: subjectInSlot.id,
                         roomId: room.id,
@@ -200,6 +202,8 @@ router.get('/', async (req, res) => {
             }
         }
     }
+    console.log("Filling Student Into Exam Room !");
+    await autoFillStu()
     console.log("Building System Successfully !");
     res.json(MessageResponse("Create ExamRooms Successfully !"))
 })
