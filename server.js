@@ -104,3 +104,7 @@ server.use("/", swaggerUI.serve, swaggerUI.setup(specs))
 server.listen(PORT, () => {
     console.log(`Server is listening at PORT=${PORT}`)
 })
+
+console.log("--------------");
+console.log("Website: " + process.env.SERVER_URL);
+console.log("--------------");
