@@ -64,6 +64,24 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+/**
+ * @swagger
+ * /semesters/:
+ *   get:
+ *     summary: Return all data of Semester
+ *     tags: [Semesters]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Rooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
 
 router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
@@ -79,6 +97,18 @@ router.post('/', async (req, res) => {
 
     } catch (err) {
         console.log(err)
+        res.json(InternalErrResponse());
+    }
+})
+
+router.get('/', async (req, res) => {
+    try{
+        const semester = await Semester.findAll();
+        const semesterList = semester.map(sem => sem.dataTypes);
+        res.json(DataResponse(semesterList));
+        return;
+    }catch(err){
+        console.log(err);
         res.json(InternalErrResponse());
     }
 })
