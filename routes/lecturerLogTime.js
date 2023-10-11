@@ -7,6 +7,43 @@ import TimeSlot from '../models/TimeSlot.js'
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *    LecturerLogTimes:
+ *       type: object
+ *       required:
+ *          - lecturerId
+ *          - day
+ *          - timeSlotId
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          lecturerId:
+ *              type: integer
+ *              description: Reference to Lecturer id
+ *          day:
+ *              type: DATEONLY
+ *              description: The day register a slot
+ *          timeSlotId:
+ *              type: integer
+ *              description: Reference to TimeSlot id
+ *       example:
+ *           id: 1
+ *           lecturerId: 1
+ *           day: 2023-04-13
+ *           timeSlotId: 1
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: LecturerLogTimes
+ *    description: The lecturerLogTimes managing API
+ */
+
+/**
+ * @swagger
  * /lecturerLogTimes:
  *   post:
  *     summary: Create a new exam types
@@ -34,13 +71,6 @@ import TimeSlot from '../models/TimeSlot.js'
  *     responses:
  *       '200':
  *         description: Create Successfully!
- */
-
-/**
- * @swagger
- * tags:
- *    name: Courses
- *    description: The lecturerLogTime managing API
  */
 
 const router = express.Router()
