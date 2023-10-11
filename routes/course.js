@@ -260,19 +260,16 @@ router.get('/', requireRole("staff"),async (req, res) => {
             }],
             attributes: ['id', 'subId']
         });
-        let listCourse = [];
-        let i = 1;
         result.forEach(course => {     
             const subject = course.subject;
             const sub = {
-                "No " : i++,
-                "Course Id": course.dataValues.id,
-                "Subject Id": course.dataValues.subId,
-                "Subject Code" : subject.code,
-                "Subject Name" : subject.name,
-                "Semester " : subject.semesterNo,
-                "FE " : subject.fe,
-                "PE " : subject.pe
+                courseId: course.dataValues.id,
+                subId: course.dataValues.subId,
+                subCode : subject.code,
+                subName : subject.name,
+                semester : subject.semesterNo,
+                fe : subject.fe,
+                pe : subject.pe
             }
             listCourse.push(sub);
         });
