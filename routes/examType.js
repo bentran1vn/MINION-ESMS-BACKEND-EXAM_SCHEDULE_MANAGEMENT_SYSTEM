@@ -5,6 +5,43 @@ import ExamType from '../models/ExamType.js'
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *    ExamTypes:
+ *       type: object
+ *       required:
+ *          - type
+ *          - block
+ *          - des
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          type:
+ *              type: integer
+ *              description: Type of exam
+ *          block:
+ *              type: integer
+ *              description: The time length of study time
+ *          des: 
+ *              type: integer
+ *              description: 0 normal | 1 coursera
+ *       example:
+ *           id: 1
+ *           type: FE
+ *           block: 10
+ *           des: 0
+ */
+
+/**
+ * @swagger
+ * tags:
+ *    name: ExamTypes
+ *    description: The examTypes managing API
+ */
+
+/**
+ * @swagger
  * /examTypes:
  *   post:
  *     summary: Create a new exam types
@@ -32,13 +69,6 @@ import ExamType from '../models/ExamType.js'
  *     responses:
  *       '200':
  *         description: Create Successfully!
- */
-
-/**
- * @swagger
- * tags:
- *    name: Courses
- *    description: The examType managing API
  */
 
 const router = express.Router()
