@@ -109,18 +109,13 @@ const router = express.Router()
  *   get:
  *     summary: Return all schedule of Room 
  *     tags: [Rooms]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               roomId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *           required:
- *             - roomId
+ *     parameters:
+ *       - in: query
+ *         name: roomId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The room id Client want to get.
  *     responses:
  *       '200':
  *         description: OK !
@@ -139,22 +134,19 @@ const router = express.Router()
  *   get:
  *     summary: Return all Rooms free to use in 1 day 1 slot
  *     tags: [Rooms]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               day:
- *                 type: DATEONLY
- *                 example: 2023-04-13 , 2023-05-23
- *               timeSlotId:
- *                 type: TIME
- *                 example: 09:30:00 , 07:30:00, 09:45:00
- *           required:
- *             - day
- *             - timeSlotId
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         schema:
+ *           type: DAYONLY
+ *         required: true
+ *         description: The day Client want to get like 2023-04-13.
+ *       - in: query
+ *         name: timeSlotId
+ *         schema:
+ *           type: TIME
+ *         required: true
+ *         description: The time Client want to get like 07:00:00.
  *     responses:
  *       '200':
  *         description: OK !
@@ -173,22 +165,19 @@ const router = express.Router()
  *   get:
  *     summary: Return all Rooms in use in 1 day 1 slot specifically
  *     tags: [Rooms]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               day:
- *                 type: DATEONLY
- *                 example: 2023-04-13 , 2023-05-23
- *               timeSlotId:
- *                 type: TIME
- *                 example: 09:30:00 , 07:30:00, 09:45:00
- *           required:
- *             - day
- *             - timeSlotId
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         schema:
+ *           type: DAYONLY
+ *         required: true
+ *         description: The day Client want to get like 2023-04-13.
+ *       - in: query
+ *         name: timeSlotId
+ *         schema:
+ *           type: TIME
+ *         required: true
+ *         description: The time Client want to get like 07:00:00.
  *     responses:
  *       '200':
  *         description: OK !
@@ -251,7 +240,7 @@ router.get('/', async (req, res) => {
 })// Get all room
 
 router.get('/roomInUse', async (req, res) => {
-    const roomId = parseInt(req.body.roomId)
+    const roomId = parseInt(req.query.roomId)
 
     try {
         const roomLogTime = await RoomLogTime.findAll({
@@ -267,7 +256,10 @@ router.get('/roomInUse', async (req, res) => {
 })// Get room has been used in day + which slots
 
 router.get('/roomFreeSlot', async (req, res) => {
-    const { day, timeSlotId } = req.body
+    const day = req.query.day;
+    const timeSlotId = req.query.timeSlotId
+
+
     const roomIdInUse = []
     const roomIdNotUse = []
 
@@ -312,7 +304,9 @@ router.get('/roomFreeSlot', async (req, res) => {
 })// Get room not in use in 1 day and slot
 
 router.get('/roomUseSlot', async (req, res) => {
-    const { day, timeSlotId } = req.body
+    const day = req.query.day;
+    const timeSlotId = req.query.timeSlotId
+
     const roomIdInUse = []
     const roomIdUseInSLot = []
 
