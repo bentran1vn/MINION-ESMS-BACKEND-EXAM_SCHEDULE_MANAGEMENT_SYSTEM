@@ -34,6 +34,13 @@ import ExamType from '../models/ExamType.js'
  *         description: Create Successfully!
  */
 
+/**
+ * @swagger
+ * tags:
+ *    name: Courses
+ *    description: The examType managing API
+ */
+
 const router = express.Router()
 
 router.post('/', async (req, res) => {
