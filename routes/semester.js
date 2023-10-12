@@ -78,7 +78,7 @@ const router = express.Router()
  *             schema:
  *               type: array
  *               items: 
- *                 $ref: '#/components/schemas/Rooms'
+ *                 $ref: '#/components/schemas/Semesters'
  *       '500':
  *         description: Internal Server Error !
  */
@@ -102,12 +102,11 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/', async (req, res) => {
-    try{
+    try {
         const semester = await Semester.findAll();
-        const semesterList = semester.map(sem => sem.dataTypes);
-        res.json(DataResponse(semesterList));
+        res.json(DataResponse(semester));
         return;
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
     }
