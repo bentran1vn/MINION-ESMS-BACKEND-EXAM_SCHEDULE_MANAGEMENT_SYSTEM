@@ -5,7 +5,6 @@ import Course from '../models/Course.js'
 import { requireRole } from '../middlewares/auth.js'
 import { MEDIUMINT } from 'sequelize'
 
-
 const router = express.Router()
 
 /**
@@ -54,6 +53,7 @@ const router = express.Router()
  *    name: Subjects
  *    description: The Subjects managing API
  */
+
 /**
  * @swagger
  * /subjects/:
@@ -94,6 +94,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /subjects/:
@@ -118,6 +119,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /subjects/:
@@ -162,6 +164,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /subjects/:
@@ -180,6 +183,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 router.post('/', async (req, res) => {
     const { code, name, semesterNo, fe, pe } = req.body;
 
@@ -200,30 +204,30 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.delete('/', async (req, res) =>{
+router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id);
 
     try {
         const row = await Subject.destroy({
             where: {
-                id : id
+                id: id
             }
         })
-        if(row != 0){
+        if (row != 0) {
             const course = await Course.destroy({
                 where: {
                     subId: id
                 }
             })
-            if(course != 0){
+            if (course != 0) {
                 res.json(MessageResponse("Delete Success, Course updated !"));
                 return;
-            }else{
+            } else {
                 res.json(MessageResponse("Not Found Sub Id !"));
                 return;
             }
-            
-        }else{
+
+        } else {
             res.json(MessageResponse("Not Found !"));
             return;
         }
@@ -236,20 +240,20 @@ router.delete('/', async (req, res) =>{
 router.put('/', async (req, res) => {
     const id = parseInt(req.body.id);
     const data = req.body;
-    try{
+    try {
         const row = await Subject.update(data, {
             where: {
                 id: id
             }
         })
-        if(row[0] == 0){
+        if (row[0] == 0) {
             res.json(MessageResponse("Not Found !"));
             return;
-        }else{
+        } else {
             res.json(MessageResponse("Update Success !"));
             return;
         }
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
     }
@@ -258,11 +262,10 @@ router.put('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const subjects = await Subject.findAll();
-        const subList = subjects.map(sub => sub.dataTypes);
-        if(subList.length == 0){
-            res.json(MessageResponse("Not Found !"));
-        }else{
-            res.json(DataResponse(subList));
+        if (subjects.length == 0) {
+            res.json(MessageResponse("Not Found!"));
+        } else {
+            res.json(DataResponse(subjects));
             return;
         }
     } catch (error) {
