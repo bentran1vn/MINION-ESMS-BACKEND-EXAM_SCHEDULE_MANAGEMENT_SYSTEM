@@ -259,7 +259,7 @@ router.get('/', async (req, res) => {
                 model: Subject,
                 attributes: ['code', 'name', 'semesterNo', 'fe', 'pe']
             }],
-            attributes: ['id', 'subId']
+            attributes: ['id', 'subId', 'numOfStu']
         });
         result.forEach(course => {     
             const subject = course.subject;
@@ -270,7 +270,8 @@ router.get('/', async (req, res) => {
                 subName : subject.name,
                 semester : subject.semesterNo,
                 fe : subject.fe,
-                pe : subject.pe
+                pe : subject.pe,
+                numOfStu : course.dataValues.numOfStu,
             }
             listCourse.push(sub);
         });
