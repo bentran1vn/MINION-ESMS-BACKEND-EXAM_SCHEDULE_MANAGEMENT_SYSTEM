@@ -102,12 +102,11 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/', async (req, res) => {
-    try{
+    try {
         const semester = await Semester.findAll();
-        const semesterList = semester.map(sem => sem.dataTypes);
-        res.json(DataResponse(semesterList));
+        res.json(DataResponse(semester));
         return;
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
     }

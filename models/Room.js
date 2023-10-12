@@ -11,6 +11,10 @@ const Room = sequelize.define(tableName, {
     location: {
         type: DataTypes.STRING(255),
         allowNull: false,
+    },
+    note: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
     }
 });
 Room.sync().then(() => {

@@ -35,15 +35,19 @@ const router = express.Router()
  *          sSId:
  *              type: integer
  *              description: Reference to SubInSlot id
+ *          roomId:
+ *              type: integer
+ *              description: Reference to Room id
  *          lecturerId:
  *              type: integer
  *              description:  Reference to Lecturer id
  *          des: 
- *              type: STRING
+ *              type: string
  *              description:  FE or PE
  *       example:
  *           id: 1
  *           sSId: 1
+ *           roomId: 1
  *           lecturerId: 1
  *           des: FE
  */
@@ -54,6 +58,7 @@ const router = express.Router()
  *    name: ExamRooms
  *    description: The ExamRooms managing API
  */
+
 /**
  * @swagger
  * /examRooms/:
@@ -103,6 +108,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /examRooms/lecturer/:
@@ -139,6 +145,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /examRooms/delLecturer/:
@@ -175,6 +182,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /examRooms/addLecturer/:
@@ -283,26 +291,25 @@ const router = express.Router()
  *   get:
  *     summary: Return all free lecturer in 1 slot 1 day for Staff role
  *     tags: [ExamRooms]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               startTime:
- *                 type: TIME
- *                 example: 07:30:00
- *               endTime:
- *                 type: TIME
- *                 example: 09:00:00
- *               day:
- *                 type: DATEONLY
- *                 example: 2023-04-14
- *           required:
- *             - startTime
- *             - endTime
- *             - day
+ *     parameters:
+ *        - in: query
+ *          name: startTime
+ *          schema:
+ *            type: TIME
+ *          required: true
+ *          description: The start of time in 1 slot want to find
+ *        - in: query
+ *          name: endTime
+ *          schema:
+ *            type: TIME
+ *          required: true
+ *          description: The end of time in 1 slot want to find
+ *        - in: query
+ *          name: day
+ *          schema:
+ *            type: DATEONLY
+ *          required: true
+ *          description: The day want to find 
  *     responses:
  *       '200':
  *         description: OK !
@@ -439,7 +446,7 @@ router.post('/auto', async (req, res) => {
         if (examRoomAtferfill.length != 0) {
             res.json(MessageResponse("Number of lecturers not enough to fill up exam room"));
             return;
-        }else{
+        } else {
             res.json(MessageResponse("All rooms assigned"));
             return;
         }
@@ -644,7 +651,7 @@ router.put('/delLecturer', async (req, res) => {
 router.put('/addLecturer', async (req, res) => {
     //thêm lecturer của staff
     const { id, lecturerId } = req.body;
-    if(!lecturerId){
+    if (!lecturerId) {
         res.json(MessageResponse("Lecturer id is required"));
         return;
     }
@@ -780,10 +787,10 @@ router.put('/room', async (req, res) => {
                             timeSlotId: timeSlot.id,
                             day: examSlot.day
                         })
-                        if(roomLogTime){
+                        if (roomLogTime) {
                             res.json(MessageResponse("Add Success room to exam room and update room log time!"));
                             return;
-                        }else{
+                        } else {
                             res.json(MessageResponse("Error when update room log time"));
                             return;
                         }
@@ -971,7 +978,7 @@ router.get('/', async (req, res) => {
 //role staff
 //PASS
 router.get('/allFreeLecturersInSlot', async (req, res) => {
-    const {startTime, endTime, day} = req.body;
+    const { startTime, endTime, day } = req.body;
 
     try {
         const timeSlot = await TimeSlot.findOne({
@@ -980,20 +987,20 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
                 endTime: endTime,
             }
         })
-        if(!timeSlot){
+        if (!timeSlot) {
             res.json(MessageResponse("This start time and end time dont exist!"));
             return;
         }
         // console.log(timeSlot.id);
-        
-    
+
+
         const lecturers = await Lecturer.findAll();
         const lecList = lecturers.map(lec => lec.dataValues);
         const lecIdList = lecList.map(lecL => lecL.id);
         // console.log(lecIdList);
         let i = 0;
         let freeLecList = [];
-        for(i; i < lecIdList.length; i++){
+        for (i; i < lecIdList.length; i++) {
             const availableLecturerInSlot = await LecturerLogTime.findOne({
                 where: {
                     lecturerId: lecIdList[i],
@@ -1001,7 +1008,7 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
                     day: day
                 }
             })
-            if(!availableLecturerInSlot){
+            if (!availableLecturerInSlot) {
                 const lc = {
                     lecturerId: lecIdList[i],
                     startTime: startTime,
@@ -1012,13 +1019,13 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
             }
         }
         console.log(freeLecList);
-        if(freeLecList.length == 0){
+        if (freeLecList.length == 0) {
             res.json(MessageResponse(`All lecturers are busy at ${startTime} - ${endTime} - ${day}`));
             return;
-        }else{
+        } else {
             res.json(DataResponse(freeLecList));
             return;
-        }    
+        }
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());

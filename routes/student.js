@@ -16,6 +16,41 @@ import TimeSlot from '../models/TimeSlot.js'
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *    Students:
+ *       type: object
+ *       required:
+ *          - userId
+ *          - uniId
+ *          - semester
+ *          - major 
+ *       properties:
+ *          id:
+ *              type: integer
+ *              description: Auto generate id
+ *          userId:
+ *              type: integer
+ *              description: Reference to User id
+ *          uniId:
+ *              type: string
+ *              description: Student unit code
+ *          semester: 
+ *              type: integer
+ *              description:  4
+ *          major: 
+ *              type: string 
+ *              description: Software Engineer
+ *       example:
+ *           id: 1
+ *           userId: 1
+ *           uniId: SE170000
+ *           semester: 4
+ *           major: Software Engineer
+ */
+
+/**
+ * @swagger
  * /students:
  *   post:
  *     summary: Create a new student.
@@ -55,22 +90,19 @@ import TimeSlot from '../models/TimeSlot.js'
  *   get :
  *     summary : Return the list of student based on subCode, roomNum
  *     tags: [Students]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               subCode:
- *                 type: string
- *                 example: PRF192
- *               roomNum:
- *                 type: string
- *                 example: 101
- *           required:
- *             - subCode
- *             - roomNum
+ *     parameters:
+ *        - in: query
+ *          name: subCode
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The code of subject want to find
+ *        - in: query
+ *          name: roomNum
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The room number want to find
  *     responses :
  *       200 :
  *         description: OK !
@@ -82,18 +114,13 @@ import TimeSlot from '../models/TimeSlot.js'
  *   get :
  *     summary : Returns a list of exam schedules for a student
  *     tags: [Students]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               studentId:
- *                 type: int
- *                 example: 1
- *           required:
- *             - studentId
+ *     parameters:
+ *        - in: query
+ *          name: studentId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The student id want to find
  *     responses :
  *       200 :
  *         description: OK !
@@ -102,8 +129,8 @@ import TimeSlot from '../models/TimeSlot.js'
 /**
  * @swagger
  * tags:
- *    name: Courses
- *    description: The student managing API
+ *    name: Students
+ *    description: The students managing API
  */
 
 const router = express.Router()
@@ -139,7 +166,7 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/listOfStu', async (req, res) => {
-    const { subCode, roomNum } = req.body
+    const { subCode, roomNum } = req.query
     try {
         const subject = await Subject.findOne({
             where: {
@@ -233,7 +260,7 @@ router.get('/listOfStu', async (req, res) => {
 })
 
 router.get('/listScheOfStu', async (req, res) => {
-    const studentId = parseInt(req.body.studentId)
+    const studentId = parseInt(req.query.studentId)
 
     const listOfSche = []
     function insertSchedule(sc, sn, st, et, d, r, lc) {

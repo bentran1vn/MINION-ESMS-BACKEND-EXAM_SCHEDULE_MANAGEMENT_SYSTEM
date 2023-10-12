@@ -38,6 +38,7 @@ const router = express.Router()
  *    name: Rooms
  *    description: The Rooms managing API
  */
+
 /**
  * @swagger
  * /rooms/:
@@ -64,6 +65,7 @@ const router = express.Router()
  *       '200':
  *         description: Create Success !
  */
+
 /**
  * @swagger
  * /rooms/:
@@ -86,6 +88,41 @@ const router = express.Router()
  *       '200':
  *         description: Delete Success !
  */
+
+/**
+ * @swagger
+ * /rooms/:
+ *   put:
+ *     summary: Update data to a Room
+ *     tags: [Rooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1
+ *               roomNum:
+ *                 type: integer
+ *                 example: 101
+ *               location:
+ *                 type: String
+ *                 example: XAVALO
+ *               note:
+ *                 type: string
+ *                 example: Hư màn hình
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: Update Success! | Not Found!
+ *       '500':
+ *         description: Internal Server Error!
+ */
+
 /**
  * @swagger
  * /rooms/:
@@ -128,6 +165,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error!
  */
+
 /**
  * @swagger
  * /rooms/roomFreeSlot/:
@@ -159,6 +197,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error!
  */
+
 /**
  * @swagger
  * /rooms/roomUseSlot/:
@@ -225,6 +264,28 @@ router.delete('/', async (req, res) => {
         }
     } catch (error) {
         console.log(error)
+        res.json(InternalErrResponse());
+    }
+})
+
+router.put('/', async (req, res) => {
+    const id = parseInt(req.body.id);
+    const data = req.body;
+    try {
+        const row = await Room.update(data, {
+            where: {
+                id: id
+            }
+        })
+        if (row[0] == 0) {
+            res.json(MessageResponse("Not Found !"));
+            return;
+        } else {
+            res.json(MessageResponse("Update Success !"));
+            return;
+        }
+    } catch (err) {
+        console.log(err);
         res.json(InternalErrResponse());
     }
 })

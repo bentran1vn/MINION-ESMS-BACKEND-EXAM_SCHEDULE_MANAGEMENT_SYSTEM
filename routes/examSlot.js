@@ -43,6 +43,7 @@ const router = express.Router()
  *    name: ExamSlots
  *    description: The ExamSlots managing API
  */
+
 /**
  * @swagger
  * /examSlots/:
@@ -75,6 +76,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /examSlots/:
