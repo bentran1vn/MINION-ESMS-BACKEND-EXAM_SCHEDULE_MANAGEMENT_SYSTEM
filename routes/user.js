@@ -126,9 +126,13 @@ import { requireRole } from "../middlewares/auth.js";
  *               name:
  *                 type: string
  *                 example: ahihi
+ *               role:
+ *                 type: string
+ *                 example: ahihi
  *           required:
  *             - email
  *             - name
+ *             - role
  *     responses:
  *       '200':
  *         description: Create Successfully!
@@ -174,11 +178,11 @@ router.get('/', requireRole('admin'), async (req, res) => {
 
 router.post('/', requireRole('admin'), async (req, res) => {
     const userData = req.body
-    await User.create(
-        {
-            email: userData.email,
-            name: userData.name
-        }
+    await User.create({
+        email: userData.email,
+        name: userData.name,
+        role: userData.role
+    }
     )
     res.json(MessageResponse("Create Successfully !"))
 })
