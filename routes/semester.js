@@ -78,7 +78,7 @@ const router = express.Router()
  *             schema:
  *               type: array
  *               items: 
- *                 $ref: '#/components/schemas/Rooms'
+ *                 $ref: '#/components/schemas/Semesters'
  *       '500':
  *         description: Internal Server Error !
  */
