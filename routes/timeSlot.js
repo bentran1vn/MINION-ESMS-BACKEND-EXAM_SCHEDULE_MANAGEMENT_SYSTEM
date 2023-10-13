@@ -37,6 +37,7 @@ const router = express.Router()
  *    name: TimeSlots
  *    description: The TimeSlots managing API
  */
+
 /**
  * @swagger
  * /timeSlots/:
@@ -65,6 +66,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /timeSlots/:
@@ -90,6 +92,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /timeSlots/:
@@ -143,6 +146,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 router.post('/', async (req, res) => {
     const { startTime, endTime } = req.body;
     // const startTime = req.body.startTime
@@ -165,11 +169,14 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     //get All timeSlot nếu không nhập gì
     //get 1 theo id nếu có
-    //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime
-    const id = parseInt(req.query.id) || null;
-
-    const timeSlotList = []
+    //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime  
     try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
+
+        const id = parseInt(req.query.id) || null;
+        const timeSlotList = []
+
         if (id != null) {
             const timeSlot = await TimeSlot.findOne({
                 where: {

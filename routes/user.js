@@ -79,6 +79,17 @@ import { requireRole } from "../middlewares/auth.js";
  *     summary : Return the users with specific search value .
  *     tags: [Users]
  *     parameters:
+ *        - in: query
+ *          name: page_no
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The page number Client want to get.
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *          description: The users limitation in a page.
  *        - in: path
  *          name: searchValue
  *          schema:
@@ -209,6 +220,9 @@ router.post('/', requireRole('admin'), async (req, res) => {
 
 router.get('/:searchValue', requireRole('staff'), async (req, res) => {
     try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
+
         const string = req.params.searchValue
         const users = await User.findAll({
             where: {
@@ -220,7 +234,9 @@ router.get('/:searchValue', requireRole('staff'), async (req, res) => {
                         [Op.like]: '%' + string + '%'
                     }
                 }
-            }
+            },
+            limit: limit,
+            offset: (pageNo - 1) * limit
         })
         res.json(DataResponse(users))
     } catch (error) {
