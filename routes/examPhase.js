@@ -247,9 +247,9 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
 
 router.get('/', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(ss, y, t, bl, sd, ed) {
+    function insertExamPhase(id, ss, y, t, bl, sd, ed) {
         const EPDetail = {
-            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
@@ -270,7 +270,7 @@ router.get('/', async (req, res) => {
             })
 
             if (semester && examType) {
-                insertExamPhase(semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+                insertExamPhase(semester.id, semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
     } catch (error) {
