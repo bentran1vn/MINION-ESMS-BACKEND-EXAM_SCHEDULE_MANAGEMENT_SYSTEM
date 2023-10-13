@@ -2,6 +2,7 @@ import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
@@ -36,6 +37,7 @@ const router = express.Router()
  *    name: Semesters
  *    description: The Semesters managing API
  */
+
 /**
  * @swagger
  * /semesters/:
@@ -64,6 +66,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 /**
  * @swagger
  * /semesters/:
@@ -83,9 +86,34 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+/**
+ * @swagger
+ * /semesters:
+ *   delete:
+ *     summary: Delete a user.
+ *     tags: [Semesters]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 1
+ *           required:
+ *             - id
+ *     responses:
+ *       '200':
+ *         description: Delete Successfully!
+ *       '500':
+ *         description: Internal Error!
+ */
+
 router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
-    const season = req.body.year;
+    const season = req.body.season;
 
     try {
         const semester = await Semester.create({
@@ -106,6 +134,36 @@ router.get('/', async (req, res) => {
         const semester = await Semester.findAll();
         res.json(DataResponse(semester));
         return;
+    } catch (err) {
+        console.log(err);
+        res.json(InternalErrResponse());
+    }
+})
+
+router.delete('/', async (req, res) => {
+    try {
+        const id = req.body.id
+        const semester = await Semester.findOne({
+            where: {
+                id: id
+            }
+        });
+        if (!semester) {
+            res.json(NotFoundResponse())
+            return
+        }
+
+        var today = new Date()
+        if (semester.year === today.getFullYear()) {
+            await Semester.destroy({
+                where: {
+                    id: id
+                }
+            })
+            res.json(MessageResponse('Delete successfully'))
+        } else {
+            res.json(MessageResponse('Only the current time can be deleted'))
+        }
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());

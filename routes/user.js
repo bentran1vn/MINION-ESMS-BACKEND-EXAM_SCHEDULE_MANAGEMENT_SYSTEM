@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import bcrypt from 'bcrypt'
 import Jwt from "jsonwebtoken";
 import { Op } from "sequelize";
-import { DataResponse, ErrorResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
+import { DataResponse, ErrorResponse, InternalErrResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
 
 /**
@@ -79,6 +79,17 @@ import { requireRole } from "../middlewares/auth.js";
  *     summary : Return the users with specific search value .
  *     tags: [Users]
  *     parameters:
+ *        - in: query
+ *          name: page_no
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The page number Client want to get.
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *          description: The users limitation in a page.
  *        - in: path
  *          name: searchValue
  *          schema:
@@ -164,45 +175,74 @@ import { requireRole } from "../middlewares/auth.js";
 const router = express.Router()
 
 router.get('/', requireRole('admin'), async (req, res) => {
-    const pageNo = parseInt(req.query.page_no) || 1
-    const limit = parseInt(req.query.limit) || 20
 
-    const totalUser = await User.findAll({})
-    const users = await User.findAll({
-        limit: limit,
-        offset: (pageNo - 1) * limit
-    })
-    const count_User = { Total: totalUser.length, Data: users }
-    res.json(DataResponse(count_User))
+    try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
+
+        const totalUser = await User.findAll({})
+        const users = await User.findAll({
+            limit: limit,
+            offset: (pageNo - 1) * limit
+        })
+        const count_User = { Total: totalUser.length, Data: users }
+        res.json(DataResponse(count_User))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
 })
 
 router.post('/', requireRole('admin'), async (req, res) => {
-    const userData = req.body
-    await User.create({
-        email: userData.email,
-        name: userData.name,
-        role: userData.role
+    try {
+        const userData = req.body
+
+        const user1 = await User.findOne({
+            where: {
+                email: userData.email
+            }
+        })
+        if (!user1) {
+            await User.create({
+                email: userData.email,
+                name: userData.name,
+                role: userData.role
+            })
+            res.json(MessageResponse("Create Successfully !"))
+        } else {
+            res.json(MessageResponse('Duplicated email!'))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
     }
-    )
-    res.json(MessageResponse("Create Successfully !"))
 })
 
 router.get('/:searchValue', requireRole('staff'), async (req, res) => {
-    const string = req.params.searchValue
+    try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
 
-    const users = await User.findAll({
-        where: {
-            [Op.or]: {
-                name: {
-                    [Op.like]: '%' + string + '%'
-                },
-                email: {
-                    [Op.like]: '%' + string + '%'
+        const string = req.params.searchValue
+        const users = await User.findAll({
+            where: {
+                [Op.or]: {
+                    name: {
+                        [Op.like]: '%' + string + '%'
+                    },
+                    email: {
+                        [Op.like]: '%' + string + '%'
+                    }
                 }
-            }
-        }
-    })
-    res.json(DataResponse(users))
+            },
+            limit: limit,
+            offset: (pageNo - 1) * limit
+        })
+        res.json(DataResponse(users))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
 })// Get User or Users by name 
 
 router.delete('/', requireRole('admin'), async (req, res) => {

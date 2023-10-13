@@ -184,7 +184,7 @@ const router = express.Router()
  *         schema:
  *           type: TIME
  *         required: true
- *         description: The time Client want to get like 07:00:00.
+ *         description: The time id Client want to get like 1.
  *     responses:
  *       '200':
  *         description: OK !
@@ -216,7 +216,7 @@ const router = express.Router()
  *         schema:
  *           type: TIME
  *         required: true
- *         description: The time Client want to get like 07:00:00.
+ *         description: The time id Client want to get like 1.
  *     responses:
  *       '200':
  *         description: OK !

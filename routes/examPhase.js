@@ -162,7 +162,7 @@ import { countCourse } from './course.js'
  *             schema:
  *               type: array
  *               items: 
- *                 $ref: '#/components/schemas/Users'
+ *                 $ref: '#/components/schemas/ExamPhases'
  */
 
 const router = express.Router()
@@ -249,7 +249,7 @@ router.get('/', async (req, res) => {
     const detailExamPhase = []
     function insertExamPhase(ss, y, t, bl, sd, ed) {
         const EPDetail = {
-            sesson: ss, year: y, type: t, block: bl, SDay: sd, EDay: ed
+            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
