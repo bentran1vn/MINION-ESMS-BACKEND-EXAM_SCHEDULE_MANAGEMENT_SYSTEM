@@ -191,7 +191,7 @@ router.get('/scheduled', async (req, res) => {
                 },
             ],
         })
-        if (!result) {
+        if (result.length === 0) {
             res.json(MessageResponse("Your schedule is empty !"))
             return;
         } else {
