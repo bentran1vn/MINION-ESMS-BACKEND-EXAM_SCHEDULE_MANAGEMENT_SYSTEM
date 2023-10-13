@@ -249,7 +249,7 @@ router.get('/', async (req, res) => {
     const detailExamPhase = []
     function insertExamPhase(ss, y, t, bl, sd, ed) {
         const EPDetail = {
-            sesson: ss, year: y, type: t, block: bl, SDay: sd, EDay: ed
+            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
