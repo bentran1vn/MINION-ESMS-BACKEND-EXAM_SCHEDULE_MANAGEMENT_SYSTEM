@@ -162,7 +162,7 @@ import { countCourse } from './course.js'
  *             schema:
  *               type: array
  *               items: 
- *                 $ref: '#/components/schemas/Users'
+ *                 $ref: '#/components/schemas/ExamPhases'
  */
 
 const router = express.Router()
