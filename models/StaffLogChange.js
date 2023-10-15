@@ -16,6 +16,7 @@ const StaffLogChange = sequelize.define(tableName, {
         allowNull: false
         // 0 table ExamRoom
         // 1 table StudentCourse
+        // 2 table ExamPhase
     },
     staffId: {
         type: DataTypes.INTEGER,
@@ -32,6 +33,7 @@ const StaffLogChange = sequelize.define(tableName, {
         // 1 Update Room in ExamRoom
         // 2 Update Lecturer in ExamRoom
         // 3 Update Student Status in StudentCourse
+        // 4 Update ExamPhase in ExamPhase
 
             // Update ở đây có thể là thêm xóa sửa
     },
