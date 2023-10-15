@@ -7,13 +7,15 @@ import User from "./User.js";
 let tableName = 'staffLogChanges'
 
 const StaffLogChange = sequelize.define(tableName, {
-    examRoomId: {
+    rowId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-            model: ExamRoom,
-            key: 'id'
-        }
+    },
+    tableName: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+        // 0 table ExamRoom
+        // 1 table StudentCourse
     },
     staffId: {
         type: DataTypes.INTEGER,
@@ -26,9 +28,11 @@ const StaffLogChange = sequelize.define(tableName, {
     typeChange: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        // 0 Xóa Full
-        // 1 Update Room
-        // 2 Update Lecturer
+        // 0 Xóa Full 1 Row in ExamRoom
+        // 1 Update Room in ExamRoom
+        // 2 Update Lecturer in ExamRoom
+        // 3 Update Student Status in StudentCourse
+
             // Update ở đây có thể là thêm xóa sửa
     },
     ...SQLModel
@@ -37,8 +41,6 @@ const StaffLogChange = sequelize.define(tableName, {
 User.hasMany(StaffLogChange, { foreignKey: 'staffId' })
 StaffLogChange.belongsTo(User, { foreignKey: 'staffId' })
 
-ExamRoom.hasMany(StaffLogChange, { foreignKey: 'examRoomId' })
-StaffLogChange.belongsTo(ExamRoom, { foreignKey: 'examRoomId' })
 
 await StaffLogChange.sync().then(() => {
     console.log(`${tableName} table is ready`);
