@@ -22,7 +22,7 @@ const Course = sequelize.define( tableName , {
 Subject.hasMany(Course, { foreignKey: 'subId' })
 Course.belongsTo(Subject, { foreignKey: 'subId' })
 
-Course.sync().then(()=> {
+await Course.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 

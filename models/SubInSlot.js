@@ -30,7 +30,7 @@ SubInSlot.belongsTo(Course, { foreignKey: 'courId' })
 ExamSlot.hasMany(SubInSlot, { foreignKey: 'exSlId' })
 SubInSlot.belongsTo(ExamSlot, { foreignKey: 'exSlId' })
 
-SubInSlot.sync().then(()=> {
+await SubInSlot.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 

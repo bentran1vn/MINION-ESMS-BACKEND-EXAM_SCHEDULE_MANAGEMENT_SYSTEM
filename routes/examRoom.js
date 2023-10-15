@@ -922,8 +922,10 @@ router.get('/', async (req, res) => {
                     id: element.roomId
                 }
             })
-            item.roomCode = room.roomNum
-            item.roomLocation = room.location
+            if(room != null) {
+                item.roomCode = room.dataValues.id
+                item.roomLocation = room.location
+            }
             if (element.lecturerId) {
                 const lecturer = await Lecturer.findOne({
                     where: {
@@ -962,10 +964,10 @@ router.get('/', async (req, res) => {
             })
             item.startTime = timeSlot.startTime
             item.endTime = timeSlot.endTime
-            item.id = i++
+            item.no = i++
         }
+        examList.push(item)
     }
-    console.log(examList);
     if (examList.length === 0) {
         res.json(InternalErrResponse())
     } else {

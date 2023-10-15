@@ -21,7 +21,7 @@ const User = sequelize.define( tableName , {
     ...SQLModel
 });
 
-User.sync().then(()=> {
+await User.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 

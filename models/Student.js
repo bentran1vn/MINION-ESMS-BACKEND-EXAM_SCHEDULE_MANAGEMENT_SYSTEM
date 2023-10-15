@@ -30,7 +30,7 @@ const Student = sequelize.define(tableName, {
 User.hasOne(Student, { foreignKey: 'userId' });
 Student.belongsTo(User, { foreignKey: 'userId' });
 
-Student.sync().then(() => {
+await Student.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

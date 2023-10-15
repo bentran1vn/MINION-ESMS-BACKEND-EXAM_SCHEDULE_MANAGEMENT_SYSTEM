@@ -22,7 +22,12 @@ const StudentExam = sequelize.define( tableName , {
             key: 'id'
         }
     },
-    
+    status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: 0,
+    }
+    //0 is Not Pass
+    //1 is Pass
 });
 
 Student.hasMany(StudentExam, { foreignKey: 'stuId' })
@@ -31,7 +36,7 @@ StudentExam.belongsTo(Student, { foreignKey: 'stuId' })
 ExamRoom.hasMany(StudentExam, { foreignKey: 'eRId' })
 StudentExam.belongsTo(ExamRoom, { foreignKey: 'eRId' })
 
-StudentExam.sync().then(()=> {
+await StudentExam.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 
