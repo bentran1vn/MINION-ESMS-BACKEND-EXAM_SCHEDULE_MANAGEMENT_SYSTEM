@@ -15,7 +15,7 @@ const TimeSlot = sequelize.define(tableName, {
 
 });
 
-TimeSlot.sync().then(() => {
+await TimeSlot.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

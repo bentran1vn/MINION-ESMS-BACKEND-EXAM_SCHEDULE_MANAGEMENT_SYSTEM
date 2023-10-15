@@ -14,7 +14,8 @@ const Semester = sequelize.define( tableName , {
     }
 
 });
-Semester.sync().then(()=> {
+
+await Semester.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 

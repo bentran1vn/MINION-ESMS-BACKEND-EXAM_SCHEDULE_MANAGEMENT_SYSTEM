@@ -21,7 +21,7 @@ const ExamType = sequelize.define( tableName , {
 });
 
 
-ExamType.sync().then(()=> {
+await ExamType.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 

@@ -17,7 +17,6 @@ const ExamPhase = sequelize.define(tableName, {
     eTId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 1,
         references: {
             model: ExamType,
             key: 'id'
@@ -31,6 +30,12 @@ const ExamPhase = sequelize.define(tableName, {
         type: DataTypes.DATEONLY,
         allowNull: true,
     },
+    status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: 0,
+    }   
+    //0 is pending
+    //1 is finish
 });
 
 Semester.hasMany(ExamPhase, { foreignKey: 'semId' })
@@ -39,7 +44,7 @@ ExamPhase.belongsTo(Semester, { foreignKey: 'semId' })
 ExamType.hasMany(ExamPhase, { foreignKey: 'eTId' })
 ExamPhase.belongsTo(ExamType, { foreignKey: 'eTId' })
 
-ExamPhase.sync().then(() => {
+await ExamPhase.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

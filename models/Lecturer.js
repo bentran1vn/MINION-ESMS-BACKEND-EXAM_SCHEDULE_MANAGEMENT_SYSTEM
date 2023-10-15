@@ -16,13 +16,19 @@ const Lecturer = sequelize.define( tableName , {
     lecId:{
         type: DataTypes.STRING(8),
         allowNull: false
-    }
+    },
+    status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: 0,
+    }   
+    //0 is not busy
+    //1 is busy
 });
 
 User.hasOne(Lecturer, { foreignKey: 'userId' });
 Lecturer.belongsTo(User, { foreignKey: 'userId' });
 
-Lecturer.sync().then(()=> {
+await Lecturer.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 
