@@ -27,6 +27,7 @@ import examPhaseRouter from './routes/examPhase.js'
 import examSlotRouter from './routes/examSlot.js'
 import subInSlotRouter from './routes/subInSlot.js'
 import examRoomRouter from './routes/examRoom.js'
+import staffLogChangeRouter from './routes/staffLogChange.js'
 import studentExamRouter from './routes/studentExam.js'
 import authenticateRouter from './routes/authenticate.js'
 import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
@@ -75,6 +76,7 @@ server.use('/examPhases', examPhaseRouter)
 server.use('/examSlots', examSlotRouter)
 server.use('/subInSlots', subInSlotRouter)
 server.use('/examRooms', examRoomRouter)
+server.use('/staffLogChanges', staffLogChangeRouter)
 server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)

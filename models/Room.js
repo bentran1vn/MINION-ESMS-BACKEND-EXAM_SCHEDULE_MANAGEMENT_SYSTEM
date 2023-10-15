@@ -17,7 +17,8 @@ const Room = sequelize.define(tableName, {
         allowNull: true,
     }
 });
-Room.sync().then(() => {
+
+await Room.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

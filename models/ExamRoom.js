@@ -48,7 +48,7 @@ ExamRoom.belongsTo(SubInSlot, { foreignKey: 'sSId' })
 Lecturer.hasMany(ExamRoom, { foreignKey: 'lecturerId' })
 ExamRoom.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
 
-ExamRoom.sync().then(() => {
+await ExamRoom.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

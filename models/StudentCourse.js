@@ -30,7 +30,7 @@ StudentCourse.belongsTo(Course, { foreignKey: 'courId' })
 Student.hasMany(StudentCourse, { foreignKey: 'stuId' })
 StudentCourse.belongsTo(Student, { foreignKey: 'stuId' })
 
-StudentCourse.sync().then(() => {
+await StudentCourse.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

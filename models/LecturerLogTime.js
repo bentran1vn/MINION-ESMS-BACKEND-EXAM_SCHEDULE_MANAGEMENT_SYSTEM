@@ -34,7 +34,7 @@ LecturerLogTime.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
 TimeSlot.hasMany(LecturerLogTime, { foreignKey: 'timeSlotId' })
 LecturerLogTime.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
-LecturerLogTime.sync().then(()=> {
+await LecturerLogTime.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 
