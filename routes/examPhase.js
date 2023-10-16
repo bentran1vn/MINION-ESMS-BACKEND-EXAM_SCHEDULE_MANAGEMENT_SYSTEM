@@ -220,7 +220,7 @@ router.post('/', async (req, res) => {
                     rowId: examPhase.id,
                     tableName: 2,
                     staffId: changerId,
-                    typeChange: 4
+                    typeChange: 7
                 })
             }
             res.json(MessageResponse('Create successfully !'))
@@ -282,7 +282,7 @@ router.delete('/', async (req, res) => {
                 rowId: id,
                 tableName: 2,
                 staffId: changerId,
-                typeChange: 4
+                typeChange: 8
             })
             res.json(MessageResponse('Exam Phase deleted'))
         }
@@ -403,7 +403,7 @@ export async function createExamPhases(course, semesterId) {
                             semId: semesterId,
                             eTId: examType.id,
                         });
-                        
+
                         return examPhase;
                     })();
                     promises.push(promise);
