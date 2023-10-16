@@ -88,6 +88,58 @@ const router = express.Router()
 
 /**
  * @swagger
+ * /semesters/year/:
+ *   get:
+ *     summary: Return all data of Semester by input year
+ *     tags: [Semesters]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The year number Client want to get.             
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Semesters'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /semesters/season/:
+ *   get:
+ *     summary: Return all data of Semester by input season
+ *     tags: [Semesters]
+ *     parameters:
+ *       - in: query
+ *         name: season
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The season Client want to get.             
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Semesters'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
  * /semesters:
  *   delete:
  *     summary: Delete a user.
@@ -137,6 +189,48 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
+    }
+})
+
+router.get('/year', async (req, res) => {
+    const year = parseInt(req.query.year);
+    try {
+        const sem = await Semester.findAll({
+            where: {
+                year: year
+            }
+        })
+        if(sem){
+            res.json(DataResponse(sem));
+            return;
+        }else{
+            res.json(MessageResponse("This year doesn't exist"));
+            return;
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+router.get('/season', async (req, res) =>{
+    const season = req.query.season;
+    try {
+        const sem = await Semester.findAll({
+            where: {
+                season: season
+            }
+        })
+        if(sem){
+            res.json(DataResponse(sem));
+            return;
+        }else{
+            res.json(MessageResponse("This year doesn't exist"));
+            return;
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
     }
 })
 

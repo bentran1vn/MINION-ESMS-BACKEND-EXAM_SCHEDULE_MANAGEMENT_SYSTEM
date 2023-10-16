@@ -9,6 +9,7 @@ import Subject from '../models/Subject.js'
 import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 /**
  * @swagger
@@ -293,9 +294,9 @@ router.delete('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(ss, y, t, bl, sd, ed) {
+    function insertExamPhase(id, ss, y, t, bl, sd, ed) {
         const EPDetail = {
-            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
@@ -320,9 +321,10 @@ router.get('/', async (req, res) => {
             })
 
             if (semester && examType) {
-                insertExamPhase(semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+                insertExamPhase(semester.id, semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
+        res.json(DataResponse(detailExamPhase))
     } catch (error) {
         console.log(error);
         res.json(MessageResponse('Error found'))
@@ -401,6 +403,7 @@ export async function createExamPhases(course, semesterId) {
                             semId: semesterId,
                             eTId: examType.id,
                         });
+                        
                         return examPhase;
                     })();
                     promises.push(promise);

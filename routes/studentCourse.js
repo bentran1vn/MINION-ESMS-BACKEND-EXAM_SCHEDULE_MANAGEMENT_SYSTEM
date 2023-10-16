@@ -4,6 +4,7 @@ import { requireRole } from '../middlewares/auth.js'
 import Course from '../models/Course.js'
 import Student from '../models/Student.js'
 import StudentCourse from '../models/StudentCourse.js'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 const router = express.Router()
 
@@ -67,7 +68,10 @@ const router = express.Router()
  *          description: Internal Server Error!
  */
 
+//req role staff
 router.post('/', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+
     const courId = parseInt(req.body.courId);
     const stuId = parseInt(req.body.stuId);
 
@@ -90,7 +94,17 @@ router.post('/', async (req, res) => {
                 courId: courId,
                 stuId: stuId
             })
-            console.log(studentCourse);
+            if(studentCourse){
+                const staffLog = await StaffLogChange.create({
+                    rowId: studentCourse.id,
+                    tableName: 1,
+                    staffId: staffId,
+                    typeChange: 6,
+                })
+                if(!staffLog){
+                    throw new Error("Create staff log failed");
+                }
+            }
             res.json(MessageResponse("Create Success !"))
         }
     } catch (err) {
