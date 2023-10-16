@@ -153,7 +153,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
  * @swagger
  * /examPhases/ :
  *   get :
- *     summary : Return detail of all exam phase.
+ *     summary : Return detail of all Exam Phase has been scheduled.
  *     tags: [ExamPhases]
  *     responses :
  *       200 :
@@ -300,7 +300,11 @@ router.get('/', async (req, res) => {
         detailExamPhase.push(EPDetail)
     }
     try {
-        const examPhases = await ExamPhase.findAll()
+        const examPhases = await ExamPhase.findAll({
+            where: {
+                status: 1
+            }
+        })
 
         for (let i = 0; i < examPhases.length; i++) {
             const semester = await Semester.findOne({
@@ -324,7 +328,7 @@ router.get('/', async (req, res) => {
         res.json(MessageResponse('Error found'))
     }
     res.json(DataResponse(detailExamPhase))
-})// Get all detail Exam Phase
+})// Get all detail Exam Phase has been scheduled
 
 router.get('/notScheduled', async (req, res) => {
     const detailExamPhase = []
