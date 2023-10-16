@@ -8,6 +8,7 @@ import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
 import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 /**
  * @swagger
@@ -168,6 +169,8 @@ import { countCourse } from './course.js'
 const router = express.Router()
 
 router.post('/', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+
     const semId = parseInt(req.body.semId);
     const eTId = parseInt(req.body.eTId);
     const startDay = req.body.startDay;
@@ -194,7 +197,17 @@ router.post('/', async (req, res) => {
                 startDay: startDay,
                 endDay: endDay
             })
-            console.log(examPhase);
+            if(examPhase){
+                const staffLog = await StaffLogChange.create({
+                    rowId: examPhase.id,
+                    tableName: 2,
+                    staffId: staffId,
+                    typeChange: 7,
+                })
+                if(!staffLog){
+                    throw new Error("Create staff log failed");
+                }
+            }
             res.json(DataResponse(examPhase))
         }
 
@@ -205,6 +218,8 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/', async (req, res) => { // Update ExamPhase
+    const staffId = parseInt(res.locals.userData.id);
+
     const examPhaseUp = req.body
     const id = parseInt(examPhaseUp.examPhaseId)
 
@@ -215,6 +230,15 @@ router.put('/', async (req, res) => { // Update ExamPhase
             }
         })
         if (check[0] === 1) {
+            const staffLog = await StaffLogChange.create({
+                rowId: id,
+                tableName: 2,
+                staffId: staffId,
+                typeChange: 4,
+            })
+            if(!staffLog){
+                throw new Error("Create staff log failed");
+            }
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -226,6 +250,8 @@ router.put('/', async (req, res) => { // Update ExamPhase
 })
 
 router.delete('/', async (req, res) => { // Delete Exam Phase
+    const staffId = parseInt(res.locals.userData.id);
+
     const id = parseInt(req.body.id)
 
     try {
@@ -237,6 +263,15 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
         if (result === 0) {
             res.json(NotFoundResponse('Not found'))
         } else {
+            const staffLog = await StaffLogChange.create({
+                rowId: id,
+                tableName: 2,
+                staffId: staffId,
+                typeChange: 8,
+            })
+            if(!staffLog){
+                throw new Error("Create staff log failed");
+            }
             res.json(MessageResponse('Exam Phase deleted'))
         }
     } catch (error) {
@@ -273,11 +308,12 @@ router.get('/', async (req, res) => {
                 insertExamPhase(semester.id, semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
+        res.json(DataResponse(detailExamPhase))
     } catch (error) {
         console.log(error);
         res.json(MessageResponse('Error found'))
     }
-    res.json(DataResponse(detailExamPhase))
+    
 })
 
 export async function createExamPhases(course, semesterId) {
@@ -312,6 +348,7 @@ export async function createExamPhases(course, semesterId) {
                             semId: semesterId,
                             eTId: examType.id,
                         });
+                        
                         return examPhase;
                     })();
                     promises.push(promise);

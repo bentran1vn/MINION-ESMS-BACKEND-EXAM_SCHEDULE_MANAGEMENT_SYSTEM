@@ -11,6 +11,8 @@ import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
 import LecturerLogTime from '../models/LecturerLogTime.js'
 import RoomLogTime from '../models/RoomLogTime.js'
+import StaffLogChange from '../models/StaffLogChange.js'
+import User from '../models/User.js'
 import { createNewSemester } from './semester.js'
 import { Op } from 'sequelize'
 
@@ -371,87 +373,112 @@ router.post('/', async (req, res) => {
 //random 1 lecturerId trong mang lecturer sau do nhet id no vo 1 dong bat ki co lecId null trong exam room
 //lay thong tin cua dong do qua bang logtime cua lec de xem ko co thi add, co thi random nguoi khac
 //tự thêm lec vô examRoom
-// PASS
+//hệ thống tự lấy về staff id dựa vào token
+// PASS //auto này cũng require role staff để cái middle ware reqRole đây
 router.post('/auto', async (req, res) => {
-    const lecturer = await Lecturer.findAll();
-    const lecList = lecturer.map(lec => lec.dataValues);
-    const lecIdList = lecList.map(lecL => lecL.id);
+    //lấy id thông qua token
+    const staffId = parseInt(res.locals.userData.id);
 
-    const roomNoLecturer = await ExamRoom.findAll({
-        where: {
-            lecturerId: null
-        }
-    });
-    if (roomNoLecturer.length == 0) {
-        res.json("All rooms assigned");
-        return;
-    }
-    else {
-        // const randomLecId = getRandomLecturerId(lecIdList);       
-        const roomEmpty = roomNoLecturer.map(examRoom => examRoom.dataValues);
-        for (const item of roomEmpty) {
-            const id = item.id;
-            const sSId = item.sSId;
+    try {
+        const lecturer = await Lecturer.findAll();
+        const lecList = lecturer.map(lec => lec.dataValues);
+        const lecIdList = lecList.map(lecL => lecL.id);
 
-            const subjectInSlot = await SubInSlot.findOne({
-                where: {
-                    id: sSId
-                }
-            })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: subjectInSlot.exSlId
-                }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: examSlot.timeSlotId
-                }
-            })
-            let i = 0;
-            for (i; i < lecIdList.length; i++) {
-                const randomLecId = lecIdList[i];
-                const checkLecLogTime = await LecturerLogTime.findOne({
-                    where: {
-                        lecturerId: randomLecId,
-                        timeSlotId: timeSlot.id,
-                        day: examSlot.day
-                    }
-                })
-                if (!checkLecLogTime) {
-                    const examRoom = await ExamRoom.update({
-                        lecturerId: randomLecId
-                    }, {
-                        where: {
-                            id: id
-                        }
-                    })
-                    if (examRoom) {
-                        const updateLecLogTime = await LecturerLogTime.create({
-                            lecturerId: randomLecId,
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day
-                        })
-                        break;
-                    }
-                }
-            }
-
-        }
-        const examRoomAtferfill = await ExamRoom.findAll({
+        const roomNoLecturer = await ExamRoom.findAll({
             where: {
                 lecturerId: null
             }
-        })
-        if (examRoomAtferfill.length != 0) {
-            res.json(MessageResponse("Number of lecturers not enough to fill up exam room"));
-            return;
-        } else {
-            res.json(MessageResponse("All rooms assigned"));
+        });
+        if (roomNoLecturer.length == 0) {
+            res.json("All rooms assigned");
             return;
         }
-    }
+        else {
+            // const randomLecId = getRandomLecturerId(lecIdList);       
+            const roomEmpty = roomNoLecturer.map(examRoom => examRoom.dataValues);
+            for (const item of roomEmpty) {
+                const id = item.id;
+                const sSId = item.sSId;
 
+                const subjectInSlot = await SubInSlot.findOne({
+                    where: {
+                        id: sSId
+                    }
+                })
+                const examSlot = await ExamSlot.findOne({
+                    where: {
+                        id: subjectInSlot.exSlId
+                    }
+                })
+                const timeSlot = await TimeSlot.findOne({
+                    where: {
+                        id: examSlot.timeSlotId
+                    }
+                })
+                let i = 0;
+                for (i; i < lecIdList.length; i++) {
+                    const randomLecId = lecIdList[i];
+                    const checkLecLogTime = await LecturerLogTime.findOne({
+                        where: {
+                            lecturerId: randomLecId,
+                            timeSlotId: timeSlot.id,
+                            day: examSlot.day
+                        }
+                    })
+                    if (!checkLecLogTime) {
+                        const examRoom = await ExamRoom.update({
+                            lecturerId: randomLecId
+                        }, {
+                            where: {
+                                id: id
+                            }
+                        })
+                        if (examRoom) {
+                            const updateLecLogTime = await LecturerLogTime.create({
+                                lecturerId: randomLecId,
+                                timeSlotId: timeSlot.id,
+                                day: examSlot.day
+                            })
+                            break;
+                        }
+                    }
+                }
+            }
+            const examRoomAtferfill = await ExamRoom.findAll({
+                where: {
+                    lecturerId: null
+                }
+            })
+            if (examRoomAtferfill.length != 0) {
+                const staffLog = await StaffLogChange.create({
+                    // rowId: 0,
+                    tableName: 0,
+                    staffId: staffId,
+                    typeChange: 5,
+                })
+                if(!staffLog){
+                    throw new Error("Create staff log failed");
+                }
+                res.json(MessageResponse("Number of lecturers not enough to fill up exam room"));
+                return;
+            } else {
+                const staffLog = await StaffLogChange.create({
+                    // rowId: 0,
+                    tableName: 0,
+                    staffId: staffId,
+                    typeChange: 5,
+                })
+                if(!staffLog){
+                    throw new Error("Create staff log failed");
+                }
+                res.json(MessageResponse("All rooms assigned"));
+                return;
+            }
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
 
 })
 function getRandomLecturerId(array) {
@@ -649,6 +676,7 @@ router.put('/delLecturer', async (req, res) => {
 //, requireRole("staff")
 // PASS
 router.put('/addLecturer', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
     //thêm lecturer của staff
     const { id, lecturerId } = req.body;
     if (!lecturerId) {
@@ -700,6 +728,15 @@ router.put('/addLecturer', async (req, res) => {
                         res.json(MessageResponse('Add Failed !'));
                         return;
                     } else {
+                        const staffLog = await StaffLogChange.create({
+                            rowId: parseInt(id),
+                            staffId: staffId,
+                            tableName: 0,
+                            typeChange: 2
+                        })
+                        if(!staffLog){
+                            throw new Error("Create staff log failed");
+                        }
                         const addToLecLogTime = await LecturerLogTime.create({
                             lecturerId: parseInt(lecturerId),
                             timeSlotId: timeSlot.id,
@@ -734,6 +771,7 @@ router.put('/addLecturer', async (req, res) => {
 //update cái này thêm cập nhật room qua room log time
 //role staff , requireRole("staff")
 router.put('/room', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
     //thêm phòng của staff
     const id = parseInt(req.body.id)
     const roomId = parseInt(req.body.roomId)
@@ -782,6 +820,15 @@ router.put('/room', async (req, res) => {
                         res.json(MessageResponse('Add Failed !'));
                         return;
                     } else {
+                        const staffLog = await StaffLogChange.create({
+                            rowId: id,
+                            staffId: staffId,
+                            tableName: 0,
+                            typeChange: 1
+                        })
+                        if(!staffLog){
+                            throw new Error("Create staff log failed");
+                        }
                         const roomLogTime = await RoomLogTime.create({
                             roomId: roomId,
                             timeSlotId: timeSlot.id,
@@ -813,6 +860,7 @@ router.put('/room', async (req, res) => {
 //delete 1 roomId from examRoom
 //role staff , requireRole("staff")
 router.put('/delRoom', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
     //staff nhìn vô bảng examRoom thấy lỗi chỗ nào bấm
     //client bắt r trả id dòng đó về và update roomId dòng đó thành null
     const id = parseInt(req.body.id)
@@ -850,6 +898,15 @@ router.put('/delRoom', async (req, res) => {
                     }
                 })
                 if (examRoom[0] != 0) {
+                    const staffLog = await StaffLogChange.create({
+                        rowId: id,
+                        staffId: staffId,
+                        tableName: 0,
+                        typeChange: 1
+                    })
+                    if(!staffLog){
+                        throw new Error("Create staff log failed");
+                    }
                     const delRoomLogTime = await RoomLogTime.destroy({
                         where: {
                             roomId: checkExRoom.roomId,
@@ -922,7 +979,7 @@ router.get('/', async (req, res) => {
                     id: element.roomId
                 }
             })
-            if(room != null) {
+            if (room != null) {
                 item.roomCode = room.dataValues.id
                 item.roomLocation = room.location
             }
