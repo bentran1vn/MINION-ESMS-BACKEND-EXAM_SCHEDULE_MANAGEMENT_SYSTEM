@@ -9,7 +9,7 @@ import Subject from '../models/Subject.js'
 import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 import StaffLogChange from '../models/StaffLogChange.js'
-import StaffLogChange from '../models/StaffLogChange.js'
+
 
 /**
  * @swagger
