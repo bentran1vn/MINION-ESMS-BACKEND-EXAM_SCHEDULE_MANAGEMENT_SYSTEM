@@ -230,14 +230,66 @@ const router = express.Router()
  *         description: Internal Server Error!
  */
 
+/**
+ * @swagger
+ * /rooms/getByRoomNum/:
+ *   get:
+ *     summary: Return Rooms by roomNum
+ *     tags: [Rooms]
+ *     parameters:
+ *       - in: query
+ *         name: roomNum
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The roomNum Client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Rooms'
+ *       '500':
+ *         description: Internal Server Error!
+ */
+
+/**
+ * @swagger
+ * /rooms/getRoomByLoca/:
+ *   get:
+ *     summary: Return All Rooms by location
+ *     tags: [Rooms]
+ *     parameters:
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The location Client want to get all room
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Rooms'
+ *       '500':
+ *         description: Internal Server Error!
+ */
+
 router.post('/', async (req, res) => {
-    const roomNum = parseInt(req.body.roomNum);
-    const location = req.body.location;
+    const data = req.body
 
     try {
         const room = await Room.create({
-            roomNum: roomNum,
-            location: location
+            roomNum: parseInt(data.roomNum),
+            location: data.location,
+            note: data.note || ""
         })
         res.json(MessageResponse("Create Success !"))
 
@@ -245,7 +297,7 @@ router.post('/', async (req, res) => {
         console.log(err)
         res.json(InternalErrResponse());
     }
-})
+})// Create new room
 
 router.delete('/', async (req, res) => {
     const roomNum = parseInt(req.body.roomNum);
@@ -266,7 +318,7 @@ router.delete('/', async (req, res) => {
         console.log(error)
         res.json(InternalErrResponse());
     }
-})
+})// Delete room
 
 router.put('/', async (req, res) => {
     const id = parseInt(req.body.id);
@@ -288,7 +340,7 @@ router.put('/', async (req, res) => {
         console.log(err);
         res.json(InternalErrResponse());
     }
-})
+})// Update room
 
 router.get('/', async (req, res) => {
     try {
@@ -410,6 +462,45 @@ router.get('/roomUseSlot', async (req, res) => {
         res.json(InternalErrResponse())
     }
 })// Get room in use in 1 day and 1 slot specifically
+
+router.get('/getByRoomNum', async (req, res) => {
+    try {
+        const roomNum = parseInt(req.query.roomNum)
+        const room = await Room.findOne({
+            where: {
+                roomNum: roomNum
+            }
+        })
+        if (room) {
+            res.json(DataResponse(room))
+        } else {
+            res.json(NotFoundResponse())
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})// Get room by roomNumer
+
+router.get('/getRoomByLoca', async (req, res) => {
+    try {
+        const location = req.query.location
+        const room = await Room.findAll({
+            where: {
+                location: location
+            }
+        })
+        if (room.length != 0) {
+            res.json(DataResponse(room))
+        } else {
+            res.json(NotFoundResponse())
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})// Get room by location
 
 export async function randomRoom() {
     let roomList = await Room.findAll()
