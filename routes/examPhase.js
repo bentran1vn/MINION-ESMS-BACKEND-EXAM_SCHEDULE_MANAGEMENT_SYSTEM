@@ -9,6 +9,7 @@ import Subject from '../models/Subject.js'
 import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 /**
  * @swagger
@@ -153,7 +154,24 @@ import StaffLogChange from '../models/StaffLogChange.js'
  * @swagger
  * /examPhases/ :
  *   get :
- *     summary : Return detail of all exam phase.
+ *     summary : Return detail of all Exam Phase has been scheduled.
+ *     tags: [ExamPhases]
+ *     responses :
+ *       200 :
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamPhases'
+ */
+
+/**
+ * @swagger
+ * /examPhases/notScheduled/ :
+ *   get :
+ *     summary : Return all exam phase has not been scheduled yet.
  *     tags: [ExamPhases]
  *     responses :
  *       200 :
@@ -169,12 +187,11 @@ import StaffLogChange from '../models/StaffLogChange.js'
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);
-
     const semId = parseInt(req.body.semId);
     const eTId = parseInt(req.body.eTId);
     const startDay = req.body.startDay;
     const endDay = req.body.endDay;
+    const changerId = parseInt(res.locals.userData.id)
 
     try {
         const semester = await Semester.findOne({
@@ -195,50 +212,49 @@ router.post('/', async (req, res) => {
                 semId: semId,
                 eTId: eTId,
                 startDay: startDay,
-                endDay: endDay
+                endDay: endDay,
+                status: 0
             })
-            if(examPhase){
-                const staffLog = await StaffLogChange.create({
+            if (examPhase) {
+                await StaffLogChange.create({
                     rowId: examPhase.id,
                     tableName: 2,
-                    staffId: staffId,
-                    typeChange: 7,
+                    staffId: changerId,
+                    typeChange: 4
                 })
-                if(!staffLog){
-                    throw new Error("Create staff log failed");
-                }
             }
-            res.json(DataResponse(examPhase))
+            res.json(MessageResponse('Create successfully !'))
         }
-
     } catch (errer) {
         console.log(errer)
         res.json(InternalErrResponse());
     }
-})
+})// Creat new Exam Phase
 
-router.put('/', async (req, res) => { // Update ExamPhase
-    const staffId = parseInt(res.locals.userData.id);
-
+router.put('/', async (req, res) => {
     const examPhaseUp = req.body
     const id = parseInt(examPhaseUp.examPhaseId)
+    const changerId = parseInt(res.locals.userData.id)
 
     try {
-        const check = await ExamPhase.update(examPhaseUp, {
+        const check = await ExamPhase.update({
+            semId: examPhaseUp.semId,
+            eTId: examPhaseUp.eTId,
+            startDay: examPhaseUp.startDay,
+            endDay: examPhaseUp.endDay,
+            status: 1
+        }, {
             where: {
                 id: id,
             }
         })
         if (check[0] === 1) {
-            const staffLog = await StaffLogChange.create({
+            await StaffLogChange.create({
                 rowId: id,
                 tableName: 2,
-                staffId: staffId,
-                typeChange: 4,
+                staffId: changerId,
+                typeChange: 4
             })
-            if(!staffLog){
-                throw new Error("Create staff log failed");
-            }
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -247,13 +263,12 @@ router.put('/', async (req, res) => { // Update ExamPhase
         console.log(error)
         res.status(500).json({ error: 'Internal Server Error' });
     }
-})
+})// Update ExamPhase
 
-router.delete('/', async (req, res) => { // Delete Exam Phase
-    const staffId = parseInt(res.locals.userData.id);
-
+router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
-
+    // const changerId = parseInt(res.locals.userData.id)
+    const changerId = 1
     try {
         const result = await ExamPhase.destroy({
             where: {
@@ -263,22 +278,19 @@ router.delete('/', async (req, res) => { // Delete Exam Phase
         if (result === 0) {
             res.json(NotFoundResponse('Not found'))
         } else {
-            const staffLog = await StaffLogChange.create({
+            await StaffLogChange.create({
                 rowId: id,
                 tableName: 2,
-                staffId: staffId,
-                typeChange: 8,
+                staffId: changerId,
+                typeChange: 4
             })
-            if(!staffLog){
-                throw new Error("Create staff log failed");
-            }
             res.json(MessageResponse('Exam Phase deleted'))
         }
     } catch (error) {
         console.log(error)
         res.json(MessageResponse('Error found'))
     }
-})
+})// Delete Exam Phase
 
 router.get('/', async (req, res) => {
     const detailExamPhase = []
@@ -289,7 +301,11 @@ router.get('/', async (req, res) => {
         detailExamPhase.push(EPDetail)
     }
     try {
-        const examPhases = await ExamPhase.findAll()
+        const examPhases = await ExamPhase.findAll({
+            where: {
+                status: 1
+            }
+        })
 
         for (let i = 0; i < examPhases.length; i++) {
             const semester = await Semester.findOne({
@@ -313,8 +329,47 @@ router.get('/', async (req, res) => {
         console.log(error);
         res.json(MessageResponse('Error found'))
     }
-    
-})
+    res.json(DataResponse(detailExamPhase))
+})// Get all detail Exam Phase has been scheduled
+
+router.get('/notScheduled', async (req, res) => {
+    const detailExamPhase = []
+    function insertExamPhase(ss, y, t, bl, sd, ed) {
+        const EPDetail = {
+            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
+        }
+        detailExamPhase.push(EPDetail)
+    }
+    try {
+        const examPhases = await ExamPhase.findAll({
+            where: {
+                status: 0
+            }
+        })
+
+        for (let i = 0; i < examPhases.length; i++) {
+            const semester = await Semester.findOne({
+                where: {
+                    id: examPhases[i].semId
+                }
+            })
+
+            const examType = await ExamType.findOne({
+                where: {
+                    id: examPhases[i].eTId
+                }
+            })
+
+            if (semester && examType) {
+                insertExamPhase(semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(MessageResponse('Error found'))
+    }
+    res.json(DataResponse(detailExamPhase))
+})// Get all Exam Phase has not been scheduled
 
 export async function createExamPhases(course, semesterId) {
     try {
