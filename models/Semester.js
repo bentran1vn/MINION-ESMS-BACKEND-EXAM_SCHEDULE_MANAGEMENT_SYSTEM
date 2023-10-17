@@ -11,6 +11,14 @@ const Semester = sequelize.define( tableName , {
     year:{
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    start:{
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    end:{
+        type: DataTypes.DATEONLY,
+        allowNull: true,
     }
 
 });
