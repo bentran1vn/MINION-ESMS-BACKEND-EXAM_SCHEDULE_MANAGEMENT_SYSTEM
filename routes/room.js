@@ -319,7 +319,14 @@ router.put('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const room = await Room.findAll()
-        res.json(DataResponse(room))
+        const roomArr = []
+        room.forEach(e => {
+            const length = e.roomNum + ""
+            if (length.length > 1) {
+                roomArr.push(e)
+            }
+        });
+        res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
