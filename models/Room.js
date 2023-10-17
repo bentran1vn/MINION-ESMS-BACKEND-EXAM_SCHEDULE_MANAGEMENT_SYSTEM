@@ -12,8 +12,8 @@ const Room = sequelize.define(tableName, {
         type: DataTypes.STRING(255),
         allowNull: false,
     },
-    note: {
-        type: DataTypes.STRING(255),
+    status: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     }
 });

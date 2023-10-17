@@ -159,4 +159,35 @@ router.delete('/', async (req, res) => {
     }
 })
 
+router.get('/statistic', async (req, res) => {
+    try {
+        var type = req.query.type
+        const time = new Date()
+        var timeFormat = time.toISOString().slice(0, 10)
+        const exSlotFull = await ExamSlot.findAll()
+        const exSlotPast = []
+        const exSlotCur = []
+        if (type == "") {
+            res.json(DataResponse(exSlotFull))
+        } else if (type == '1') {
+            exSlotFull.forEach(e => {
+                if (Date.parse(e.day) < Date.parse(timeFormat)) {
+                    exSlotPast.push(e)
+                }
+            });
+            res.json(DataResponse(exSlotPast))
+        } else if (type == '0') {
+            exSlotFull.forEach(e => {
+                if (Date.parse(e.day) > Date.parse(timeFormat)) {
+                    exSlotCur.push(e)
+                }
+            });
+            res.json(DataResponse(exSlotCur))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})// Thống kê exam slots, type = ““ thì getAll; = 1 thì lấy đã hoàn tất; = 0 thì lấy chưa hoàn tất
+
 export default router
