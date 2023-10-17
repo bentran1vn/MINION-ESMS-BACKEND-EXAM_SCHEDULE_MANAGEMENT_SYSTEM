@@ -47,6 +47,7 @@ const router = express.Router()
  *    name: Lecturers
  *    description: The Lecturers managing API
  */
+
 /**
  * @swagger
  * /lecturers/:
@@ -73,6 +74,7 @@ const router = express.Router()
  *       '200':
  *         description: Create Success !
  */
+
 /**
  * @swagger
  * /lecturers/scheduled/:
@@ -96,19 +98,13 @@ const router = express.Router()
  *               items: 
  *                 $ref: '#/components/schemas/Lecturers'
  */
+
 /**
  * @swagger
  * /lecturers/availableSlot/:
  *   get:
  *     summary: Return all slot that have no Lecturers
  *     tags: [Lecturers]
- *     parameters:
- *       - in: query
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The lecturer id Client want to get.
  *     responses:
  *       '200':
  *         description: OK !
@@ -119,10 +115,10 @@ const router = express.Router()
  *               items: 
  *                 $ref: '#/components/schemas/Lecturers'
  */
+
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
     const lecId = req.body.lecId;
-
 
     try {
         const user = await User.findOne({
@@ -152,8 +148,8 @@ router.post('/', async (req, res) => {
 //PASS
 router.get('/scheduled', async (req, res) => {
     const id = parseInt(req.query.id);
-    
-    if(!id){
+
+    if (!id) {
         res.json(MessageResponse("Lecturer id is required"));
         return;
     }
@@ -229,20 +225,15 @@ router.get('/scheduled', async (req, res) => {
 //tất cả những slot còn trống trong 1 ngày 1 giờ
 //PASS
 router.get('/availableSlot', async (req, res) => {
-    const lecturerId = parseInt(req.query.id);
-
-    if(!lecturerId){
-        res.json(MessageResponse("Lecturer id is required"));
-        return;
-    }
     
+
     let availableSlotList = [];
     const slotNoLecturer = await ExamRoom.findAll({
         where: {
             lecturerId: null
         }
     });
-    if(!slotNoLecturer){
+    if (!slotNoLecturer) {
         res.json(MessageResponse("All slot are scheduled!"));
         return;
     }
@@ -290,7 +281,7 @@ router.get('/availableSlot', async (req, res) => {
             }
             availableSlotList.push(ob);
         }
-        
+
     }
     let result = [];
     const counts = {};

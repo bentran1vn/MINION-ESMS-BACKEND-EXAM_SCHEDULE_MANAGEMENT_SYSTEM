@@ -218,7 +218,7 @@ router.post('/', requireRole('admin'), async (req, res) => {
     }
 })
 
-router.get('/:searchValue', requireRole('staff'), async (req, res) => {
+router.get('/:searchValue', async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
@@ -238,7 +238,8 @@ router.get('/:searchValue', requireRole('staff'), async (req, res) => {
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        res.json(DataResponse(users))
+        const count_User = { Total: users.length, Data: users }
+        res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())

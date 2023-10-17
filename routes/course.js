@@ -250,6 +250,8 @@ export async function courseByPhase(examPhase) {
     return courseByPhase
 
 }
+//thầy nói lấy ra course id, coursename, subCode, numOfStu là được
+//numOfStu thì query từ DB về chứ không có sửa.
 //requireRole("staff")
 router.get('/', async (req, res) => {
     let listCourse = [];
@@ -257,7 +259,7 @@ router.get('/', async (req, res) => {
         const result = await Course.findAll({
             include: [{
                 model: Subject,
-                attributes: ['code', 'name', 'semesterNo', 'fe', 'pe']
+                attributes: ['code']
             }],
             attributes: ['id', 'subId', 'numOfStu']
         });
@@ -265,12 +267,7 @@ router.get('/', async (req, res) => {
             const subject = course.subject;
             const sub = {
                 courseId: course.dataValues.id,
-                subId: course.dataValues.subId,
                 subCode : subject.code,
-                subName : subject.name,
-                semester : subject.semesterNo,
-                fe : subject.fe,
-                pe : subject.pe,
                 numOfStu : course.dataValues.numOfStu,
             }
             listCourse.push(sub);

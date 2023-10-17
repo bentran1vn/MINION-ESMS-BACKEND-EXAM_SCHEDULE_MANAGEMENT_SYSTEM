@@ -232,43 +232,17 @@ const router = express.Router()
 
 /**
  * @swagger
- * /rooms/getByRoomNum/:
+ * /rooms/search/:
  *   get:
- *     summary: Return Rooms by roomNum
+ *     summary: Return Rooms by roomNum or location
  *     tags: [Rooms]
  *     parameters:
  *       - in: query
- *         name: roomNum
+ *         name: value
  *         schema:
- *           type: integer
+ *           type: string or integter
  *         required: true
- *         description: The roomNum Client want to get
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Rooms'
- *       '500':
- *         description: Internal Server Error!
- */
-
-/**
- * @swagger
- * /rooms/getRoomByLoca/:
- *   get:
- *     summary: Return All Rooms by location
- *     tags: [Rooms]
- *     parameters:
- *       - in: query
- *         name: location
- *         schema:
- *           type: string
- *         required: true
- *         description: The location Client want to get all room
+ *         description: The location or roomNum Client want to get
  *     responses:
  *       '200':
  *         description: OK !
@@ -463,35 +437,28 @@ router.get('/roomUseSlot', async (req, res) => {
     }
 })// Get room in use in 1 day and 1 slot specifically
 
-router.get('/getByRoomNum', async (req, res) => {
+router.get('/search', async (req, res) => {
     try {
-        const roomNum = parseInt(req.query.roomNum)
-        const room = await Room.findOne({
-            where: {
-                roomNum: roomNum
-            }
-        })
-        if (room) {
-            res.json(DataResponse(room))
+        var room = []
+        const value = req.query.value
+        if (Number.isInteger(parseInt(value))) {
+            console.log('Số: ' + value);
+            room = await Room.findAll({
+                where: {
+                    roomNum: parseInt(value)
+                }
+            })
         } else {
-            res.json(NotFoundResponse())
+            console.log('Chữ: ' + value);
+            room = await Room.findAll({
+                where: {
+                    location: {
+                        [Op.like]: '%' + value + '%'
+                    }
+                }
+            })
         }
-
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse())
-    }
-})// Get room by roomNumer
-
-router.get('/getRoomByLoca', async (req, res) => {
-    try {
-        const location = req.query.location
-        const room = await Room.findAll({
-            where: {
-                location: location
-            }
-        })
-        if (room.length != 0) {
+        if (room.length) {
             res.json(DataResponse(room))
         } else {
             res.json(NotFoundResponse())
@@ -500,7 +467,7 @@ router.get('/getRoomByLoca', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})// Get room by location
+})// Get room by roomNumer ot location
 
 export async function randomRoom() {
     let roomList = await Room.findAll()
