@@ -33,15 +33,13 @@ const StaffLogChange = sequelize.define(tableName, {
         // 0 Xóa Full 1 Row in ExamRoom
         // 1 Update Room in ExamRoom
         // 2 Update Lecturer in ExamRoom
-        // 3 Update Student Status in StudentCourse
+        // 3 Update Student Status in StudentExam
         // 4 Update ExamPhase in ExamPhase
         // 5 auto generate lec to exRoom
         // 6 Add new / Generate Student Course
         // 7 Add a exam phase
         // 8 Delete 1 row in exam phase
         // 9 Auto generate student to student exam
-        // 10 Update status in all student exam
-        // 11 Update status to 1 student exam
 
             // Update ở đây có thể là thêm xóa sửa
     },
