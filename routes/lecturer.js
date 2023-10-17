@@ -105,13 +105,6 @@ const router = express.Router()
  *   get:
  *     summary: Return all slot that have no Lecturers
  *     tags: [Lecturers]
- *     parameters:
- *       - in: query
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The lecturer id Client want to get.
  *     responses:
  *       '200':
  *         description: OK !
@@ -232,12 +225,7 @@ router.get('/scheduled', async (req, res) => {
 //tất cả những slot còn trống trong 1 ngày 1 giờ
 //PASS
 router.get('/availableSlot', async (req, res) => {
-    const lecturerId = parseInt(req.query.id);
-
-    if (!lecturerId) {
-        res.json(MessageResponse("Lecturer id is required"));
-        return;
-    }
+    
 
     let availableSlotList = [];
     const slotNoLecturer = await ExamRoom.findAll({
