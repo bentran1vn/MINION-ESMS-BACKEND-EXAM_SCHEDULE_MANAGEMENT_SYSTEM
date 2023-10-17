@@ -166,11 +166,15 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
+    const start = req.body.start;
+    const end = req.body.end;
 
     try {
         const semester = await Semester.create({
             season: season,
-            year: year
+            year: year,
+            start: start,
+            end: end,
         })
         console.log(semester);
         res.json(MessageResponse("Create Success !"))
