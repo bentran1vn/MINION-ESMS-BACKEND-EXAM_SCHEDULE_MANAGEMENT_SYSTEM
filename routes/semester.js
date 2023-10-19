@@ -3,7 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import { createNewSemesterS, findAllSemesterByStatus, deleteSemesterById } from '../services/semesterServices.js'
+import { createNewSemesterS, deleteSemesterById, findAllSemester } from '../services/semesterServices.js'
 
 const router = express.Router()
 
@@ -179,58 +179,17 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/:status', async (req, res) => {
-    const status = parseInt(req.params.status)
+router.get('/', async (req, res) => {
+    const type = req.query.type
+    const value = req.query.value
     try {
         let semesterList
-        await findAllSemesterByStatus(status).then(value => semesterList = value)
+        await findAllSemester(value, type).then(value => semesterList = value)
         if(semesterList != null && semesterList.length > 0){
             res.json(DataResponse(semesterList));
         }
     } catch (Error) {
         res.json(ErrorResponse(500, Error.message));
-    }
-})
-
-router.get('/year', async (req, res) => {
-    const year = parseInt(req.query.year);
-    try {
-        const sem = await Semester.findAll({
-            where: {
-                year: year
-            }
-        })
-        if(sem){
-            res.json(DataResponse(sem));
-            return;
-        }else{
-            res.json(MessageResponse("This year doesn't exist"));
-            return;
-        }
-    } catch (error) {
-        res.json(InternalErrResponse());
-        console.log(error);
-    }
-})
-
-router.get('/season', async (req, res) =>{
-    const season = req.query.season;
-    try {
-        const sem = await Semester.findAll({
-            where: {
-                season: season
-            }
-        })
-        if(sem){
-            res.json(DataResponse(sem));
-            return;
-        }else{
-            res.json(MessageResponse("This year doesn't exist"));
-            return;
-        }
-    } catch (error) {
-        res.json(InternalErrResponse());
-        console.log(error);
     }
 })
 
