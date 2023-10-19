@@ -1,8 +1,9 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
+import { createNewSemesterS, findAllSemesterByStatus, deleteSemesterById } from '../services/semesterServices.js'
 
 const router = express.Router()
 
@@ -168,31 +169,26 @@ router.post('/', async (req, res) => {
     const season = req.body.season;
     const start = req.body.start;
     const end = req.body.end;
-
     try {
-        const semester = await Semester.create({
-            season: season,
-            year: year,
-            start: start,
-            end: end,
-        })
-        console.log(semester);
-        res.json(MessageResponse("Create Success !"))
-
+        const semester = await createNewSemesterS(season, year, start, end)
+        if(semester != null){
+            res.json(MessageResponse("Create new semester successfully!"))
+        }
     } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, Error.message));
     }
 })
 
-router.get('/', async (req, res) => {
+router.get('/:status', async (req, res) => {
+    const status = parseInt(req.params.status)
     try {
-        const semester = await Semester.findAll();
-        res.json(DataResponse(semester));
-        return;
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
+        let semesterList
+        await findAllSemesterByStatus(status).then(value => semesterList = value)
+        if(semesterList != null && semesterList.length > 0){
+            res.json(DataResponse(semesterList));
+        }
+    } catch (Error) {
+        res.json(ErrorResponse(500, Error.message));
     }
 })
 
@@ -238,33 +234,16 @@ router.get('/season', async (req, res) =>{
     }
 })
 
-router.delete('/', async (req, res) => {
+router.delete('/:id', async (req, res) => {
+    const semId = parseInt(req.params.id)
     try {
-        const id = req.body.id
-        const semester = await Semester.findOne({
-            where: {
-                id: id
-            }
-        });
-        if (!semester) {
-            res.json(NotFoundResponse())
-            return
-        }
-
-        var today = new Date()
-        if (semester.year === today.getFullYear()) {
-            await Semester.destroy({
-                where: {
-                    id: id
-                }
-            })
+        let result
+        await deleteSemesterById(semId).then(value => result = value)
+        if(result){
             res.json(MessageResponse('Delete successfully'))
-        } else {
-            res.json(MessageResponse('Only the current time can be deleted'))
         }
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
+    } catch (Error) {
+        res.json(ErrorResponse(500, Error.message));
     }
 })
 
