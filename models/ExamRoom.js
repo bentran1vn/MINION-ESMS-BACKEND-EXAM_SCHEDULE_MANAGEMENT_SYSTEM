@@ -2,7 +2,6 @@ import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
 import Room from "./Room.js";
 import SubInSlot from "./SubInSlot.js";
-import Lecturer from "./Lecturer.js"
 import SQLModel from "../common/SQLModel.js";
 
 let tableName = 'examRooms'
@@ -24,14 +23,16 @@ const ExamRoom = sequelize.define(tableName, {
             key: 'id'
         }
     },
-    lecturerId: {
+    examinerId: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        references: {
-            model: Lecturer,
-            key: 'id'
-        }
     },
+    typeExaminer: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    //0: Lecturer
+    //1: CTV
     des: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -45,8 +46,6 @@ ExamRoom.belongsTo(Room, { foreignKey: 'roomId' })
 SubInSlot.hasMany(ExamRoom, { foreignKey: 'sSId' })
 ExamRoom.belongsTo(SubInSlot, { foreignKey: 'sSId' })
 
-Lecturer.hasMany(ExamRoom, { foreignKey: 'lecturerId' })
-ExamRoom.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
 
 await ExamRoom.sync().then(() => {
     console.log(`${tableName} table is ready`);
