@@ -1,8 +1,4 @@
-import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
-import { requireRole } from '../middlewares/auth.js'
 import ExamRoom from '../models/ExamRoom.js'
-import Student from '../models/Student.js'
 import StudentExam from '../models/StudentExam.js'
 import Course from '../models/Course.js'
 import StudentCourse from '../models/StudentCourse.js'
