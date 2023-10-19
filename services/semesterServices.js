@@ -49,3 +49,22 @@ export async function findAllSemester(value, filterBy) {
         return semesterList;
     }
 }
+
+export async function findOneSemester(valueList, typeList){
+    let whereClause = []
+    for (let i = 0; i < typeList.length; i++) {
+        const value = valueList[i];
+        const type = typeList[i];
+        whereClause.push({
+            [type] : value
+        })
+    }
+
+    const semester = await Semester.findOne({ where: { whereClause } });
+
+    if (semester == null) {
+        throw new Error("Can not find the Semester!");
+    } else {
+        return semester;
+    }
+}
