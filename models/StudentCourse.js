@@ -1,16 +1,16 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
-import Course from "./Course.js"
 import Student from "./Student.js"
+import Subject from "./Subject.js";
 
-let tableName = 'studentCourse'
+let tableName = 'studentSubject'
 
-const StudentCourse = sequelize.define(tableName, {
-    courId: {
+const StudentSubject = sequelize.define(tableName, {
+    subjectId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Course,
+            model: Subject,
             key: 'id'
         }
     },
@@ -24,14 +24,14 @@ const StudentCourse = sequelize.define(tableName, {
     }
 });
 
-Course.hasMany(StudentCourse, { foreignKey: 'courId' })
-StudentCourse.belongsTo(Course, { foreignKey: 'courId' })
+Subject.hasMany(StudentSubject, { foreignKey: 'subjectId' })
+StudentSubject.belongsTo(Subject, { foreignKey: 'subjectId' })
 
-Student.hasMany(StudentCourse, { foreignKey: 'stuId' })
-StudentCourse.belongsTo(Student, { foreignKey: 'stuId' })
+Student.hasMany(StudentSubject, { foreignKey: 'stuId' })
+StudentSubject.belongsTo(Student, { foreignKey: 'stuId' })
 
-await StudentCourse.sync().then(() => {
+await StudentSubject.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 
-export default StudentCourse
+export default StudentSubject
