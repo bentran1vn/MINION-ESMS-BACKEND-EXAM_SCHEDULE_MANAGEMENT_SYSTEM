@@ -7,6 +7,7 @@ import { createNewSemesterS, deleteSemesterById, findAllSemester } from '../serv
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -16,6 +17,8 @@ const router = express.Router()
  *       required:
  *          - season
  *          - year
+ *          - startDay
+ *          - endDay
  *       properties:
  *          id:
  *              type: integer
@@ -26,12 +29,25 @@ const router = express.Router()
  *          year:
  *              type: integer
  *              description: The year of the semester
+ *          startDay:
+ *              type: Date
+ *              description: The start day of the semester
+ *          endDay:
+ *              type: Date
+ *              description: The end day of the semester
+ *          status:
+ *              type: integer
+ *              description: The visible status
  *       example:
  *           id: 1
- *           season: SPRING
+ *           season: FALL
  *           year: 2023
- */
+ *           startDay: 2023-04-13
+ *           endDay: 2023-08-13
+ *           status: 1   
+ */             
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
@@ -39,11 +55,12 @@ const router = express.Router()
  *    description: The Semesters managing API
  */
 
+//Swagger Post
 /**
  * @swagger
- * /semesters/:
+ * /semesters:
  *   post:
- *     summary: Create a new Semester
+ *     summary: Create a new Semester.
  *     tags: [Semesters]
  *     requestBody:
  *       required: true
@@ -58,64 +75,57 @@ const router = express.Router()
  *               season:
  *                 type: String
  *                 example: SPRING, SUMMER, FALL
+ *               start:
+ *                 type: String
+ *                 example: 2023-04-13
+ *               end:
+ *                 type: String
+ *                 example: 2023-08-13
  *           required:
  *             - year
  *             - season
+ *             - start
+ *             - end
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create new semester successfully!
  *       '500':
- *         description: Internal Server Error !
+ *         description: Can not create new Semester!
  */
 
+//Swagger Get
 /**
  * @swagger
- * /semesters/:
+ * /semesters:
  *   get:
- *     summary: Return all data of Semester
- *     tags: [Semesters]
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
- *       '500':
- *         description: Internal Server Error !
- */
-
-/**
- * @swagger
- * /semesters/year/:
- *   get:
- *     summary: Return all data of Semester by input year
+ *     summary: Return all data of semester by type and value.
  *     tags: [Semesters]
  *     parameters:
  *       - in: query
- *         name: year
+ *         name: type
  *         schema:
- *           type: integer
+ *           type: String
  *         required: true
- *         description: The year number Client want to get.             
+ *         example: season, year, status.
+ *         description: The type of list you want to get.   
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: String
+ *         required: true
+ *         example: FALL, 2023, 1.
+ *         description: The condition of list you want to get.             
  *     responses:
  *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
+ *         description: Create new semester successfully!
  *       '500':
- *         description: Internal Server Error !
+ *         description: Can not create new Semester!
  */
 
+//Swagger Delete
 /**
  * @swagger
- * /semesters/season/:
+ * /semesters/:id :
  *   get:
  *     summary: Return all data of Semester by input season
  *     tags: [Semesters]
@@ -128,40 +138,9 @@ const router = express.Router()
  *         description: The season Client want to get.             
  *     responses:
  *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
+ *         description: Create new semester successfully!
  *       '500':
- *         description: Internal Server Error !
- */
-
-/**
- * @swagger
- * /semesters:
- *   delete:
- *     summary: Delete a user.
- *     tags: [Semesters]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: integer
- *                 example: 1
- *           required:
- *             - id
- *     responses:
- *       '200':
- *         description: Delete Successfully!
- *       '500':
- *         description: Internal Error!
+ *         description: Can not create new Semester!
  */
 
 router.post('/', async (req, res) => {
