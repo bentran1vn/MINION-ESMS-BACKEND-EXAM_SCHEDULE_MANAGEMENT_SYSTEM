@@ -1,4 +1,4 @@
-import express, { response } from 'express'
+import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Lecture from '../models/Lecturer.js'
