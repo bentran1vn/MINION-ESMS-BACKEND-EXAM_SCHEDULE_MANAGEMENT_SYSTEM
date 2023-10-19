@@ -121,32 +121,3 @@ export async function autoFillStu() {
         console.log(error);
     }
 }
-
-// router.get('/', async (req, res) => {
-//     try {
-//         const fileContent = fs.readFileSync("test.txt", "utf8")
-//         const lines = fileContent.split('\n');
-
-//         let result = [];
-//         const counts = {};
-//         lines.forEach(item => {
-//             const parts = item.trim().split('-');
-//             const fpath = parts[0].trim();
-//             if (fpath != "") {
-//                 if (!counts[fpath]) {
-//                     counts[fpath] = 0;
-//                 }
-//                 counts[fpath]++;
-//             }
-//         });
-
-//         for (const key in counts) {
-//             const kq = key + ": " + counts[key]
-//             result.push(kq);
-//         }
-//         res.json(MessageResponse(result))
-//     } catch (error) {
-//         console.error(error);
-//         res.json(MessageResponse('Error found'))
-//     }
-// })
