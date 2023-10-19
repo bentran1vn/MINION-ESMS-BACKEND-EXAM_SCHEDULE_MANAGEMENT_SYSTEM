@@ -60,7 +60,7 @@ const router = express.Router()
  * @swagger
  * /semesters:
  *   post:
- *     summary: Create a new Semester.
+ *     summary: Create a new Semester with information.
  *     tags: [Semesters]
  *     requestBody:
  *       required: true
@@ -126,16 +126,16 @@ const router = express.Router()
 /**
  * @swagger
  * /semesters/:id :
- *   get:
- *     summary: Return all data of Semester by input season
+ *   delete:
+ *     summary: Delete a semester with an Id.
  *     tags: [Semesters]
  *     parameters:
- *       - in: query
- *         name: season
+ *       - in: path
+ *         name: id
  *         schema:
- *           type: string
+ *           type: integer
  *         required: true
- *         description: The season Client want to get.             
+ *         description: The id semester Client want to delete.             
  *     responses:
  *       '200':
  *         description: Create new semester successfully!
