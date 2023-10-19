@@ -208,13 +208,14 @@ router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id);
 
     try {
-        const row = await Subject.destroy({
+        const row = await Subject.update({ status: 0 }, {
             where: {
-                id: id
+                id: id,
+                status: 1
             }
         })
         if (row != 0) {
-            const course = await Course.destroy({
+            const course = await Course.update({ status: 0 }, {
                 where: {
                     subId: id
                 }
@@ -223,7 +224,7 @@ router.delete('/', async (req, res) => {
                 res.json(MessageResponse("Delete Success, Course updated !"));
                 return;
             } else {
-                res.json(MessageResponse("Not Found Sub Id !"));
+                res.json(MessageResponse("Not Found Subject Id !"));
                 return;
             }
 
@@ -243,7 +244,8 @@ router.put('/', async (req, res) => {
     try {
         const row = await Subject.update(data, {
             where: {
-                id: id
+                id: id,
+                status: 1
             }
         })
         if (row[0] == 0) {
@@ -261,7 +263,11 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const subjects = await Subject.findAll();
+        const subjects = await Subject.findAll({
+            where: {
+                status: 1
+            }
+        });
         if (subjects.length == 0) {
             res.json(MessageResponse("Not Found!"));
         } else {

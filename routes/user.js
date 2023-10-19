@@ -29,11 +29,15 @@ import { requireRole } from "../middlewares/auth.js";
  *          role:
  *              type: string
  *              description: Describe User Role
+ *          status: 
+ *              type: integer
+ *              description: 1 là hiện ra; 0 là ko hiện ra
  *       example:
  *           id: 1
  *           email: tan182205@gmail.com
  *           name: Tran Dinh Thien Tan
  *           role: Admin
+ *           status: 1
  */
 
 /**
@@ -180,8 +184,15 @@ router.get('/', requireRole('admin'), async (req, res) => {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
 
-        const totalUser = await User.findAll({})
+        const totalUser = await User.findAll({
+            where: {
+                status: 1
+            }
+        })
         const users = await User.findAll({
+            where: {
+                status: 1
+            },
             limit: limit,
             offset: (pageNo - 1) * limit
         })
@@ -191,7 +202,7 @@ router.get('/', requireRole('admin'), async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})
+})// Get all User (status = 1)
 
 router.post('/', requireRole('admin'), async (req, res) => {
     try {
@@ -233,7 +244,8 @@ router.get('/:searchValue', async (req, res) => {
                     email: {
                         [Op.like]: '%' + string + '%'
                     }
-                }
+                },
+                status: 1
             },
             limit: limit,
             offset: (pageNo - 1) * limit
@@ -250,12 +262,13 @@ router.delete('/', requireRole('admin'), async (req, res) => {
     const email = req.body.email
 
     try {
-        const result = await User.destroy({
+        const result = await User.update({ status: 0 }, {
             where: {
                 email: email,
+                status: 1
             }
         })
-        if (result === 0) {
+        if (result[0] == 0) {
             res.json(NotFoundResponse('Not found'))
         } else {
             res.json(MessageResponse('User deleted'))
@@ -264,7 +277,7 @@ router.delete('/', requireRole('admin'), async (req, res) => {
         console.log(error)
         res.json(MessageResponse('Error found'))
     }
-})// Delete User by email
+})// Delete User by email (status = 0)
 
 router.get('/logout', requireRole('lecturer'), (req, res) => {
     res.clearCookie('token')

@@ -4,6 +4,8 @@ import { requireRole } from '../middlewares/auth.js'
 import ExamPhase from '../models/ExamPhase.js'
 import TimeSlot from '../models/TimeSlot.js'
 import ExamSlot from '../models/ExamSlot.js'
+import Semester from '../models/Semester.js'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
@@ -158,5 +160,66 @@ router.delete('/', async (req, res) => {
         res.json(InternalErrResponse())
     }
 })
+
+router.get('/statistic', async (req, res) => {
+    try {
+        var type = req.query.type
+        const time = new Date()
+        // var timeFormat = time.toISOString().slice(0, 10)
+        var timeFormat = "2023-12-03"
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormat
+                },
+                end: {
+                    [Op.gt]: timeFormat
+                }
+            }
+        })
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.lt]: timeFormat
+                },
+                endDay: {
+                    [Op.gt]: timeFormat
+                },
+                semId: semester.id
+            }
+        })
+
+        const exSlotFull = await ExamSlot.findAll({
+            where: {
+                ePId: examPhase.id
+            }
+        })
+        const exSlotPast = []
+        const exSlotCur = []
+        if (type == "") {
+            res.json(DataResponse(exSlotFull))
+        } else if (type == '1') {
+            exSlotFull.forEach(e => {
+                if (Date.parse(e.day) < Date.parse(timeFormat)) {
+                    exSlotPast.push(e)
+                }
+            });
+            res.json(DataResponse(exSlotPast))
+        } else if (type == '0') {
+            exSlotFull.forEach(e => {
+                if (Date.parse(e.day) > Date.parse(timeFormat)) {
+                    exSlotCur.push(e)
+                }
+            });
+            res.json(DataResponse(exSlotCur))
+        }
+        //res.json(DataResponse(examPhase))
+        // res.json(MessageResponse("allo"))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})// Thống kê exam slots, type = ““ thì getAll; = 1 thì lấy đã hoàn tất; = 0 thì lấy chưa hoàn tất 
+// theo loại kì thi như PE, FE, RE dựa vào time hiện tại
 
 export default router

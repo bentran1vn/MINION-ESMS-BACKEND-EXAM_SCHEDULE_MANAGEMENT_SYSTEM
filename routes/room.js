@@ -112,8 +112,8 @@ const router = express.Router()
  *                 type: String
  *                 example: XAVALO
  *               note:
- *                 type: string
- *                 example: Hư màn hình
+ *                 type: integer
+ *                 example: 0
  *           required:
  *             - id
  *     responses:
@@ -263,7 +263,7 @@ router.post('/', async (req, res) => {
         const room = await Room.create({
             roomNum: parseInt(data.roomNum),
             location: data.location,
-            note: data.note || ""
+            note: 0
         })
         res.json(MessageResponse("Create Success !"))
 
