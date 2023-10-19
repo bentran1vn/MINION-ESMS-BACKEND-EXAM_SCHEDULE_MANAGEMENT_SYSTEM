@@ -4,19 +4,19 @@ import { requireRole } from '../middlewares/auth.js'
 import ExamRoom from '../models/ExamRoom.js'
 import Student from '../models/Student.js'
 import StudentExam from '../models/StudentExam.js'
-import Course from '../models/Course.js'
-import StudentCourse from '../models/StudentCourse.js'
+import Subject from '../models/Subject.js'
+import StudentSubject from '../models/StudentSubject.js'
 import SubInSlot from '../models/SubInSlot.js'
 import fs from 'fs'
 
 export async function autoFillStu() {
     try {
         console.log(`Start arranging rooms`);
-        const course = await Course.findAll() // Lấy tất cả course
-        for (let i = 0; i < course.length; i++) { // Duyệt từng course bằng courId  
-            const ArrStudentIdInCourse = await StudentCourse.findAll({ // Lấy ra tất cả học sinh thi của 1 course bằng courId
+        const subject = await Subject.findAll() // Lấy tất cả subject
+        for (let i = 0; i < subject.length; i++) { // Duyệt từng subject
+            const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
                 where: {
-                    courId: course[i].id
+                    subjectId: subject[i].id
                 },
                 attributes: ['stuId']
             })
