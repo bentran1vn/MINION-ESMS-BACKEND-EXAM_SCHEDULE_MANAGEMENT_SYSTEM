@@ -16,6 +16,8 @@ const router = express.Router()
  *       required:
  *          - season
  *          - year
+ *          - startDay
+ *          - endDay
  *       properties:
  *          id:
  *              type: integer
@@ -26,11 +28,23 @@ const router = express.Router()
  *          year:
  *              type: integer
  *              description: The year of the semester
+ *          startDay:
+ *              type: Date
+ *              description: The start day of the semester
+ *          endDay:
+ *              type: Date
+ *              description: The end day of the semester
+ *          status:
+ *              type: integer
+ *              description: The visible status
  *       example:
  *           id: 1
- *           season: SPRING
+ *           season: FALL
  *           year: 2023
- */
+ *           startDay: 2023-04-13
+ *           endDay: 2023-08-13
+ *           status: 1   
+ */             
 
 /**
  * @swagger
@@ -58,14 +72,22 @@ const router = express.Router()
  *               season:
  *                 type: String
  *                 example: SPRING, SUMMER, FALL
+ *               start:
+ *                 type: String
+ *                 example: 2023-04-13
+ *               end:
+ *                 type: String
+ *                 example: 2023-08-13
  *           required:
  *             - year
  *             - season
+ *             - start
+ *             - end
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create new semester successfully!
  *       '500':
- *         description: Internal Server Error !
+ *         description: Can not create new Semester!
  */
 
 /**
