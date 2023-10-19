@@ -15,6 +15,8 @@ import './database/database.js'
 import userRouter from './routes/user.js'
 import examTypeRouter from './routes/examType.js'
 import lecturerRouter from './routes/lecturer.js'
+import staffRouter from './routes/staff.js'
+import volunteerRouter from './routes/volunteer.js'
 import roomRouter from './routes/room.js'
 import semesterRouter from './routes/semester.js'
 import studentRouter from './routes/student.js'
@@ -64,6 +66,8 @@ server.use('/users', userRouter)
 server.use('/students', studentRouter)
 server.use('/examTypes', examTypeRouter)
 server.use('/lecturers', lecturerRouter)
+server.use('/staffs', staffRouter)
+server.use('/volunteers', volunteerRouter)
 server.use('/rooms', roomRouter)
 server.use('/semesters', semesterRouter)
 server.use('/students', studentRouter)

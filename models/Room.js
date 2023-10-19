@@ -15,7 +15,14 @@ const Room = sequelize.define(tableName, {
     status: {
         type: DataTypes.INTEGER,
         allowNull: true,
-    }
+    },
+    status:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1
+    },
+    //1 là hiện ra
+    //0 là ẩn
 });
 
 await Room.sync().then(() => {

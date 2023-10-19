@@ -20,13 +20,21 @@ const Subject = sequelize.define(tableName, {
     fe: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        default: 0,
+        defaultValue: 0,
     },
     pe: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        default: 0,
-    }
+        defaultValue: 0,
+    },
+    status:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1
+    },
+    //1 là hiện ra
+    //0 là ko hiện ra  
+    
 });
 // 0: là ko thi
 // giá trị fe và pe tính bằng phút
