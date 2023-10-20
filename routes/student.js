@@ -10,9 +10,9 @@ import SubInSlot from '../models/SubInSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import StudentExam from '../models/StudentExam.js'
 import Room from '../models/Room.js'
-import Lecturer from '../models/Lecturer.js'
 import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
+import Examiner from '../models/Examiner.js'
 
 /**
  * @swagger

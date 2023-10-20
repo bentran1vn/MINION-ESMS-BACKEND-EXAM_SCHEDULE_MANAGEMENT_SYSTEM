@@ -1,7 +1,7 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
 import SQLModel from "../common/SQLModel.js";
-import Staff from "./Staff.js";
+import User from "./User.js";
 
 let tableName = 'staffLogChanges'
 
@@ -18,11 +18,11 @@ const StaffLogChange = sequelize.define(tableName, {
         // 2 table ExamPhase
         // 3 table Student Exam
     },
-    staffId: {
+    userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Staff,
+            model: User,
             key: 'id'
         }
     },
@@ -43,8 +43,8 @@ const StaffLogChange = sequelize.define(tableName, {
     ...SQLModel
 });
 
-Staff.hasMany(StaffLogChange, { foreignKey: 'staffId' })
-StaffLogChange.belongsTo(Staff, { foreignKey: 'staffId' })
+User.hasMany(StaffLogChange, { foreignKey: 'userId' })
+StaffLogChange.belongsTo(User, { foreignKey: 'userId' })
 
 
 await StaffLogChange.sync().then(() => {

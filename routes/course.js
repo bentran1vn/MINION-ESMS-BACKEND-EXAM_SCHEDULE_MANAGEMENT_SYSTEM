@@ -162,50 +162,6 @@ router.post('/', async (req, res) => {
     }
 })
 
-export async function countCourse() {
-
-    const courses = await Course.findAll();
-    let FE = 0
-    let PE = 0
-    let FEc = 0
-    let PEc = 0
-    const subjectPromises = [];
-
-    courses.forEach(element => {
-        const subjectId = element.subId;
-
-        subjectPromises.push(
-            Subject.findOne({
-                where: {
-                    id: subjectId
-                }
-            })
-        );
-    });
-
-    const subjects = await Promise.all(subjectPromises);
-
-    subjects.forEach(subject => {
-        if (subject.dataValues.code.slice(-1) != 'c') {
-            if (subject.dataValues.fe) {
-                FE = FE + 1;
-            }
-            if (subject.dataValues.pe) {
-                PE = PE + 1;
-            }
-        } else {
-            if (subject.dataValues.fe) {
-                FEc = FEc + 1;
-            }
-            if (subject.dataValues.pe) {
-                PEc = PEc + 1;
-            }
-        }
-    });
-
-    return { numFE: FE, numPE: PE, numFEc: FEc, numPEc: PEc }
-}
-
 export async function courseByPhase(examPhase) {
 
     const course = await Course.findAll({
@@ -321,32 +277,5 @@ router.delete('/', async (req, res) => {
         res.json(InternalErrResponse())
     }
 })
-
-//, requireRole("staff")
-router.put('/', async (req, res) => {
-    const courseData = req.body
-    const id = parseInt(req.body.id)
-
-    try {
-        const rowAffected = await Course.update({
-            numOfStu: parseInt(courseData.numOfStu)
-        }, {
-            where: {
-                id: id,
-            }
-        })
-        if (rowAffected[0] === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('Course updated'))
-        }
-
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse())
-    }
-})
-
-
 
 export default router
