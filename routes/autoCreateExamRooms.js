@@ -11,7 +11,7 @@ import RoomLogTime from '../models/RoomLogTime.js'
 import { courseByPhase } from '../utility/courseUtility.js'
 import ExamType from '../models/ExamType.js'
 import { autoFillStu } from '../utility/examRoomUtility.js' 
-import { getExamPhasesStartOrder } from '../services/examPhaseService.js'
+import { expandTimePhase, getExamPhasesStartOrder } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
 
 const router = express.Router()
@@ -62,10 +62,7 @@ router.get('/', async (req, res) => {
         }
         //Lấy ra danh sách các Course trong Examphase tương ứng
 
-        const startDay = new Date(examPhaseList[key].startDay)
-        const endDay = new Date(examPhaseList[key].endDay)
-        const diffInMs = Math.abs(endDay - startDay);
-        const dayLength = diffInMs / (1000 * 60 * 60 * 24)
+        const dayLength = expandTimePhase(examPhaseList[key])
         //Lấy ra khoảng thời gian giữa 2 ngày start và end của 1 examPhase
 
         let dayList = []

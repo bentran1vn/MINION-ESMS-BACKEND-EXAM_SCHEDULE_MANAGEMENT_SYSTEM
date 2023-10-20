@@ -43,7 +43,7 @@ export async function createExamPhases(course, semesterId) {
     return Promise.all(promises)
 }
 
-export async function getExamPhasesStartOrder(){
+export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
         {
             order: [
@@ -51,8 +51,16 @@ export async function getExamPhasesStartOrder(){
             ]
         }
     )
-    if(examPhaseList === null){
+    if (examPhaseList === null) {
         throw new Error("Can not sort exam phase by order!")
     }
     return examPhaseList
+}
+
+export function expandTimePhase(Phase) {
+    const startDay = new Date(Phase.startDay)
+    const endDay = new Date(Phase.endDay)
+    const diffInMs = Math.abs(endDay - startDay);
+    const dayLength = diffInMs / (1000 * 60 * 60 * 24)
+    return dayLength
 }
