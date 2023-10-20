@@ -143,7 +143,8 @@ router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
-    const end = req.body.end;
+    const end = req.body.end; 
+    
 
     const startDate = new Date(start);
     const endDate = new Date(end);
