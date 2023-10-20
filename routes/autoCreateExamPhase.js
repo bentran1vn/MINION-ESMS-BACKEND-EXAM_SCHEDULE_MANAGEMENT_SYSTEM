@@ -1,7 +1,7 @@
 import express from 'express'
 import { countCourse } from '../utility/courseUtility.js'
 import { createExamPhases } from '../services/examPhaseService.js'
-import { DataResponse, ErrorResponse } from '../common/reponses.js'
+import { ErrorResponse, MessageResponse } from '../common/reponses.js'
 import { findSemesterPresentTime } from '../utility/examPhaseUtility.js'
 
 const router = express.Router()
@@ -27,10 +27,7 @@ router.get('/', async (req, res) => {
             throw new Error("Can not create a exam phase!")
         }
 
-        res.json(DataResponse({
-            phaseList: examPhaseList,
-            numCourse: numCou
-        }));
+        res.json(MessageResponse("Create exam phase successfully!"));
     } catch (Error) {
         res.json(ErrorResponse(500, Error.message));
     }
