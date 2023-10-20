@@ -9,6 +9,10 @@ const Semester = sequelize.define( tableName , {
         type: DataTypes.STRING(30),
         allowNull: false,
     },
+    year:{
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     start:{
         type: DataTypes.DATEONLY,
         allowNull: true
@@ -17,13 +21,6 @@ const Semester = sequelize.define( tableName , {
         type: DataTypes.DATEONLY,
         allowNull: true,
     },
-<<<<<<< HEAD
-    disabled: {
-        type: DataTypes.BOOLEAN,
-        default: false,
-    },
-    ...SQLModel
-=======
     status:{
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -31,7 +28,6 @@ const Semester = sequelize.define( tableName , {
     },
     //1 là hiện ra
     //0 là ko hiện ra
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
 });
 
 await Semester.sync().then(()=> {

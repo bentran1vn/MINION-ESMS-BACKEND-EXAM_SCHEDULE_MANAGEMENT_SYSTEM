@@ -71,15 +71,6 @@ const router = express.Router()
  *             properties:
  *               season:
  *                 type: String
-<<<<<<< HEAD
- *                 example: SPRING_2022, SUMMER_2022, FALL_2023
- *               start:
- *                 type: DATEONLY
- *                 example: 2023-04-14
- *               end:
- *                 type: DATEONLY
- *                 example: 2023-08-14
-=======
  *                 example: SPRING, SUMMER, FALL
  *               start:
  *                 type: String
@@ -87,7 +78,6 @@ const router = express.Router()
  *               end:
  *                 type: String
  *                 example: 2023-08-13
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  *           required:
  *             - season
  *             - start
@@ -96,110 +86,13 @@ const router = express.Router()
  *       '200':
  *         description: Create new semester successfully!
  *       '500':
-<<<<<<< HEAD
- *         description: Internal Server Error !
- */
-
-/**
- * @swagger
- * /semesters/:
- *   get:
- *     summary: Return all data of Semester
- *     tags: [Semesters]
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
- *       '500':
- *         description: Internal Server Error !
- */
-
-/**
- * @swagger
- * /semesters/start/:
- *   get:
- *     summary: Return all data of Semester from input start date
- *     tags: [Semesters]
- *     parameters:
- *       - in: query
- *         name: start
- *         schema:
- *           type: DATEONLY
- *           example: 2023-04-14
- *         required: true
- *         description: The start date Client want to get.             
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
- *       '500':
- *         description: Internal Server Error !
- */
-
-/**
- * @swagger
- * /semesters/season/:
- *   get:
- *     summary: Return all data of Semester by input season
- *     tags: [Semesters]
- *     parameters:
- *       - in: query
- *         name: season
- *         schema:
- *           type: string
- *           example: FALL_2022, SEMESTER_2023
- *         required: true
- *         description: The season Client want to get.             
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/Semesters'
- *       '500':
- *         description: Internal Server Error !
-=======
  *         description: Can not create new Semester!
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  */
 
 //Swagger Get
 /**
  * @swagger
  * /semesters:
-<<<<<<< HEAD
- *   delete:
- *     summary: Delete a semester.
- *     tags: [Semesters]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: integer
- *                 example: 1
- *               disabled:
- *                 type: boolean
- *           required:
- *             - id
- *             - disabled
-=======
  *   get:
  *     summary: Return all data of semester by type and value.
  *     tags: [Semesters]
@@ -218,7 +111,6 @@ const router = express.Router()
  *         required: true
  *         example: FALL, 2023, 1.
  *         description: The condition of list you want to get.             
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  *     responses:
  *       '200':
  *         description: Create new semester successfully!
@@ -248,11 +140,10 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
+    const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
     const end = req.body.end;
-<<<<<<< HEAD
-
 
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -265,8 +156,8 @@ router.post('/', async (req, res) => {
         res.json(MessageResponse("Start date must be earlier than end time atleast 3 month"));
         return;
     }
+
     try {
-        //check xem start có nhỏ hơn end của bất kì thg nào đã tồn tại không
         const existingSemesters = await Semester.findOne({
             where: {
                 end: {
@@ -278,21 +169,12 @@ router.post('/', async (req, res) => {
             res.json(MessageResponse("Collision to others semester"));
             return;
         }else{
-            const semester = await Semester.create({
-                season: season,
-                start: start,
-                end: end,
-                disabled: false,
-            })
-            console.log(semester);
-            res.json(MessageResponse("Create Success !"))
-=======
-    try {
-        const semester = await createNewSemesterS(season, year, start, end)
-        if(semester != null){
+            const semester = await createNewSemesterS(season, year, start, end)
+            if(semester != null){
             res.json(MessageResponse("Create new semester successfully!"))
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
         }
+        }
+        
     } catch (err) {
         res.json(ErrorResponse(500, Error.message));
     }
@@ -302,134 +184,6 @@ router.get('/', async (req, res) => {
     const type = req.query.type
     const value = req.query.value
     try {
-<<<<<<< HEAD
-        const semList = []
-        const semester = await Semester.findAll();
-        const semL = semester.map(sem => sem.dataValues);
-        if (semester.length == 0) {
-            res.json(MessageResponse("Semester doesn't have any data"));
-            return;
-        } else {
-            const today = new Date()
-            const todayFormat = today.toISOString().slice(0, 10);
-            console.log(todayFormat);
-            for (const item of semL) {
-                const id = item.id;
-                const season = item.season;
-                const disabled = item.disabled;
-                const start = item.start;
-                const end = item.end;
-                let status;
-                //0 = passed
-                //1 = ongoing
-                //2 = future             
-                if (todayFormat => start && todayFormat <= end) {
-                    status = "1"
-                } else if (todayFormat <= start) {
-                    status = "0"
-                } else if (todayFormat >= end) {
-                    status = "2"
-                }
-                const s = {
-                    id: id,
-                    season: season,
-                    start: start,
-                    end: end,
-                    disabled: disabled,
-                    status: status,
-                }
-                semList.push(s);
-            }
-            if (semList.length != 0) {
-                res.json(DataResponse(semList));
-                return;
-            }
-        }
-
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
-    }
-})
-
-router.get('/start', async (req, res) => {
-    const start = req.query.start;
-    try {
-        const sem = await Semester.findAll({
-            where: {
-                start: {
-                    [Op.gte]: start, //lấy tất cả từ >= start
-                }
-            }
-        })
-        if (sem) {
-            res.json(DataResponse(sem));
-            return;
-        } else {
-            res.json(MessageResponse("This start date not belongs to any semester"));
-            return;
-        }
-    } catch (error) {
-        res.json(InternalErrResponse());
-        console.log(error);
-    }
-})
-
-router.get('/season', async (req, res) => {
-    const season = req.query.season;
-    try {
-        const sem = await Semester.findAll({
-            where: {
-                season: {
-                    [Op.startsWith]: season.toUpperCase(),
-                },
-            }
-        })
-        if (sem.length != 0) {
-            res.json(DataResponse(sem));
-            return;
-        } else {
-            res.json(MessageResponse("This season doesn't exist"));
-            return;
-        }
-    } catch (error) {
-        res.json(InternalErrResponse());
-        console.log(error);
-    }
-})
-
-router.delete('/', async (req, res) => {
-    const disabled = req.body.disabled;
-    try {
-        const id = parseInt(req.body.id);
-        const semester = await Semester.findOne({
-            where: {
-                id: id
-            }
-        });
-        if (!semester) {
-            res.json(NotFoundResponse())
-            return
-        }
-
-        const today = new Date()
-        const todayFormat = today.toISOString().slice(0, 10);
-        if (todayFormat >= semester.end) {
-            res.json(MessageResponse("Can't delete the passed semester"));
-            return;
-        } else {
-            const row = await Semester.update({
-                disabled: disabled
-            }, {
-                where: {
-                    id: id
-                }
-            })
-            if (row[0] != 0) {
-                res.json(MessageResponse('Delete successfully'));
-                return;
-            }
-=======
         let semesterList
         await findAllSemester(value, type).then(value => semesterList = value)
         if(semesterList != null && semesterList.length > 0){
@@ -447,7 +201,6 @@ router.delete('/:id', async (req, res) => {
         await deleteSemesterById(semId).then(value => result = value)
         if(result){
             res.json(MessageResponse('Delete successfully'))
->>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
         }
     } catch (Error) {
         res.json(ErrorResponse(500, Error.message));
