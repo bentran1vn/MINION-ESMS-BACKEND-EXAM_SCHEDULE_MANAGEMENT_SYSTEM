@@ -1,5 +1,6 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
+import SQLModel from '../common/SQLModel.js'
 
 let tableName = 'semesters'
 
@@ -8,10 +9,6 @@ const Semester = sequelize.define( tableName , {
         type: DataTypes.STRING(30),
         allowNull: false,
     },
-    year:{
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
     start:{
         type: DataTypes.DATEONLY,
         allowNull: true
@@ -19,8 +16,12 @@ const Semester = sequelize.define( tableName , {
     end:{
         type: DataTypes.DATEONLY,
         allowNull: true,
-    }
-
+    },
+    disabled: {
+        type: DataTypes.BOOLEAN,
+        default: false,
+    },
+    ...SQLModel
 });
 
 await Semester.sync().then(()=> {

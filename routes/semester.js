@@ -51,15 +51,19 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               year:
- *                 type: integer
- *                 example: 2023, 2022, 2021
  *               season:
  *                 type: String
- *                 example: SPRING, SUMMER, FALL
+ *                 example: SPRING_2022, SUMMER_2022, FALL_2023
+ *               start:
+ *                 type: DATEONLY
+ *                 example: 2023-04-14
+ *               end:
+ *                 type: DATEONLY
+ *                 example: 2023-08-14
  *           required:
- *             - year
  *             - season
+ *             - start
+ *             - end
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -88,17 +92,18 @@ const router = express.Router()
 
 /**
  * @swagger
- * /semesters/year/:
+ * /semesters/start/:
  *   get:
- *     summary: Return all data of Semester by input year
+ *     summary: Return all data of Semester from input start date
  *     tags: [Semesters]
  *     parameters:
  *       - in: query
- *         name: year
+ *         name: start
  *         schema:
- *           type: integer
+ *           type: DATEONLY
+ *           example: 2023-04-14
  *         required: true
- *         description: The year number Client want to get.             
+ *         description: The start date Client want to get.             
  *     responses:
  *       '200':
  *         description: OK !
@@ -123,6 +128,7 @@ const router = express.Router()
  *         name: season
  *         schema:
  *           type: string
+ *           example: FALL_2022, SEMESTER_2023
  *         required: true
  *         description: The season Client want to get.             
  *     responses:
@@ -142,7 +148,7 @@ const router = express.Router()
  * @swagger
  * /semesters:
  *   delete:
- *     summary: Delete a user.
+ *     summary: Delete a semester.
  *     tags: [Semesters]
  *     requestBody:
  *       required: true
@@ -154,8 +160,11 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1
+ *               disabled:
+ *                 type: boolean
  *           required:
  *             - id
+ *             - disabled
  *     responses:
  *       '200':
  *         description: Delete Successfully!
@@ -164,21 +173,44 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
     const end = req.body.end;
 
-    try {
-        const semester = await Semester.create({
-            season: season,
-            year: year,
-            start: start,
-            end: end,
-        })
-        console.log(semester);
-        res.json(MessageResponse("Create Success !"))
 
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const absoluteDifference = Math.abs(endDate.getDate() - startDate.getDate());
+
+    // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
+    const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
+
+    if ( (startDate >= endDate) || (monthsDiff < 3) ) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
+        res.json(MessageResponse("Start date must be earlier than end time atleast 3 month"));
+        return;
+    }
+    try {
+        //check xem start có nhỏ hơn end của bất kì thg nào đã tồn tại không
+        const existingSemesters = await Semester.findOne({
+            where: {
+                end: {
+                    [Op.gte]: start,
+                }
+            }
+        });
+        if (existingSemesters) {
+            res.json(MessageResponse("Collision to others semester"));
+            return;
+        }else{
+            const semester = await Semester.create({
+                season: season,
+                start: start,
+                end: end,
+                disabled: false,
+            })
+            console.log(semester);
+            res.json(MessageResponse("Create Success !"))
+        }
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -187,28 +219,70 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
+        const semList = []
         const semester = await Semester.findAll();
-        res.json(DataResponse(semester));
-        return;
+        const semL = semester.map(sem => sem.dataValues);
+        if (semester.length == 0) {
+            res.json(MessageResponse("Semester doesn't have any data"));
+            return;
+        } else {
+            const today = new Date()
+            const todayFormat = today.toISOString().slice(0, 10);
+            console.log(todayFormat);
+            for (const item of semL) {
+                const id = item.id;
+                const season = item.season;
+                const disabled = item.disabled;
+                const start = item.start;
+                const end = item.end;
+                let status;
+                //0 = passed
+                //1 = ongoing
+                //2 = future             
+                if (todayFormat => start && todayFormat <= end) {
+                    status = "1"
+                } else if (todayFormat <= start) {
+                    status = "0"
+                } else if (todayFormat >= end) {
+                    status = "2"
+                }
+                const s = {
+                    id: id,
+                    season: season,
+                    start: start,
+                    end: end,
+                    disabled: disabled,
+                    status: status,
+                }
+                semList.push(s);
+            }
+            if (semList.length != 0) {
+                res.json(DataResponse(semList));
+                return;
+            }
+        }
+
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
     }
 })
 
-router.get('/year', async (req, res) => {
-    const year = parseInt(req.query.year);
+router.get('/start', async (req, res) => {
+    const start = req.query.start;
     try {
         const sem = await Semester.findAll({
             where: {
-                year: year
+                start: {
+                    [Op.gte]: start, //lấy tất cả từ >= start
+                }
             }
         })
-        if(sem){
+        if (sem) {
             res.json(DataResponse(sem));
             return;
-        }else{
-            res.json(MessageResponse("This year doesn't exist"));
+        } else {
+            res.json(MessageResponse("This start date not belongs to any semester"));
             return;
         }
     } catch (error) {
@@ -217,19 +291,21 @@ router.get('/year', async (req, res) => {
     }
 })
 
-router.get('/season', async (req, res) =>{
+router.get('/season', async (req, res) => {
     const season = req.query.season;
     try {
         const sem = await Semester.findAll({
             where: {
-                season: season
+                season: {
+                    [Op.startsWith]: season.toUpperCase(),
+                },
             }
         })
-        if(sem){
+        if (sem.length != 0) {
             res.json(DataResponse(sem));
             return;
-        }else{
-            res.json(MessageResponse("This year doesn't exist"));
+        } else {
+            res.json(MessageResponse("This season doesn't exist"));
             return;
         }
     } catch (error) {
@@ -239,8 +315,9 @@ router.get('/season', async (req, res) =>{
 })
 
 router.delete('/', async (req, res) => {
+    const disabled = req.body.disabled;
     try {
-        const id = req.body.id
+        const id = parseInt(req.body.id);
         const semester = await Semester.findOne({
             where: {
                 id: id
@@ -251,16 +328,23 @@ router.delete('/', async (req, res) => {
             return
         }
 
-        var today = new Date()
-        if (semester.year === today.getFullYear()) {
-            await Semester.destroy({
+        const today = new Date()
+        const todayFormat = today.toISOString().slice(0, 10);
+        if (todayFormat >= semester.end) {
+            res.json(MessageResponse("Can't delete the passed semester"));
+            return;
+        } else {
+            const row = await Semester.update({
+                disabled: disabled
+            }, {
                 where: {
                     id: id
                 }
             })
-            res.json(MessageResponse('Delete successfully'))
-        } else {
-            res.json(MessageResponse('Only the current time can be deleted'))
+            if (row[0] != 0) {
+                res.json(MessageResponse('Delete successfully'));
+                return;
+            }
         }
     } catch (err) {
         console.log(err);
