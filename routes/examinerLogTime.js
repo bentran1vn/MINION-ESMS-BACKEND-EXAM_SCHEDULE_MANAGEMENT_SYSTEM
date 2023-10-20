@@ -4,50 +4,56 @@ import { requireRole } from '../middlewares/auth.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import Examiner from '../models/Examiner.js'
 import TimeSlot from '../models/TimeSlot.js'
+import Semester from '../models/Semester.js'
 
 /**
  * @swagger
  * components:
  *   schemas:
- *    LecturerLogTimes:
+ *    ExaminerLogTimes:
  *       type: object
  *       required:
- *          - lecturerId
+ *          - examinerId
  *          - day
  *          - timeSlotId
+ *          - semId
  *       properties:
  *          id:
  *              type: integer
  *              description: Auto generate id
- *          lecturerId:
+ *          examinerId:
  *              type: integer
- *              description: Reference to Lecturer id
+ *              description: Reference to Examiner id
  *          day:
  *              type: DATEONLY
  *              description: The day register a slot
  *          timeSlotId:
  *              type: integer
  *              description: Reference to TimeSlot id
+ *          semId:
+ *              type: integer
+ *              description: Reference to Semester id
  *       example:
  *           id: 1
- *           lecturerId: 1
+ *           examinerId: 1
  *           day: 2023-04-13
  *           timeSlotId: 1
+ *           semId: 1
  */
 
 /**
  * @swagger
  * tags:
- *    name: LecturerLogTimes
- *    description: The lecturerLogTimes managing API
+ *    name: ExaminerLogTimes
+ *    description: The ExaminerLogTimes managing API
  */
 
 /**
  * @swagger
- * /lecturerLogTimes:
+ * /examinerLogTimes/:
  *   post:
- *     summary: Create a new exam types
- *     tags: [LecturerLogTimes]
+ *     summary: Create a new examiner log time
+ *     tags: [ExaminerLogTimes]
  *     requestBody:
  *       required: true
  *       content:
@@ -55,7 +61,7 @@ import TimeSlot from '../models/TimeSlot.js'
  *           schema:
  *             type: object
  *             properties:
- *               lecturerId:
+ *               examinerId:
  *                 type: int
  *                 example: 10
  *               day:
@@ -65,23 +71,24 @@ import TimeSlot from '../models/TimeSlot.js'
  *                 type: int
  *                 example: 4
  *           required:
- *             - lecturerId
+ *             - examinerId
  *             - day
  *             - timeSlotId
  *     responses:
  *       '200':
- *         description: Create Successfully!
+ *         description: Create Success !
  */
 
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const { lecturerId, day, timeSlotId } = req.body;
+    const { examinerId, day, timeSlotId } = req.body;
+    
 
     try {
-        const lecturer = await Examiner.findOne({
+        const examiner = await Examiner.findOne({
             where: {
-                id: parseInt(lecturerId),
+                id: parseInt(examinerId),
             }
         })
         const timeOfSlot = await TimeSlot.findOne({
@@ -89,19 +96,40 @@ router.post('/', async (req, res) => {
                 id: parseInt(timeSlotId)
             }
         })
-        if (!lecturer || !timeOfSlot) {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+        if (!examiner || !timeOfSlot) {
             res.json(NotFoundResponse())
             return;
         } else {
-            const lecturerLogTime = await ExaminerLogTime.create({
-                lecturerId: parseInt(lecturerId),
+            const examinerLogTime = await ExaminerLogTime.create({
+                examinerId: parseInt(examinerId),
                 day: day,
-                timeSlotId: parseInt(timeSlotId)
+                timeSlotId: parseInt(timeSlotId),
+                semId: parseInt(semester.id)
             })
-            console.log(lecturerLogTime);
-            res.json(DataResponse(lecturerLogTime))
+            if(examinerLogTime){
+                res.json(MessageResponse("Create Success !"));
+                return;
+            }else{
+                res.json(MessageResponse("Error when create examiner log time"));
+                return;
+            }
         }
-
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
