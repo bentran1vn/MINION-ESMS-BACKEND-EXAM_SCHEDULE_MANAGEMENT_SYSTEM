@@ -19,8 +19,14 @@ const Semester = sequelize.define( tableName , {
     end:{
         type: DataTypes.DATEONLY,
         allowNull: true,
-    }
-
+    },
+    status:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1
+    },
+    //1 là hiện ra
+    //0 là ko hiện ra
 });
 
 await Semester.sync().then(()=> {

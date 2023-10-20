@@ -1,9 +1,9 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Course from '../models/Course.js'
+import Subject from '../models/Subject.js'
 import Student from '../models/Student.js'
-import StudentCourse from '../models/StudentCourse.js'
+import StudentSubject from '../models/StudentSubject.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 
 const router = express.Router()
@@ -72,13 +72,13 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
 
-    const courId = parseInt(req.body.courId);
+    const subjectId = parseInt(req.body.subjectId);
     const stuId = parseInt(req.body.stuId);
 
     try {
-        const course = await Course.findOne({
+        const subject = await Subject.findOne({
             where: {
-                id: courId
+                id: subjectId
             }
         })
         const student = await Student.findOne({
@@ -86,17 +86,17 @@ router.post('/', async (req, res) => {
                 id: stuId
             }
         })
-        if (!course || !student) {
+        if (!subject || !student) {
             res.json(NotFoundResponse());
             return;
         } else {
-            const studentCourse = await StudentCourse.create({
-                courId: courId,
+            const studentSubject = await StudentSubject.create({
+                subjectId: subjectId,
                 stuId: stuId
             })
-            if(studentCourse){
+            if(studentSubject){
                 const staffLog = await StaffLogChange.create({
-                    rowId: studentCourse.id,
+                    rowId: studentSubject.id,
                     tableName: 1,
                     staffId: staffId,
                     typeChange: 6,

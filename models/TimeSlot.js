@@ -12,7 +12,6 @@ const TimeSlot = sequelize.define(tableName, {
         type: DataTypes.TIME,
         allowNull: false
     },
-
 });
 
 await TimeSlot.sync().then(() => {

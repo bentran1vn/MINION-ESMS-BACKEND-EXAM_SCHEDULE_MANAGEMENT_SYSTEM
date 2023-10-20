@@ -3,6 +3,7 @@ import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 import { createExamPhases } from './examPhase.js'
 import { DataResponse } from '../common/reponses.js'
+import { findSemesterPresentTime } from '../utility/autoCreateExamphase.js'
 
 const router = express.Router()
 
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
         await countCourse().then(value => numCou = value)
 
         let semesterId
-        await createNewSemester().then(value => semesterId = value)
+        await findSemesterPresentTime().then(value => semesterId = value)
 
 
         let examPhaseList

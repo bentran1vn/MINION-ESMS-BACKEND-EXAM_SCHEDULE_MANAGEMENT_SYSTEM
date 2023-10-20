@@ -150,7 +150,7 @@ router.post('/', async (req, res) => {
             res.json(NotFoundResponse());
             return;
         } else {
-            const course = await Course.create({
+            await Course.create({
                 subId: subId,
                 numOfStu: numOfStu
             })

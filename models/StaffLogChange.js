@@ -1,8 +1,7 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
 import SQLModel from "../common/SQLModel.js";
-import ExamRoom from "./ExamRoom.js";
-import User from "./User.js";
+import Staff from "./Staff.js";
 
 let tableName = 'staffLogChanges'
 
@@ -23,7 +22,7 @@ const StaffLogChange = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User,
+            model: Staff,
             key: 'id'
         }
     },
@@ -33,23 +32,19 @@ const StaffLogChange = sequelize.define(tableName, {
         // 0 Xóa Full 1 Row in ExamRoom
         // 1 Update Room in ExamRoom
         // 2 Update Lecturer in ExamRoom
-        // 3 Update Student Status in StudentCourse
+        // 3 Update Student Status in StudentExam
         // 4 Update ExamPhase in ExamPhase
-        // 5 auto generate lec to exRoom
-        // 6 Add new / Generate Student Course
-        // 7 Add a exam phase
-        // 8 Delete 1 row in exam phase
-        // 9 Auto generate student to student exam
-        // 10 Update status in all student exam
-        // 11 Update status to 1 student exam
-
-            // Update ở đây có thể là thêm xóa sửa
+        // 5 Auto generate Lec to Exam Room
+        // 6 Auto generate student to student exam
+        // 7 Auto Generate Exam Room
+        // 8 Add an exam phase
+        // 9 Delete 1 row in exam phase
     },
     ...SQLModel
 });
 
-User.hasMany(StaffLogChange, { foreignKey: 'staffId' })
-StaffLogChange.belongsTo(User, { foreignKey: 'staffId' })
+Staff.hasMany(StaffLogChange, { foreignKey: 'staffId' })
+StaffLogChange.belongsTo(Staff, { foreignKey: 'staffId' })
 
 
 await StaffLogChange.sync().then(() => {

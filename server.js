@@ -15,6 +15,8 @@ import './database/database.js'
 import userRouter from './routes/user.js'
 import examTypeRouter from './routes/examType.js'
 import lecturerRouter from './routes/lecturer.js'
+import staffRouter from './routes/staff.js'
+import volunteerRouter from './routes/volunteer.js'
 import roomRouter from './routes/room.js'
 import semesterRouter from './routes/semester.js'
 import studentRouter from './routes/student.js'
@@ -33,7 +35,8 @@ import authenticateRouter from './routes/authenticate.js'
 import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
 import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
-import studentCourseRouter from './routes/studentCourse.js'
+import studentSubjectRouter from './routes/studentSubject.js'
+import autoCreateCourseRouter from './routes/autoCreateCourse.js'
 
 // ===== Config =====
 const server = express()
@@ -64,6 +67,8 @@ server.use('/users', userRouter)
 server.use('/students', studentRouter)
 server.use('/examTypes', examTypeRouter)
 server.use('/lecturers', lecturerRouter)
+server.use('/staffs', staffRouter)
+server.use('/volunteers', volunteerRouter)
 server.use('/rooms', roomRouter)
 server.use('/semesters', semesterRouter)
 server.use('/students', studentRouter)
@@ -81,7 +86,8 @@ server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
-server.use('/studentCourses', studentCourseRouter)
+server.use('/studentSubjects', studentSubjectRouter)
+server.use('/autoCreateCourses', autoCreateCourseRouter)
 
 const options = {
     definition: {
