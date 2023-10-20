@@ -144,7 +144,7 @@ const router = express.Router()
  * @swagger
  * /rooms/roomInUse/:
  *   get:
- *     summary: Return all schedule of Room 
+ *     summary: Returns all the times that room was in use
  *     tags: [Rooms]
  *     parameters:
  *       - in: query
@@ -170,7 +170,7 @@ const router = express.Router()
  * @swagger
  * /rooms/roomFreeSlot/:
  *   get:
- *     summary: Return all Rooms free to use in 1 day 1 slot
+ *     summary: Return all unused rooms for a day and 1 slot
  *     tags: [Rooms]
  *     parameters:
  *       - in: query
@@ -202,7 +202,7 @@ const router = express.Router()
  * @swagger
  * /rooms/roomUseSlot/:
  *   get:
- *     summary: Return all Rooms in use in 1 day 1 slot specifically
+ *     summary: Return all rooms used in a day and 1 slot
  *     tags: [Rooms]
  *     parameters:
  *       - in: query
@@ -228,6 +228,23 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Rooms'
  *       '500':
  *         description: Internal Server Error!
+ */
+
+/**
+ * @swagger
+ * /rooms/roomDamaged/:
+ *   get:
+ *     summary: Return all Rooms was damaged
+ *     tags: [Rooms]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Rooms'
  */
 
 /**
@@ -277,9 +294,10 @@ router.delete('/', async (req, res) => {
     const roomNum = parseInt(req.body.roomNum);
 
     try {
-        const result = await Room.destroy({
+        const result = await Room.update({ status: 0 }, {
             where: {
-                roomNum: roomNum
+                roomNum: roomNum,
+                status: 1
             }
         })
         console.log(result);
@@ -300,7 +318,8 @@ router.put('/', async (req, res) => {
     try {
         const row = await Room.update(data, {
             where: {
-                id: id
+                id: id,
+                status: 1
             }
         })
         if (row[0] == 0) {
@@ -318,7 +337,7 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const room = await Room.findAll()
+        const room = await Room.findAll({ where: { status: 1 } })
         const roomArr = []
         room.forEach(e => {
             const length = e.roomNum + ""
@@ -347,12 +366,11 @@ router.get('/roomInUse', async (req, res) => {
         console.log(error)
         res.json(InternalErrResponse());
     }
-})// Get room has been used in day + which slots
+})// Get the time that the rooms was in use
 
 router.get('/roomFreeSlot', async (req, res) => {
     const day = req.query.day;
     const timeSlotId = req.query.timeSlotId
-
 
     const roomIdInUse = []
     const roomIdNotUse = []
@@ -366,12 +384,10 @@ router.get('/roomFreeSlot', async (req, res) => {
                 }
             }
         })
-        const room = await Room.findAll()
+        const room = await Room.findAll({ where: { status: 1 } })
 
         for (let i = 0; i < roomLogTime.length; i++) {
-            const index = roomIdInUse.indexOf(roomLogTime[i].roomId);
-
-            if (index === -1) {
+            if (!roomIdInUse.includes(roomLogTime[i].roomId)) {
                 roomIdInUse.push(roomLogTime[i].roomId);
             }
         }
@@ -386,7 +402,8 @@ router.get('/roomFreeSlot', async (req, res) => {
             where: {
                 id: {
                     [Op.or]: roomIdNotUse
-                }
+                },
+                status: 1
             }
         })
 
@@ -395,14 +412,13 @@ router.get('/roomFreeSlot', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})// Get room not in use in 1 day and slot
+})// Get all unused rooms for a day and 1 slot
 
 router.get('/roomUseSlot', async (req, res) => {
     const day = req.query.day;
     const timeSlotId = req.query.timeSlotId
 
     const roomIdInUse = []
-    const roomIdUseInSLot = []
 
     try {
         const roomLogTime = await RoomLogTime.findAll({
@@ -413,36 +429,40 @@ router.get('/roomUseSlot', async (req, res) => {
                 }
             }
         })
-        const room = await Room.findAll()
-
-        for (let i = 0; i < roomLogTime.length; i++) {
-            const index = roomIdInUse.indexOf(roomLogTime[i].roomId);
-
-            if (index === -1) {
-                roomIdInUse.push(roomLogTime[i].roomId);
-            }
-        }
-
-        room.forEach(element => {
-            if (roomIdInUse.includes(element.id)) {
-                roomIdUseInSLot.push(element.id)
-            }
-        });
-
-        const roomUse = await Room.findAll({
-            where: {
-                id: {
-                    [Op.or]: roomIdUseInSLot
+        if (roomLogTime.length > 0) {
+            for (let i = 0; i < roomLogTime.length; i++) {
+                if (!roomIdInUse.includes(roomLogTime[i].roomId)) {
+                    roomIdInUse.push(roomLogTime[i].roomId);
                 }
             }
-        })
 
-        res.json(DataResponse(roomUse))
+            const roomUse = await Room.findAll({
+                where: {
+                    id: {
+                        [Op.or]: roomIdInUse
+                    },
+                    status: 1
+                }
+            })
+            res.json(DataResponse(roomUse))
+        } else {
+            res.json(MessageResponse(`In day ${day} and slot id ${timeSlotId}, there are no occupied rooms`))
+        }
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})// Get room in use in 1 day and 1 slot specifically
+})// Get all rooms used in a day and 1 slot
+
+router.get('/roomDamaged', async (req, res) => {
+    try {
+        const room = await Room.findAll({ where: { status: 0 } })
+        res.json(DataResponse(room))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})// Get all room was damaged
 
 router.get('/search', async (req, res) => {
     try {
@@ -451,7 +471,8 @@ router.get('/search', async (req, res) => {
         if (Number.isInteger(parseInt(value))) {
             room = await Room.findAll({
                 where: {
-                    roomNum: parseInt(value)
+                    roomNum: parseInt(value),
+                    status: 1
                 }
             })
         } else {
@@ -459,7 +480,8 @@ router.get('/search', async (req, res) => {
                 where: {
                     location: {
                         [Op.like]: '%' + value + '%'
-                    }
+                    },
+                    status: 1
                 }
             })
         }
@@ -475,12 +497,13 @@ router.get('/search', async (req, res) => {
 })// Get room by roomNumer or location
 
 export async function randomRoom() {
-    let roomList = await Room.findAll()
+    let roomList = await Room.findAll({ where: { status: 1 } })
     let ranId = Math.floor(Math.random() * (roomList.length - 1)) + 1
     console.log("log Function ranId: " + ranId);
     let room = await Room.findOne({
         where: {
-            id: ranId
+            id: ranId,
+            status: 1
         }
     })
     return room

@@ -7,6 +7,7 @@ import ExamType from '../models/ExamType.js'
 import { Op } from 'sequelize'
 
 const router = express.Router()
+
 /**
  * @swagger
  * components:
@@ -26,10 +27,14 @@ const router = express.Router()
  *          numOfStu:
  *              type: integer
  *              description: number of student in 1 Subject test
+ *          semesterId: 
+ *              type: integer
+ *              description: reference to Semester id
  *       example:
  *           id: 1
  *           subId: 1
  *           numOfStu: 120
+ *           semesterId: 1
  */
 
 /**
@@ -42,34 +47,8 @@ const router = express.Router()
 /**
  * @swagger
  * /courses/:
- *   post:
- *     summary: Create a new Course
- *     tags: [Courses]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               subId:
- *                 type: integer
- *                 example: 1, 2, 3
- *               numOfStu:
- *                 type: integer
- *                 example: 120
- *           required:
- *             - subId
- *             - numOfStu
- *     responses:
- *       '200':
- *         description: Create Success !
- */
-/**
- * @swagger
- * /courses/:
  *   get:
- *     summary: Return all Courses
+ *     summary: Return all Courses by detail courseId, subCode, numOfStu, semesterId
  *     tags: [Courses]
  *     responses:
  *       '200':
@@ -81,6 +60,7 @@ const router = express.Router()
  *               items: 
  *                 $ref: '#/components/schemas/Courses'
  */
+
 /**
  * @swagger
  * /courses/:
@@ -103,104 +83,48 @@ const router = express.Router()
  *       '200':
  *         description: Course deleted / All courses deleted 
  */
-/**
- * @swagger
- * /courses/:
- *   put:
- *     summary: Update 1 Couse data by Staff
- *     tags: [Courses]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id: 
- *                 type: integer
- *                 example: 1, or null
- *               subId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               numOfStu:
- *                 type: inter
- *                 example: 120, 124
- *           required:
- *             - id
- *             - subId
- *             - numOfStu
- *     responses:
- *       '200':
- *         description: Course deleted / All courses deleted 
-
- */
-
-
-router.post('/', async (req, res) => {
-    const subId = parseInt(req.body.subId);
-    const numOfStu = parseInt(req.body.numOfStu);
-
-    try {
-        const subject = await Subject.findOne({
-            where: {
-                id: subId
-            }
-        })
-        if (!subject) {
-            res.json(NotFoundResponse());
-            return;
-        } else {
-            await Course.create({
-                subId: subId,
-                numOfStu: numOfStu
-            })
-            res.json(MessageResponse("Create Success !"));
-        }
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
-    }
-})
 
 router.get('/', async (req, res) => {
     let listCourse = [];
     try {
         const result = await Course.findAll({
+            where: {
+                status: 1
+            },
             include: [{
                 model: Subject,
                 attributes: ['code']
             }],
-            attributes: ['id', 'subId', 'numOfStu']
         });
-        result.forEach(course => {     
+
+        result.forEach(course => {
             const subject = course.subject;
             const sub = {
                 courseId: course.dataValues.id,
-                subCode : subject.code,
-                numOfStu : course.dataValues.numOfStu,
+                subCode: subject.code,
+                numOfStu: course.dataValues.numOfStu,
+                semesterId: course.dataValues.semesterId
             }
             listCourse.push(sub);
         });
-        console.log(listCourse);
-        if(listCourse.length == 0){
+        if (listCourse.length == 0) {
             res.json(NotFoundResponse);
-        }else{
+        } else {
             res.json(DataResponse(listCourse));
         }
-        
     } catch (error) {
         console.error(error);
         res.json(InternalErrResponse());
         return;
     }
-})
+})// Get all course by detail: courseId, subCode, numOfStu, semesterId
 
 //requireRole("staff"),
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id) || null;
     try {
-        if(id != null){
-            const rowAffected = await Course.destroy({
+        if (id != null) {
+            const rowAffected = await Course.update({ status: 0 }, {
                 where: {
                     id: id
                 }
@@ -212,8 +136,8 @@ router.delete('/', async (req, res) => {
                 res.json(MessageResponse('Course deleted'));
                 return;
             }
-        }else{
-            const rowAffected = await Course.destroy({
+        } else {
+            const rowAffected = await Course.update({ status: 0 }, {
                 where: {}
             });
             if (rowAffected === 0) {
