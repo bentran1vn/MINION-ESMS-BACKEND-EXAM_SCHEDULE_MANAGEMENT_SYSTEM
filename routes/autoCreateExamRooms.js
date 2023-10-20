@@ -12,7 +12,7 @@ import { courseByPhase } from './course.js'
 import { randomRoom } from './room.js'
 import ExamType from '../models/ExamType.js'
 import Room from '../models/Room.js'
-import { autoFillStu } from './autoFillStuInRoom.js'
+import { autoFillStu } from '../utility/autoFillStuInRoom.js'
 
 const router = express.Router()
 

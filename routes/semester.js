@@ -1,11 +1,13 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
+import { createNewSemesterS, deleteSemesterById, findAllSemester } from '../services/semesterServices.js'
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -15,6 +17,8 @@ const router = express.Router()
  *       required:
  *          - season
  *          - year
+ *          - startDay
+ *          - endDay
  *       properties:
  *          id:
  *              type: integer
@@ -25,12 +29,25 @@ const router = express.Router()
  *          year:
  *              type: integer
  *              description: The year of the semester
+ *          startDay:
+ *              type: Date
+ *              description: The start day of the semester
+ *          endDay:
+ *              type: Date
+ *              description: The end day of the semester
+ *          status:
+ *              type: integer
+ *              description: The visible status
  *       example:
  *           id: 1
- *           season: SPRING
+ *           season: FALL
  *           year: 2023
- */
+ *           startDay: 2023-04-13
+ *           endDay: 2023-08-13
+ *           status: 1   
+ */             
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
@@ -38,11 +55,12 @@ const router = express.Router()
  *    description: The Semesters managing API
  */
 
+//Swagger Post
 /**
  * @swagger
- * /semesters/:
+ * /semesters:
  *   post:
- *     summary: Create a new Semester
+ *     summary: Create a new Semester with information.
  *     tags: [Semesters]
  *     requestBody:
  *       required: true
@@ -53,6 +71,7 @@ const router = express.Router()
  *             properties:
  *               season:
  *                 type: String
+<<<<<<< HEAD
  *                 example: SPRING_2022, SUMMER_2022, FALL_2023
  *               start:
  *                 type: DATEONLY
@@ -60,14 +79,24 @@ const router = express.Router()
  *               end:
  *                 type: DATEONLY
  *                 example: 2023-08-14
+=======
+ *                 example: SPRING, SUMMER, FALL
+ *               start:
+ *                 type: String
+ *                 example: 2023-04-13
+ *               end:
+ *                 type: String
+ *                 example: 2023-08-13
+>>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  *           required:
  *             - season
  *             - start
  *             - end
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create new semester successfully!
  *       '500':
+<<<<<<< HEAD
  *         description: Internal Server Error !
  */
 
@@ -142,11 +171,16 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Semesters'
  *       '500':
  *         description: Internal Server Error !
+=======
+ *         description: Can not create new Semester!
+>>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  */
 
+//Swagger Get
 /**
  * @swagger
  * /semesters:
+<<<<<<< HEAD
  *   delete:
  *     summary: Delete a semester.
  *     tags: [Semesters]
@@ -165,17 +199,59 @@ const router = express.Router()
  *           required:
  *             - id
  *             - disabled
+=======
+ *   get:
+ *     summary: Return all data of semester by type and value.
+ *     tags: [Semesters]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: String
+ *         required: true
+ *         example: season, year, status.
+ *         description: The type of list you want to get.   
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: String
+ *         required: true
+ *         example: FALL, 2023, 1.
+ *         description: The condition of list you want to get.             
+>>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
  *     responses:
  *       '200':
- *         description: Delete Successfully!
+ *         description: Create new semester successfully!
  *       '500':
- *         description: Internal Error!
+ *         description: Can not create new Semester!
+ */
+
+//Swagger Delete
+/**
+ * @swagger
+ * /semesters/:id :
+ *   delete:
+ *     summary: Delete a semester with an Id.
+ *     tags: [Semesters]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The id semester Client want to delete.             
+ *     responses:
+ *       '200':
+ *         description: Create new semester successfully!
+ *       '500':
+ *         description: Can not create new Semester!
  */
 
 router.post('/', async (req, res) => {
     const season = req.body.season;
     const start = req.body.start;
     const end = req.body.end;
+<<<<<<< HEAD
 
 
     const startDate = new Date(start);
@@ -210,15 +286,23 @@ router.post('/', async (req, res) => {
             })
             console.log(semester);
             res.json(MessageResponse("Create Success !"))
+=======
+    try {
+        const semester = await createNewSemesterS(season, year, start, end)
+        if(semester != null){
+            res.json(MessageResponse("Create new semester successfully!"))
+>>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
         }
     } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, Error.message));
     }
 })
 
 router.get('/', async (req, res) => {
+    const type = req.query.type
+    const value = req.query.value
     try {
+<<<<<<< HEAD
         const semList = []
         const semester = await Semester.findAll();
         const semL = semester.map(sem => sem.dataValues);
@@ -345,32 +429,30 @@ router.delete('/', async (req, res) => {
                 res.json(MessageResponse('Delete successfully'));
                 return;
             }
+=======
+        let semesterList
+        await findAllSemester(value, type).then(value => semesterList = value)
+        if(semesterList != null && semesterList.length > 0){
+            res.json(DataResponse(semesterList));
         }
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
+    } catch (Error) {
+        res.json(ErrorResponse(500, Error.message));
     }
 })
 
-export async function createNewSemester() {
-    const date = new Date()
-    let year = date.getFullYear()
-    let month = date.getMonth() + 1
-    let season
-    if (month >= 1 && month <= 4) season = "SPRING"
-    if (month >= 5 && month <= 8) season = "SUMMER"
-    if (month >= 9 && month <= 12) season = "FALL"
+router.delete('/:id', async (req, res) => {
+    const semId = parseInt(req.params.id)
     try {
-        const semester = await Semester.create({
-            season: season,
-            year: year
-        })
-        return semester.id
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+        let result
+        await deleteSemesterById(semId).then(value => result = value)
+        if(result){
+            res.json(MessageResponse('Delete successfully'))
+>>>>>>> b38dc7cbe4597c5db37f74aaa8dac383ff160a00
+        }
+    } catch (Error) {
+        res.json(ErrorResponse(500, Error.message));
     }
-}
+})
 
 export default router
 //add xong

@@ -18,6 +18,13 @@ const User = sequelize.define( tableName , {
         type: DataTypes.STRING,
         defaultValue: 'lecturer'
     },
+    status:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1
+    },
+    //1 là hiện ra
+    //0 là ko hiện ra
     ...SQLModel
 });
 

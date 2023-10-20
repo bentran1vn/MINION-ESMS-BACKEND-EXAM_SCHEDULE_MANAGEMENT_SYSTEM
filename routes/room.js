@@ -112,8 +112,8 @@ const router = express.Router()
  *                 type: String
  *                 example: XAVALO
  *               note:
- *                 type: string
- *                 example: Hư màn hình
+ *                 type: integer
+ *                 example: 0
  *           required:
  *             - id
  *     responses:
@@ -263,7 +263,7 @@ router.post('/', async (req, res) => {
         const room = await Room.create({
             roomNum: parseInt(data.roomNum),
             location: data.location,
-            note: data.note || ""
+            note: 0
         })
         res.json(MessageResponse("Create Success !"))
 
@@ -319,7 +319,14 @@ router.put('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const room = await Room.findAll()
-        res.json(DataResponse(room))
+        const roomArr = []
+        room.forEach(e => {
+            const length = e.roomNum + ""
+            if (length.length > 1) {
+                roomArr.push(e)
+            }
+        });
+        res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
@@ -442,14 +449,12 @@ router.get('/search', async (req, res) => {
         var room = []
         const value = req.query.value
         if (Number.isInteger(parseInt(value))) {
-            console.log('Số: ' + value);
             room = await Room.findAll({
                 where: {
                     roomNum: parseInt(value)
                 }
             })
         } else {
-            console.log('Chữ: ' + value);
             room = await Room.findAll({
                 where: {
                     location: {
@@ -467,7 +472,7 @@ router.get('/search', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})// Get room by roomNumer ot location
+})// Get room by roomNumer or location
 
 export async function randomRoom() {
     let roomList = await Room.findAll()

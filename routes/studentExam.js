@@ -5,21 +5,22 @@ import ExamRoom from '../models/ExamRoom.js'
 import Student from '../models/Student.js'
 import StudentExam from '../models/StudentExam.js'
 import Course from '../models/Course.js'
-import StudentCourse from '../models/StudentCourse.js'
 import SubInSlot from '../models/SubInSlot.js'
 import fs from 'fs'
 import StaffLogChange from '../models/StaffLogChange.js'
+import StudentSubject from '../models/StudentSubject.js'
+import Subject from '../models/Subject.js'
 
 const router = express.Router()
 
 router.post('/', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
     try {
-        const course = await Course.findAll() // Lấy tất cả course
-        for (let i = 0; i < course.length; i++) { // Duyệt từng course bằng courId
-            const ArrStudentIdInCourse = await StudentCourse.findAll({ // Lấy ra tất cả học sinh thi của 1 course bằng courId
+        const subject = await Subject.findAll() // Lấy tất cả subject
+        for (let i = 0; i < subject.length; i++) { // Duyệt từng subject
+            const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
                 where: {
-                    courId: course[i].id
+                    subjectId: subject[i].id
                 },
                 attributes: ['stuId']
             })
@@ -99,7 +100,7 @@ router.post('/', async (req, res) => {
             staffId: staffId,
             typeChange: 9
         })
-        if(!staffLog){
+        if (!staffLog) {
             throw new Error("Create staff log failed");
         }
     } catch (error) {
@@ -158,32 +159,32 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.get('/searchToUpdate', async(req, res) => {
+router.get('/searchToUpdate', async (req, res) => {
     const uniId = parseInt(req.query.uniId) || null;
     try {
-        if(uniId == null){
+        if (uniId == null) {
             res.json(MessageResponse("Student ID must be filled to search"));
             return;
-        }else{
+        } else {
             const student = await Student.findOne({
                 where: {
                     uniId: uniId
                 }
             })
-            if(student){
+            if (student) {
                 const stuEx = await StudentExam.findAll({
                     where: {
                         stuId: student.id
                     }
                 })
-                if(stuEx){
+                if (stuEx) {
                     res.json(DataResponse(stuEx));
                     return;
-                }else{
+                } else {
                     res.json(MessageResponse("This student doesn't have any schedule"));
                     return;
                 }
-            }else{
+            } else {
                 res.json(MessageResponse("This student ID doesn't exist!"))
                 return;
             }
@@ -202,19 +203,19 @@ router.put('/', async (req, res) => {
     try {
         const stuExStatus = await StudentExam.update({
             status: status
-        },{
+        }, {
             where: {
                 id: id
             }
         })
-        if(stuExStatus[0] != 0){
+        if (stuExStatus[0] != 0) {
             const staffLog = await StaffLogChange.create({
                 rowId: id,
                 staffId: staffId,
                 tableName: 3,
                 typeChange: 11
             })
-            if(!staffLog){
+            if (!staffLog) {
                 throw new Error("Create staff log failed");
             }
             res.json(MessageResponse("Status updated"));
@@ -226,48 +227,48 @@ router.put('/', async (req, res) => {
 
 })
 
-router.put('/updateAll', async (req,res) => {
+router.put('/updateAll', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
     const status = req.body.status;
     try {
-        if(status == false){
+        if (status == false) {
             const studentEx = await StudentExam.update({
                 status: false
             }, {
                 where: {}
             })
-            if(studentEx[0] != 0){
+            if (studentEx[0] != 0) {
                 const staffLog = await StaffLogChange.create({
                     tableName: 3,
                     staffId: staffId,
                     typeChange: 10
                 })
-                if(!staffLog){
+                if (!staffLog) {
                     throw new Error("Create staff log failed");
                 }
                 res.json(MessageResponse("All status are updated"));
             }
-        }else if(status == true){
+        } else if (status == true) {
             const studentEx = await StudentExam.update({
                 status: true
             }, {
                 where: {}
             })
-            if(studentEx[0] != 0){
+            if (studentEx[0] != 0) {
                 const staffLog = await StaffLogChange.create({
                     tableName: 3,
                     staffId: staffId,
                     typeChange: 10
                 })
-                if(!staffLog){
+                if (!staffLog) {
                     throw new Error("Create staff log failed");
                 }
                 res.json(MessageResponse("All status are updated"));
             }
-        }else{
+        } else {
             res.json(MessageResponse("Status is invalid"));
         }
-        
+
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
