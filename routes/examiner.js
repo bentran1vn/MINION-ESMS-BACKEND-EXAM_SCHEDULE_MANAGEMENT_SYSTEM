@@ -126,7 +126,23 @@ const router = express.Router()
  *               items: 
  *                 $ref: '#/components/schemas/Examiners'
  */
-
+/**
+ * @swagger
+ * /examiners/:
+ *   delete:
+ *     summary: Delete a Examiner by id
+ *     tags: [Examiners]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The Examiner id Client want to delete.
+ *     responses:
+ *       200:
+ *         description: Deleted !
+ */
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
     const typeExaminer = parseInt(req.body.typeExaminer)
@@ -446,5 +462,24 @@ router.get('/availableSlot', async (req, res) => {
 
 })
 
+router.delete('/', async (req, res) => {
+    const id = parseInt(req.body.id);
+    try {
+        const row = await Examiner.update({
+            status: 1
+        }, {
+            where: {
+                id: id
+            }
+        })
+        if(row[0] != 0){
+            res.json(MessageResponse("Deleted !"));
+            return;
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        return;
+    }
+})
 export default router
 //add được

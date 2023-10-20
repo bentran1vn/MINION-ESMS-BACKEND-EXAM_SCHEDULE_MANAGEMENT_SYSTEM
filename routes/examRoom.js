@@ -113,7 +113,7 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examRooms/examiner/:
+ * /examRooms/lecturer/:
  *   put:
  *     summary: Register to 1 slot in ExamRoom for role Examiner type Lecturer
  *     tags: [ExamRooms]
@@ -124,7 +124,7 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               lecturerId:
+ *               userId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *               startTime:
@@ -137,7 +137,7 @@ const router = express.Router()
  *                 type: DATEONLY
  *                 example: 2023-04-13
  *           required:
- *             - lecturerId
+ *             - userId
  *             - startTime
  *             - endTime
  *             - day
@@ -161,7 +161,7 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               lecturerId:
+ *               userId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *               startTime:
@@ -174,13 +174,13 @@ const router = express.Router()
  *                 type: DATEONLY
  *                 example: 2023-04-13
  *           required:
- *             - lecturerId
+ *             - userId
  *             - startTime
  *             - endTime
  *             - day
  *     responses:
  *       '200':
- *         description: Lecturer ${lecturerId} is removed, lecturer log time updated
+ *         description: Examiner is removed, examiner log time updated
  *       '500':
  *         description: Internal Server Error !
  */
@@ -290,9 +290,9 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examRooms/allFreeLecturersInSlot/:
+ * /examRooms/allExaminerInSlot/:
  *   get:
- *     summary: Return all free lecturer in 1 slot 1 day for Staff role
+ *     summary: Return all free user able to be examiner in 1 slot 1 day for Staff role
  *     tags: [ExamRooms]
  *     parameters:
  *        - in: query
@@ -673,7 +673,7 @@ function getRandomLecturerId(array) {
 //PASS , requireRole('lecturer')
 router.put('/lecturer', async (req, res) => {
     //route đăng kí của lecturer
-    const lecturerId = parseInt(req.body.lecturerId);
+    const lecturerId = parseInt(req.body.userId);
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
@@ -824,7 +824,7 @@ router.put('/lecturer', async (req, res) => {
 // PASS , requireRole('lecturer')
 router.put('/delLecturer', async (req, res) => {
     //hủy đăng kí của 1 lecturer
-    const lecturerId = req.body.lecturerId;
+    const lecturerId = req.body.userId;
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
@@ -1396,7 +1396,7 @@ router.get('/', async (req, res) => {
 //tất cả lecturer rảnh tại cùng 1 giờ 1 ngày
 //role staff
 //PASS
-router.get('/allFreeLecturersInSlot', async (req, res) => {
+router.get('/allExaminerInSlot', async (req, res) => {
     const { startTime, endTime, day } = req.body;
 
     try {
@@ -1433,7 +1433,13 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
             ['staff', 1],
             ['volunteer', 2]
         ]);
-        const user = await User.findAll();
+        const user = await User.findAll({
+            where: {
+                role: {
+                    [Op.or]: ['lecturer', 'staff', 'volunteer']
+                }
+            }
+        });
         
         user.forEach(async (item) => {
             const examiner = await Examiner.findOne({
