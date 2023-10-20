@@ -42,3 +42,17 @@ export async function createExamPhases(course, semesterId) {
 
     return Promise.all(promises)
 }
+
+export async function getExamPhasesStartOrder(){
+    const examPhaseList = await ExamPhase.findAll(
+        {
+            order: [
+                ['startDay', 'ASC'],
+            ]
+        }
+    )
+    if(examPhaseList === null){
+        throw new Error("Can not sort exam phase by order!")
+    }
+    return examPhaseList
+}

@@ -85,7 +85,15 @@ export async function countCourse() {
 
 export async function courseByPhase(examPhase) {
 
-    const course = await Course.findAll({
+    const course = await Course.findAll(
+        {
+            where : {
+                status: {
+                    [Op.eq]: 1
+                }
+            }
+        },
+        {
         order: [
             ['numOfStu', 'ASC']
         ]

@@ -162,53 +162,6 @@ router.post('/', async (req, res) => {
     }
 })
 
-export async function courseByPhase(examPhase) {
-
-    const course = await Course.findAll({
-        order: [
-            ['numOfStu', 'ASC']
-        ]
-    })
-
-    let subList = []
-
-    for (const key in course) {
-        subList.push(course[key].subId)
-    }//Lấy ra các SubID Với Course Tương Ứng
-
-    const subjectList = await Subject.findAll({
-        where: {
-            id: subList
-        }
-    })//Lấy ra các Subject với SubID tương ứng
-
-    const examType = await ExamType.findOne({
-        where: {
-            id: examPhase.eTId
-        }
-    })//Lấy ra Loại Examtype của ExamPhase tương ứng
-
-    let listSubByPhase = []
-
-    for (const key in subjectList) {
-        if (subjectList[key][examType.type.toLowerCase()] > 0) {
-            listSubByPhase.push(subjectList[key].id)
-        };
-    }//Lấy ra các Subject tương ứng với ExamType của Examphase
-
-
-    let courseByPhase = await Course.findAll({
-        where: {
-            subId: listSubByPhase
-        }
-    })//Lấy ra các Course tương ứng với SubId, những thằng mà có cùng loại với ExamPhase
-
-    return courseByPhase
-
-}
-//thầy nói lấy ra course id, coursename, subCode, numOfStu là được
-//numOfStu thì query từ DB về chứ không có sửa.
-//requireRole("staff")
 router.get('/', async (req, res) => {
     let listCourse = [];
     try {
@@ -241,7 +194,6 @@ router.get('/', async (req, res) => {
         return;
     }
 })
-
 
 //requireRole("staff"),
 router.delete('/', async (req, res) => {

@@ -8,25 +8,30 @@ import SubInSlot from '../models/SubInSlot.js'
 import fs from 'fs'
 import ExamRoom from '../models/ExamRoom.js'
 import RoomLogTime from '../models/RoomLogTime.js'
-import { courseByPhase } from './course.js'
+import { courseByPhase } from '../utility/courseUtility.js'
 import ExamType from '../models/ExamType.js'
-import Room from '../models/Room.js'
 import { autoFillStu } from '../utility/examRoomUtility.js' 
+import { getExamPhasesStartOrder } from '../services/examPhaseService.js'
+import { findAll } from '../services/roomService.js'
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
     console.log("System is running !");
     console.log("Creating Exam Room !");
-    const examPhaseList = await ExamPhase.findAll(
-        {
-            order: [
-                ['startDay', 'ASC'],
-            ]
-        }
-    )//Đảm bảo thứ tự của ExamPhase từ ngày sớm nhất đến trễ nhất
 
-    const roomList = await Room.findAll()
+    let examPhaseList
+    await getExamPhasesStartOrder().then(value => examPhaseList = value)
+    //Đảm bảo thứ tự của ExamPhase từ ngày sớm nhất đến trễ nhất
+    if(examPhaseList === null){
+        throw new Error("Can not create exam rooms! Sorting phases problem!")
+    }
+
+    let roomList 
+    await findAll().then(value => roomList = value)
+    if(roomList === null){
+        throw new Error("Can not create exam rooms! Room problem!")
+    }
 
     for (const key in examPhaseList) {
 
@@ -48,18 +53,14 @@ router.get('/', async (req, res) => {
                 offset: 6
             })
         }
+        //Lấy ra đúng loại Slot Time
 
         let course
         await courseByPhase(examPhaseList[key]).then(val => course = val)
+        if(courseByPhase === null){
+            throw new Error("Can not create exam rooms! Course Problem!")
+        }
         //Lấy ra danh sách các Course trong Examphase tương ứng
-
-        /*TestFile-NewPhase
-        // let dataT = "----------------------"
-        // fs.appendFileSync("test.txt", dataT + "\n");
-        // let dataT1 = "----------------------"
-        // fs.appendFileSync("test1.txt", dataT1 + "\n");
-        // console.log("----------------------");
-        */
 
         const startDay = new Date(examPhaseList[key].startDay)
         const endDay = new Date(examPhaseList[key].endDay)
