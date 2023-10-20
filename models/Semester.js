@@ -1,5 +1,6 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
+import SQLModel from '../common/SQLModel.js'
 
 let tableName = 'semesters'
 

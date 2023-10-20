@@ -226,6 +226,7 @@ router.get('/scheduled', async (req, res) => {
 //PASS
 router.get('/availableSlot', async (req, res) => {
     
+    const lecturerId = parseInt(req.query.lecturerId)//cái này sẽ đổi thành lấy từ token sau
 
     let availableSlotList = [];
     const slotNoLecturer = await ExamRoom.findAll({

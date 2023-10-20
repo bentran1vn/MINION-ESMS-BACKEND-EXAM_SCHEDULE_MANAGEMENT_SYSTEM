@@ -69,9 +69,6 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               year:
- *                 type: integer
- *                 example: 2023, 2022, 2021
  *               season:
  *                 type: String
  *                 example: SPRING, SUMMER, FALL
@@ -82,7 +79,6 @@ const router = express.Router()
  *                 type: String
  *                 example: 2023-08-13
  *           required:
- *             - year
  *             - season
  *             - start
  *             - end
@@ -147,12 +143,39 @@ router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
-    const end = req.body.end;
+    const end = req.body.end; 
+    
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const absoluteDifference = Math.abs(endDate.getDate() - startDate.getDate());
+
+    // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
+    const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
+
+    if ( (startDate >= endDate) || (monthsDiff < 3) ) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
+        res.json(MessageResponse("Start date must be earlier than end time atleast 3 month"));
+        return;
+    }
+
     try {
-        const semester = await createNewSemesterS(season, year, start, end)
-        if(semester != null){
+        const existingSemesters = await Semester.findOne({
+            where: {
+                end: {
+                    [Op.gte]: start,
+                }
+            }
+        });
+        if (existingSemesters) {
+            res.json(MessageResponse("Collision to others semester"));
+            return;
+        }else{
+            const semester = await createNewSemesterS(season, year, start, end)
+            if(semester != null){
             res.json(MessageResponse("Create new semester successfully!"))
         }
+        }
+        
     } catch (err) {
         res.json(ErrorResponse(500, Error.message));
     }
