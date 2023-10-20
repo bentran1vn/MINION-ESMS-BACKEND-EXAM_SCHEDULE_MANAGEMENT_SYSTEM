@@ -9,10 +9,9 @@ import fs from 'fs'
 import ExamRoom from '../models/ExamRoom.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import { courseByPhase } from './course.js'
-import { randomRoom } from './room.js'
 import ExamType from '../models/ExamType.js'
 import Room from '../models/Room.js'
-import { autoFillStu } from '../utility/autoFillStuInRoom.js'
+import { autoFillStu } from '../utility/examRoomUtility.js' 
 
 const router = express.Router()
 

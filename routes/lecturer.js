@@ -1,7 +1,7 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Lecture from '../models/Lecturer.js'
+import Examiner from '../models/Examiner.js'
 import User from '../models/User.js'
 import ExamRoom from '../models/ExamRoom.js'
 import SubInSlot from '../models/SubInSlot.js'
@@ -10,9 +10,7 @@ import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
-import { Op } from 'sequelize'
-import Lecturer from '../models/Lecturer.js'
-import LecturerLogTime from '../models/LecturerLogTime.js'
+import ExaminerLogTime from '../models/ExaminerLogTime.js'
 
 const router = express.Router()
 
@@ -130,7 +128,7 @@ router.post('/', async (req, res) => {
             res.json(NotFoundResponse());
             return;
         } else {
-            const lecturer = await Lecture.create({
+            const lecturer = await Examiner.create({
                 userId: userId,
                 lecId: lecId
             })
@@ -150,7 +148,7 @@ router.get('/scheduled', async (req, res) => {
     const id = parseInt(req.query.id);
 
     if (!id) {
-        res.json(MessageResponse("Lecturer id is required"));
+        res.json(MessageResponse("Examiner id is required"));
         return;
     }
     try {
@@ -258,7 +256,7 @@ router.get('/availableSlot', async (req, res) => {
                 id: examSlot.timeSlotId
             }
         })
-        const checkLecLogTime = await LecturerLogTime.findOne({
+        const checkLecLogTime = await ExaminerLogTime.findOne({
             where: {
                 day: examSlot.day,
                 timeSlotId: timeSlot.id,

@@ -1,8 +1,8 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import LecturerLogTime from '../models/LecturerLogTime.js'
-import Lecturer from '../models/Lecturer.js'
+import ExaminerLogTime from '../models/ExaminerLogTime.js'
+import Examiner from '../models/Examiner.js'
 import TimeSlot from '../models/TimeSlot.js'
 
 /**
@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
     const { lecturerId, day, timeSlotId } = req.body;
 
     try {
-        const lecturer = await Lecturer.findOne({
+        const lecturer = await Examiner.findOne({
             where: {
                 id: parseInt(lecturerId),
             }
@@ -93,7 +93,7 @@ router.post('/', async (req, res) => {
             res.json(NotFoundResponse())
             return;
         } else {
-            const lecturerLogTime = await LecturerLogTime.create({
+            const lecturerLogTime = await ExaminerLogTime.create({
                 lecturerId: parseInt(lecturerId),
                 day: day,
                 timeSlotId: parseInt(timeSlotId)
