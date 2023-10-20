@@ -1,5 +1,4 @@
 import express from 'express'
-import { createNewSemester } from './semester.js'
 import { countCourse } from './course.js'
 import { createExamPhases } from './examPhase.js'
 import { DataResponse } from '../common/reponses.js'

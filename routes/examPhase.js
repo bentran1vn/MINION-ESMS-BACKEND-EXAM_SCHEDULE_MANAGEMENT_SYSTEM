@@ -4,10 +4,6 @@ import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import ExamType from '../models/ExamType.js'
 import ExamPhase from '../models/ExamPhase.js'
-import Course from '../models/Course.js'
-import Subject from '../models/Subject.js'
-import { createNewSemester } from './semester.js'
-import { countCourse } from './course.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 
 /**

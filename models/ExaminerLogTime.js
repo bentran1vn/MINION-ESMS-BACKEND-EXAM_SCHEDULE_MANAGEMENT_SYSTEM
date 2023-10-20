@@ -1,17 +1,17 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
-import Lecturer from "./Lecturer.js";
+import Examiner from "./Examiner.js";
 import TimeSlot from "./TimeSlot.js";
 import Semester from "./Semester.js";
 
-let tableName = 'lecturersLogTimes'
+let tableName = 'examinersLogTimes'
 
-const LecturerLogTime = sequelize.define( tableName , { 
-    lecturerId:{
+const ExaminerLogTime = sequelize.define( tableName , { 
+    examinerId:{
         type: DataTypes.INTEGER,
         allowNull: false,
         references:{
-            model: Lecturer,
+            model: Examiner,
             key: 'id'
         }
     },
@@ -37,17 +37,17 @@ const LecturerLogTime = sequelize.define( tableName , {
     },
 });
 
-Lecturer.hasMany(LecturerLogTime, { foreignKey: 'lecturerId' })
-LecturerLogTime.belongsTo(Lecturer, { foreignKey: 'lecturerId' })
+Examiner.hasMany(ExaminerLogTime, { foreignKey: 'examinerId' })
+ExaminerLogTime.belongsTo(Examiner, { foreignKey: 'examinerId' })
 
-TimeSlot.hasMany(LecturerLogTime, { foreignKey: 'timeSlotId' })
-LecturerLogTime.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
+TimeSlot.hasMany(ExaminerLogTime, { foreignKey: 'timeSlotId' })
+ExaminerLogTime.belongsTo(TimeSlot, { foreignKey: 'timeSlotId' })
 
-Semester.hasMany(LecturerLogTime, { foreignKey: 'semId' })
-LecturerLogTime.belongsTo(Semester, { foreignKey: 'semId' })
+Semester.hasMany(ExaminerLogTime, { foreignKey: 'semId' })
+ExaminerLogTime.belongsTo(Semester, { foreignKey: 'semId' })
 
-await LecturerLogTime.sync().then(()=> {
+await ExaminerLogTime.sync().then(()=> {
     console.log(`${tableName} table is ready`);
 })
 
-export default LecturerLogTime
+export default ExaminerLogTime
