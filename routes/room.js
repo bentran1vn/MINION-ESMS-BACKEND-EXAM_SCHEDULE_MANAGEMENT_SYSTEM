@@ -449,14 +449,12 @@ router.get('/search', async (req, res) => {
         var room = []
         const value = req.query.value
         if (Number.isInteger(parseInt(value))) {
-            console.log('Số: ' + value);
             room = await Room.findAll({
                 where: {
                     roomNum: parseInt(value)
                 }
             })
         } else {
-            console.log('Chữ: ' + value);
             room = await Room.findAll({
                 where: {
                     location: {
@@ -474,7 +472,7 @@ router.get('/search', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})// Get room by roomNumer ot location
+})// Get room by roomNumer or location
 
 export async function randomRoom() {
     let roomList = await Room.findAll()
