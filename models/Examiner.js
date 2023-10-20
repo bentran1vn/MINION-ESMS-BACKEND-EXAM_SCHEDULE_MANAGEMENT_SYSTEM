@@ -18,8 +18,8 @@ const Examiner = sequelize.define( tableName , {
         allowNull: false,
     },
     //0 là lecturer
-    //2 là staff
-    //3 là voluteer
+    //1 là staff
+    //2 là voluteer
     semesterId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -28,8 +28,8 @@ const Examiner = sequelize.define( tableName , {
         type: DataTypes.BOOLEAN,
         defaultValue: 0,
     }   
-    //0 is not busy
-    //1 is busy
+    //0 còn 
+    //1 xóa
 });
 
 User.hasOne(Examiner, { foreignKey: 'userId' });

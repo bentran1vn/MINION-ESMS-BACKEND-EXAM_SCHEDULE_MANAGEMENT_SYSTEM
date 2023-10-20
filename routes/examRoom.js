@@ -2,16 +2,18 @@ import express, { response } from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
-import Lecturer from '../models/Examiner.js'
+import Examiner from '../models/Examiner.js'
 import SubInSlot from '../models/SubInSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
-import LecturerLogTime from '../models/ExaminerLogTime.js'
+import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import Semester from '../models/Semester.js'
+import User from '../models/User.js'
 import { Op } from 'sequelize'
 
 
@@ -26,7 +28,7 @@ const router = express.Router()
  *       required:
  *          - sSId
  *          - roomId
- *          - lecturerId
+ *          - examinerId
  *          - des 
  *       properties:
  *          id:
@@ -38,9 +40,9 @@ const router = express.Router()
  *          roomId:
  *              type: integer
  *              description: Reference to Room id
- *          lecturerId:
+ *          examinerId:
  *              type: integer
- *              description:  Reference to Lecturer id
+ *              description:  Reference to Examiner id
  *          des: 
  *              type: string
  *              description:  FE or PE
@@ -48,7 +50,7 @@ const router = express.Router()
  *           id: 1
  *           sSId: 1
  *           roomId: 1
- *           lecturerId: 1
+ *           examinerId: 1
  *           des: FE
  */
 
@@ -78,7 +80,7 @@ const router = express.Router()
  *               roomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
- *               lecturerId:
+ *               examinerId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *               des:
@@ -87,7 +89,7 @@ const router = express.Router()
  *           required:
  *             - sSId
  *             - roomId
- *             - lecturerId
+ *             - examinerId
  *             - des
  *     responses:
  *       '200':
@@ -100,20 +102,20 @@ const router = express.Router()
  * @swagger
  * /examRooms/auto/:
  *   post:
- *     summary: Auto fill Lecturer to ExamRoom by Staff
+ *     summary: Auto fill Examiner to ExamRoom by Staff
  *     tags: [ExamRooms]
  *     responses:
  *       '200':
- *         description: All rooms assigned / Number of lecturers not enough to fill up exam room
+ *         description: All rooms assigned / Number of Examiner not enough to fill up exam room
  *       '500':
  *         description: Internal Server Error !
  */
 
 /**
  * @swagger
- * /examRooms/lecturer/:
+ * /examRooms/examiner/:
  *   put:
- *     summary: Register to 1 slot in ExamRoom for role Lecturer
+ *     summary: Register to 1 slot in ExamRoom for role Examiner type Lecturer
  *     tags: [ExamRooms]
  *     requestBody:
  *       required: true
@@ -185,7 +187,7 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examRooms/addLecturer/:
+ * /examRooms/addExaminer/:
  *   put:
  *     summary: Register to 1 slot in ExamRoom for role Staff
  *     tags: [ExamRooms]
@@ -199,15 +201,16 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
- *               lecturerId:
+ *               userId:
  *                 type: integer
+ *                 description: Reference to User, take staff, lecturer, volunteer
  *                 example: 1, 2, 3, 4, 5
  *           required:
  *             - id
- *             - lecturerId
+ *             - userId
  *     responses:
  *       '200':
- *         description: Add Success to exam room and update lecturer log time !
+ *         description: Add Success to exam room and update examiner log time !
  *       '500':
  *         description: Internal Server Error !
  */
@@ -326,10 +329,19 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
-    const lecturerId = parseInt(req.body.lecturerId);
+    const userId = parseInt(req.body.userId);
     const des = req.body.des;
 
     try {
+        const user = await User.findOne({
+            where: {
+                id: userId
+            }
+        })
+        if (!user) {
+            res.json(MessageResponse("Not found user ID"));
+            return;
+        }
         const subInSlot = await SubInSlot.findOne({
             where: {
                 id: sSId
@@ -340,27 +352,119 @@ router.post('/', async (req, res) => {
                 id: roomId
             }
         })
-        const lecturer = await Lecturer.findOne({
+        const examSlot = await ExamSlot.findOne({
             where: {
-                id: lecturerId
+                id: subInSlot.exSlId
             }
         })
-        if (!subInSlot || !room || !lecturer) {
-            res.json(NotFoundResponse());
-            return;
-        } else {
-            const examRoom = await ExamRoom.create({
-                sSId: sSId,
-                roomId: roomId,
-                lecturerId: lecturerId,
-                des: des
-            })
-            console.log(examRoom);
-            res.json(MessageResponse("Create Success !"));
+        const timeSlot = await TimeSlot.findOne({
+            where: {
+                id: examSlot.timeSlotId
+            }
+        })
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester has no data of current date"));
             return;
         }
+        if (examSlot.day < semester.startDay) {
+            res.json(MessageResponse("Can't create exam room for passed semester"));
+            return;
+        }
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: userId,
+                semesterId: semester.id
+            }
+        })
 
+        const statusMap = new Map([
+            ['lecturer', 0],
+            ['staff', 1],
+            ['volunteer', 2]
+        ]);
 
+        if (!subInSlot || !room || !examSlot || !timeSlot) {
+            res.json(NotFoundResponse());
+            return;
+        } else if (!examiner) {
+            const newExaminer = await Examiner.create({
+                userId: userId,
+                typeExaminer: statusMap.get(user.role),
+                semesterId: parseInt(semester.id),
+                status: 0
+            })
+            if (!newExaminer) {
+                res.json(MessageResponse("Error when create new Examiner"))
+            } else {
+                const checkRoomLogTime = await RoomLogTime.findOne({
+                    where: {
+                        day: examSlot.day,
+                        timeSlotId: timeSlot.id,
+                        roomId: roomId,
+                        semId: parseInt(semester.id),
+                    }
+                })
+                if (checkRoomLogTime) {
+                    res.json(MessageResponse(`This room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`))
+                    return;
+                } else {
+                    const examRoom = await ExamRoom.create({
+                        sSId: sSId,
+                        roomId: roomId,
+                        examinerId: parseInt(newExaminer.id),
+                        des: des
+                    })
+                    console.log(examRoom);
+                    res.json(MessageResponse("Create Success !"));
+                    return;
+                }
+            }
+        }
+        else {
+            const checkLecLogTime = await ExaminerLogTime.findOne({
+                where: {
+                    day: examSlot.day,
+                    timeSlotId: timeSlot.id,
+                    examinerId: parseInt(examiner.id),
+                    semId: parseInt(semester.id)
+                }
+            })
+            const checkRoomLogTime = await RoomLogTime.findOne({
+                where: {
+                    day: examSlot.day,
+                    timeSlotId: timeSlot.id,
+                    roomId: roomId,
+                    semId: parseInt(semester.id)
+                }
+            })
+            if (!checkLecLogTime && !checkRoomLogTime) {
+                const examRoom = await ExamRoom.create({
+                    sSId: sSId,
+                    roomId: roomId,
+                    examinerId: parseInt(examiner.id),
+                    des: des
+                })
+                console.log(examRoom);
+                res.json(MessageResponse("Create Success !"));
+                return;
+            } else {
+                res.json(MessageResponse(`This examiner ${examiner.id} or room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`))
+                return;
+            }
+
+        }
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -378,101 +482,172 @@ router.post('/auto', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
 
     try {
-        const lecturer = await Lecturer.findAll();
-        const lecList = lecturer.map(lec => lec.dataValues);
-        const lecIdList = lecList.map(lecL => lecL.id);
-
-        const roomNoLecturer = await ExamRoom.findAll({
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
             where: {
-                lecturerId: null
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+        const lecturer = await User.findAll({
+            where: {
+                role: 'lecturer'
+            }
+        })
+
+        lecturer.forEach(async (item) => {
+            const check = await Examiner.findOne({
+                where: {
+                    userId: item.dataValues.id,
+                    semesterId: parseInt(semester.id)
+                }
+            })
+            if (!check) {
+                const lecToExaminer = await Examiner.create({
+                    userId: item.dataValues.id,
+                    typeExaminer: 0,
+                    semesterId: parseInt(semester.id),
+                    status: 0
+                })
+                if (!lecToExaminer) {
+                    res.json(MessageResponse("Error when add lecturer to examiner"));
+                    return;
+                }
             }
         });
-        if (roomNoLecturer.length == 0) {
+
+        const examiner = await Examiner.findAll({
+            where: {
+                semesterId: parseInt(semester.id),
+                status: 0
+            }
+        });
+
+        if (examiner.length == 0) {
+            res.json(MessageResponse("Current semester doesn't have any examiner"));
+            return;
+        }
+        const examinerList = examiner.map(ex => ex.dataValues);
+        const examinerIdList = examinerList.map(exL => exL.id);
+
+        const roomNoExaminer = await ExamRoom.findAll({
+            where: {
+                examinerId: null
+            }
+        });
+        if (roomNoExaminer.length == 0) {
             res.json("All rooms assigned");
             return;
         }
-        else {
-            // const randomLecId = getRandomLecturerId(lecIdList);       
-            const roomEmpty = roomNoLecturer.map(examRoom => examRoom.dataValues);
-            for (const item of roomEmpty) {
-                const id = item.id;
-                const sSId = item.sSId;
-
-                const subjectInSlot = await SubInSlot.findOne({
-                    where: {
-                        id: sSId
-                    }
-                })
-                const examSlot = await ExamSlot.findOne({
-                    where: {
-                        id: subjectInSlot.exSlId
-                    }
-                })
-                const timeSlot = await TimeSlot.findOne({
-                    where: {
-                        id: examSlot.timeSlotId
-                    }
-                })
-                let i = 0;
-                for (i; i < lecIdList.length; i++) {
-                    const randomLecId = lecIdList[i];
-                    const checkLecLogTime = await LecturerLogTime.findOne({
-                        where: {
-                            lecturerId: randomLecId,
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day
-                        }
-                    })
-                    if (!checkLecLogTime) {
-                        const examRoom = await ExamRoom.update({
-                            lecturerId: randomLecId
-                        }, {
-                            where: {
-                                id: id
-                            }
-                        })
-                        if (examRoom) {
-                            const updateLecLogTime = await LecturerLogTime.create({
-                                lecturerId: randomLecId,
-                                timeSlotId: timeSlot.id,
-                                day: examSlot.day
-                            })
-                            break;
-                        }
-                    }
-                }
-            }
-            const examRoomAtferfill = await ExamRoom.findAll({
+        let roomToSchedule = [];
+        roomNoExaminer.forEach(async (item) => {
+            const subInSlot = await SubInSlot.findOne({
                 where: {
-                    lecturerId: null
+                    id: item.dataValues.sSId
                 }
             })
-            if (examRoomAtferfill.length != 0) {
-                const staffLog = await StaffLogChange.create({
-                    // rowId: 0,
-                    tableName: 0,
-                    staffId: staffId,
-                    typeChange: 5,
-                })
-                if(!staffLog){
-                    throw new Error("Create staff log failed");
+            const examSlot = await ExamSlot.findOne({
+                where: {
+                    id: subInSlot.exSlId
                 }
-                res.json(MessageResponse("Number of lecturers not enough to fill up exam room"));
-                return;
-            } else {
-                const staffLog = await StaffLogChange.create({
-                    // rowId: 0,
-                    tableName: 0,
-                    staffId: staffId,
-                    typeChange: 5,
-                })
-                if(!staffLog){
-                    throw new Error("Create staff log failed");
+            })
+            if (examSlot.day >= semester.startDay) {
+                roomToSchedule.push(item);
+            }
+        });
+
+        // const randomLecId = getRandomLecturerId(lecIdList);       
+        const roomEmpty = roomToSchedule.map(examRoom => examRoom.dataValues);
+        for (const item of roomEmpty) {
+            const id = item.id;
+            const sSId = item.sSId;
+
+            const subjectInSlot = await SubInSlot.findOne({
+                where: {
+                    id: sSId
                 }
-                res.json(MessageResponse("All rooms assigned"));
-                return;
+            })
+            const examSlot = await ExamSlot.findOne({
+                where: {
+                    id: subjectInSlot.exSlId
+                }
+            })
+            const timeSlot = await TimeSlot.findOne({
+                where: {
+                    id: examSlot.timeSlotId
+                }
+            })
+            let i = 0;
+            for (i; i < examinerIdList.length; i++) {
+                const randomLecId = examinerIdList[i];
+                const checkLecLogTime = await ExaminerLogTime.findOne({
+                    where: {
+                        examinerId: randomLecId,
+                        timeSlotId: timeSlot.id,
+                        day: examSlot.day,
+                        semId: parseInt(semester.id),
+                    }
+                })
+                if (!checkLecLogTime) {
+                    const examRoom = await ExamRoom.update({
+                        examinerId: randomLecId
+                    }, {
+                        where: {
+                            id: id
+                        }
+                    })
+                    if (examRoom) {
+                        const updateLecLogTime = await ExaminerLogTime.create({
+                            examinerId: randomLecId,
+                            timeSlotId: timeSlot.id,
+                            day: examSlot.day,
+                            semId: parseInt(semester.id)
+                        })
+                        break;
+                    }
+                }
             }
         }
+        const examRoomAtferfill = await ExamRoom.findAll({
+            where: {
+                lecturerId: null
+            }
+        })
+        if (examRoomAtferfill.length != 0) {
+            const staffLog = await StaffLogChange.create({
+                // rowId: 0,
+                tableName: 0,
+                staffId: staffId,
+                typeChange: 5,
+            })
+            if (!staffLog) {
+                throw new Error("Create staff log failed");
+            }
+            res.json(MessageResponse("Number of examiner not enough to fill up exam room"));
+            return;
+        } else {
+            const staffLog = await StaffLogChange.create({
+                // rowId: 0,
+                tableName: 0,
+                staffId: staffId,
+                typeChange: 5,
+            })
+            if (!staffLog) {
+                throw new Error("Create staff log failed");
+            }
+            res.json(MessageResponse("All rooms assigned"));
+            return;
+        }
+
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -498,12 +673,60 @@ function getRandomLecturerId(array) {
 //PASS , requireRole('lecturer')
 router.put('/lecturer', async (req, res) => {
     //route đăng kí của lecturer
-    const lecturerId = req.body.lecturerId;
+    const lecturerId = parseInt(req.body.lecturerId);
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: parseInt(lecturerId),
+                semesterId: parseInt(semester.id)
+            }
+        })
+        if (examiner && examiner.dataValues.status == 1) {
+            const row = await Examiner.update({ status: 0 }, {
+                where: {
+                    userId: lecturerId,
+                    semesterId: parseInt(semester.id)
+                }
+            })
+        }
+        if (!examiner) {
+            await Examiner.create({
+                userId: parseInt(lecturerId),
+                typeExaminer: 0,
+                semesterId: parseInt(semester.id),
+                status: 0
+            })
+            if (!lecToExaminer) {
+                res.json(MessageResponse("Error when add lectuer to examiner"));
+                return;
+            }
+        }
+        const lecToExaminer = await Examiner.findOne({
+            where: {
+                userId: lecturerId,
+                semester: parseInt(semester.id)
+            }
+        })
         const timeSlot = await TimeSlot.findOne({
             where: { startTime: startTime, endTime: endTime }
         })
@@ -516,32 +739,42 @@ router.put('/lecturer', async (req, res) => {
             where: { exSlId: examSlot.id },
         });
 
-        const subInSlotArray = subjectInSlot.map(subInSlot => subInSlot.dataValues);
-        const idArray = subInSlotArray.map(item => item.id);
-        // console.log(idArray);
-        //ds SSId của 1 examSlot
+        let subInSlot2 = [];
+        subjectInSlot.forEach(async (item) => {
+            const examSlot = await ExamSlot.findOne({
+                id: item.dataValues.exSlId
+            })
+            if (examSlot.day >= semester.startDay) {
+                subInSlot2.push(item);
+            }
+        });
 
-        // const room = roomsToUpdate.map(r => r.dataValues)
-        // console.log(room); //ds empty room 
+        if (subInSlot2.length == 0) {
+            res.json(MessageResponse(`Current semester doesn't have any exam room for this ${startTime} - ${endTime}`));
+            return;
+        }
+
+        const subInSlotArray = subInSlot2.map(subInSlot => subInSlot.dataValues);
+        const idArray = subInSlotArray.map(item => item.id);
         if (idArray.length != 0) {
             const roomsToUpdate = await ExamRoom.findAll({
                 where: {
-                    lecturerId: null,
+                    examinerId: null,
                     sSId: {
                         [Op.or]: idArray
                     },
                 },
             });
-            const rows = await ExamRoom.findOne({
+            const row = await ExamRoom.findOne({
                 where: {
                     sSId: {
                         [Op.or]: idArray
                     },
-                    lecturerId: lecturerId,
+                    examinerId: lecToExaminer.id,
                 }
             })
-            if (rows) {
-                res.json(MessageResponse(`Lecturer ${lecturerId} is already has room and can't take more`))
+            if (row) {
+                res.json(MessageResponse(`Examiner ${lecToExaminer.id} is already has room and can't take more`))
                 return;
             } else {
                 const randomIndex = Math.floor(Math.random() * roomsToUpdate.length);
@@ -549,21 +782,22 @@ router.put('/lecturer', async (req, res) => {
                 let check = 0;
                 for (i; i < roomsToUpdate.length; i++) {
                     if (i == randomIndex) {
-                        roomsToUpdate[i].update({ lecturerId: lecturerId })
+                        roomsToUpdate[i].update({ examinerId: lecToExaminer.id })
                         check++;
                     }
                 }
                 if (check != 0) {
-                    const lecLog = await LecturerLogTime.create({
-                        lecturerId: lecturerId,
+                    const lecLog = await ExaminerLogTime.create({
+                        examinerId: lecToExaminer.id,
                         day: day,
                         timeSlotId: timeSlot.id,
+                        semId: parseInt(semester.id)
                     })
                     if (!lecLog) {
-                        res.json(MessageResponse("Error when input lecturer to lecturer log time."))
+                        res.json(MessageResponse("Error when input examiner to examiner log time."))
                         return;
                     } else {
-                        res.json(MessageResponse('Lecturer added'));
+                        res.json(MessageResponse('Examiner added'));
                         return;
                     }
                 } else {
@@ -597,6 +831,28 @@ router.put('/delLecturer', async (req, res) => {
 
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: parseInt(lecturerId),
+                semesterId: parseInt(semester.id)
+            }
+        })
         const timeSlot = await TimeSlot.findOne({
             where: { startTime: startTime, endTime: endTime }
         })
@@ -609,7 +865,22 @@ router.put('/delLecturer', async (req, res) => {
             where: { exSlId: examSlot.id },
         });
 
-        const subInSlotArray = subjectInSlot.map(subInSlot => subInSlot.dataValues);
+        let subInSlot2 = [];
+        subjectInSlot.forEach(async (item) => {
+            const examSlot = await ExamSlot.findOne({
+                id: item.dataValues.exSlId
+            })
+            if (examSlot.day >= semester.startDay) {
+                subInSlot2.push(item);
+            }
+        });
+
+        if (subInSlot2.length == 0) {
+            res.json(MessageResponse(`Current semester doesn't have any exam room for this ${startTime} - ${endTime}`));
+            return;
+        }
+
+        const subInSlotArray = subInSlot2.map(subInSlot => subInSlot.dataValues);
         const idArray = subInSlotArray.map(item => item.id);
         // console.log(idArray);
         //ds SSId của 1 examSlot
@@ -619,7 +890,7 @@ router.put('/delLecturer', async (req, res) => {
         if (idArray.length != 0) {
             const roomOccupiedByLecturer = await ExamRoom.findOne({
                 where: {
-                    lecturerId: lecturerId,
+                    examinerId: parseInt(examiner.id),
                     sSId: {
                         [Op.or]: idArray
                     },
@@ -627,30 +898,31 @@ router.put('/delLecturer', async (req, res) => {
             });
             if (roomOccupiedByLecturer) {
                 const check = await ExamRoom.update({
-                    lecturerId: null
+                    examinerId: null
                 }, {
                     where: {
                         id: roomOccupiedByLecturer.id
                     }
                 })
                 if (check[0] != 0) {
-                    const lecLog = await LecturerLogTime.destroy({
+                    const lecLog = await ExaminerLogTime.destroy({
                         where: {
-                            lecturerId: lecturerId,
+                            examinerId: parseInt(examiner.id),
                             timeSlotId: timeSlot.id,
                             day: day,
+                            semId: parseInt(semester.id)
                         }
                     })
                     if (lecLog) {
-                        res.json(MessageResponse(`Lecturer ${lecturerId} is removed, lecturer log time updated`))
+                        res.json(MessageResponse(`Examiner ${examiner.id} is removed from this slot, examiner log time updated`))
                         return;
                     } else {
-                        res.json(MessageResponse("Error when update lecturer log time"))
+                        res.json(MessageResponse("Error when update examiner log time"))
                         return;
                     }
                 }
             } else {
-                res.json(MessageResponse(`Lecturer ${lecturerId} hasn't assigned yet.`))
+                res.json(MessageResponse(`Examiner ${examiner.id} hasn't assigned yet.`))
             }
 
         } else {
@@ -673,15 +945,69 @@ router.put('/delLecturer', async (req, res) => {
 // không thông qua giờ như lec tự đăng kí
 //, requireRole("staff")
 // PASS
-router.put('/addLecturer', async (req, res) => {
+router.put('/addExaminer', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
     //thêm lecturer của staff
-    const { id, lecturerId } = req.body;
-    if (!lecturerId) {
-        res.json(MessageResponse("Lecturer id is required"));
+    const { id, userId } = req.body;
+    if (!userId) {
+        res.json(MessageResponse("User id is required"));
         return;
     }
     try {
+        const statusMap = new Map([
+            ['lecturer', 0],
+            ['staff', 1],
+            ['volunteer', 2]
+        ]);
+        const user = await User.findOne({
+            id: parseInt(userId)
+        })
+        if (!user) {
+            res.json(MessageResponse("This user ID doesn't exist"));
+            return;
+        }
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+        const examiner = await Examiner.findOne({
+            userId: parseInt(userId),
+            semesterId: parseInt(semester.id)
+        })
+        if (examiner.status == 1) {
+            await Examiner.update({ status: 0 }, {
+                where: {
+                    userId: parseInt(userId),
+                    semesterId: parseInt(semester.id)
+                }
+            })
+        } else {
+            await Examiner.create({
+                userId: parseInt(userId),
+                semesterId: parseInt(semester.id),
+                status: 0,
+                typeExaminer: statusMap.get(user.role)
+            })
+        }
+        const lecToExaminer = await Examiner.findOne({
+            where: {
+                userId: parseInt(userId),
+                semesterId: parseInt(semester.id)
+            }
+        })
+
         const checkExRoom = await ExamRoom.findOne({
             where: {
                 id: parseInt(id)
@@ -690,73 +1016,82 @@ router.put('/addLecturer', async (req, res) => {
         if (!checkExRoom) {
             res.json(NotFoundResponse());
             return;
-        } else {
-            const subjectInSlot = await SubInSlot.findOne({
+        }
+
+        const subSlot = await SubInSlot.findOne({
+            where: {
+                id: checkExRoom.sSId
+            }
+        })
+        const exSlot = await ExamSlot.findOne({
+            where: {
+                id: subSlot.exSlId
+            }
+        })
+
+        if (exSlot.day < semester.startDay) {
+            res.json(MessageResponse("Can't add examiner to passed semester"));
+            return;
+        }
+
+        const timeSlot = await TimeSlot.findOne({
+            where: {
+                id: parseInt(exSlot.timeSlotId)
+            }
+        })
+        if (subSlot && exSlot && timeSlot) {
+            const checkLecLogTime = await ExaminerLogTime.findOne({
                 where: {
-                    id: parseInt(checkExRoom.sSId)
+                    examinerId: parseInt(lecToExaminer.id),
+                    timeSlotId: timeSlot.id,
+                    day: exSlot.day,
+                    semId: parseInt(semester.id)
                 }
             })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: parseInt(subjectInSlot.exSlId)
-                }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: parseInt(examSlot.timeSlotId)
-                }
-            })
-            if (subjectInSlot && examSlot && timeSlot) {
-                const checkLecLogTime = await LecturerLogTime.findOne({
+            if (!checkLecLogTime) {
+                const examRoom = ExamRoom.update({
+                    examinerId: parseInt(lecToExaminer.id)
+                }, {
                     where: {
-                        lecturerId: parseInt(lecturerId),
-                        timeSlotId: timeSlot.id,
-                        day: examSlot.day
+                        id: parseInt(id)
                     }
                 })
-                if (!checkLecLogTime) {
-                    const examRoom = ExamRoom.update({
-                        lecturerId: parseInt(lecturerId)
-                    }, {
-                        where: {
-                            id: parseInt(id)
-                        }
+                if (examRoom[0] === 0) {
+                    res.json(MessageResponse('Add Failed !'));
+                    return;
+                } else {
+                    const staffLog = await StaffLogChange.create({
+                        rowId: parseInt(id),
+                        staffId: staffId,
+                        tableName: 0,
+                        typeChange: 2
                     })
-                    if (examRoom[0] === 0) {
-                        res.json(MessageResponse('Add Failed !'));
+                    if (!staffLog) {
+                        throw new Error("Create staff log failed");
+                    }
+                    const addToLecLogTime = await ExaminerLogTime.create({
+                        examinerId: parseInt(lecToExaminer.id),
+                        timeSlotId: timeSlot.id,
+                        day: exSlot.day,
+                        semId: parseInt(semester.id)
+                    })
+                    if (addToLecLogTime) {
+                        res.json(MessageResponse("Add Success to exam room and update examiner log time !"));
                         return;
                     } else {
-                        const staffLog = await StaffLogChange.create({
-                            rowId: parseInt(id),
-                            staffId: staffId,
-                            tableName: 0,
-                            typeChange: 2
-                        })
-                        if(!staffLog){
-                            throw new Error("Create staff log failed");
-                        }
-                        const addToLecLogTime = await LecturerLogTime.create({
-                            lecturerId: parseInt(lecturerId),
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day
-                        })
-                        if (addToLecLogTime) {
-                            res.json(MessageResponse("Add Success to exam room and update lecturer log time !"));
-                            return;
-                        } else {
-                            res.json(MessageResponse("Error when update lecturer log time"));
-                            return;
-                        }
+                        res.json(MessageResponse("Error when update examiner log time"));
+                        return;
                     }
-                } else {
-                    res.json(MessageResponse(`Lecturer ${lecturerId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${examSlot.day}`))
-                    return;
                 }
             } else {
-                res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+                res.json(MessageResponse(`Examiner ${lecToExaminer.id} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${exSlot.day}`))
                 return;
             }
+        } else {
+            res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+            return;
         }
+
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
@@ -774,6 +1109,23 @@ router.put('/room', async (req, res) => {
     const id = parseInt(req.body.id)
     const roomId = parseInt(req.body.roomId)
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
+
         const checkExRoom = await ExamRoom.findOne({
             where: {
                 id: id
@@ -782,73 +1134,80 @@ router.put('/room', async (req, res) => {
         if (!checkExRoom) {
             res.json(NotFoundResponse());
             return;
-        } else {
-            const subjectInSlot = await SubInSlot.findOne({
+        }
+        const subjectInSlot = await SubInSlot.findOne({
+            where: {
+                id: parseInt(checkExRoom.sSId)
+            }
+        })
+        const examSlot = await ExamSlot.findOne({
+            where: {
+                id: parseInt(subjectInSlot.exSlId)
+            }
+        })
+        if (examSlot.day < semester.startDay) {
+            res.json(MessageResponse("Can't add room to passed semester"));
+            return;
+        }
+
+        const timeSlot = await TimeSlot.findOne({
+            where: {
+                id: parseInt(examSlot.timeSlotId)
+            }
+        })
+        if (subjectInSlot && examSlot && timeSlot) {
+            const checkRoomLogTime = await RoomLogTime.findOne({
                 where: {
-                    id: parseInt(checkExRoom.sSId)
+                    roomId: roomId,
+                    timeSlotId: timeSlot.id,
+                    day: examSlot.day,
+                    semId: parseInt(semester.id)
                 }
             })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: parseInt(subjectInSlot.exSlId)
-                }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: parseInt(examSlot.timeSlotId)
-                }
-            })
-            if (subjectInSlot && examSlot && timeSlot) {
-                const checkRoomLogTime = await RoomLogTime.findOne({
+            if (!checkRoomLogTime) {
+                const examRoom = ExamRoom.update({
+                    roomId: roomId
+                }, {
                     where: {
-                        roomId: roomId,
-                        timeSlotId: timeSlot.id,
-                        day: examSlot.day
+                        id: id
                     }
                 })
-                if (!checkRoomLogTime) {
-                    const examRoom = ExamRoom.update({
-                        roomId: roomId
-                    }, {
-                        where: {
-                            id: id
-                        }
+                if (examRoom[0] === 0) {
+                    res.json(MessageResponse('Add Failed !'));
+                    return;
+                } else {
+                    const staffLog = await StaffLogChange.create({
+                        rowId: id,
+                        staffId: staffId,
+                        tableName: 0,
+                        typeChange: 1
                     })
-                    if (examRoom[0] === 0) {
-                        res.json(MessageResponse('Add Failed !'));
+                    if (!staffLog) {
+                        throw new Error("Create staff log failed");
+                    }
+                    const roomLogTime = await RoomLogTime.create({
+                        roomId: roomId,
+                        timeSlotId: timeSlot.id,
+                        day: examSlot.day,
+                        semId: parseInt(semester.id),
+                    })
+                    if (roomLogTime) {
+                        res.json(MessageResponse("Add Success room to exam room and update room log time!"));
                         return;
                     } else {
-                        const staffLog = await StaffLogChange.create({
-                            rowId: id,
-                            staffId: staffId,
-                            tableName: 0,
-                            typeChange: 1
-                        })
-                        if(!staffLog){
-                            throw new Error("Create staff log failed");
-                        }
-                        const roomLogTime = await RoomLogTime.create({
-                            roomId: roomId,
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day
-                        })
-                        if (roomLogTime) {
-                            res.json(MessageResponse("Add Success room to exam room and update room log time!"));
-                            return;
-                        } else {
-                            res.json(MessageResponse("Error when update room log time"));
-                            return;
-                        }
+                        res.json(MessageResponse("Error when update room log time"));
+                        return;
                     }
-                } else {
-                    res.json(MessageResponse(`Room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${examSlot.day}`))
-                    return;
                 }
             } else {
-                res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+                res.json(MessageResponse(`Room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${examSlot.day}`))
                 return;
             }
+        } else {
+            res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+            return;
         }
+
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
@@ -863,6 +1222,22 @@ router.put('/delRoom', async (req, res) => {
     //client bắt r trả id dòng đó về và update roomId dòng đó thành null
     const id = parseInt(req.body.id)
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
         const checkExRoom = await ExamRoom.findOne({
             where: {
                 id: id
@@ -871,82 +1246,69 @@ router.put('/delRoom', async (req, res) => {
         if (!checkExRoom) {
             res.json(NotFoundResponse());
             return;
-        } else {
-            const subjectInSlot = await SubInSlot.findOne({
+        }
+
+        const subjectInSlot = await SubInSlot.findOne({
+            where: {
+                id: parseInt(checkExRoom.sSId)
+            }
+        })
+        const examSlot = await ExamSlot.findOne({
+            where: {
+                id: parseInt(subjectInSlot.exSlId)
+            }
+        })
+        if (examSlot.day < semester.startDay) {
+            res.json(MessageResponse("Can't delete room of passed semester"));
+            return;
+        }
+        const timeSlot = await TimeSlot.findOne({
+            where: {
+                id: parseInt(examSlot.timeSlotId)
+            }
+        })
+        if (subjectInSlot && examSlot && timeSlot) {
+            const examRoom = await ExamRoom.update({
+                roomId: null
+            }, {
                 where: {
-                    id: parseInt(checkExRoom.sSId)
+                    id: id
                 }
             })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: parseInt(subjectInSlot.exSlId)
+            if (examRoom[0] != 0) {
+                const staffLog = await StaffLogChange.create({
+                    rowId: id,
+                    staffId: staffId,
+                    tableName: 0,
+                    typeChange: 1
+                })
+                if (!staffLog) {
+                    throw new Error("Create staff log failed");
                 }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: parseInt(examSlot.timeSlotId)
-                }
-            })
-            if (subjectInSlot && examSlot && timeSlot) {
-                const examRoom = await ExamRoom.update({
-                    roomId: null
-                }, {
+                const delRoomLogTime = await RoomLogTime.destroy({
                     where: {
-                        id: id
+                        roomId: checkExRoom.roomId,
+                        timeSlotId: timeSlot.id,
+                        day: examSlot.day,
+                        semId: parseInt(semester.id)
                     }
                 })
-                if (examRoom[0] != 0) {
-                    const staffLog = await StaffLogChange.create({
-                        rowId: id,
-                        staffId: staffId,
-                        tableName: 0,
-                        typeChange: 1
-                    })
-                    if(!staffLog){
-                        throw new Error("Create staff log failed");
-                    }
-                    const delRoomLogTime = await RoomLogTime.destroy({
-                        where: {
-                            roomId: checkExRoom.roomId,
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day,
-                        }
-                    })
-                    if (delRoomLogTime != 0) {
-                        res.json(MessageResponse(`Room ${checkExRoom.roomId} is deleted, room log time updated`))
-                        return;
-                    } else {
-                        res.json(MessageResponse("Error when update room log time"));
-                        return;
-                    }
+                if (delRoomLogTime != 0) {
+                    res.json(MessageResponse(`Room ${checkExRoom.roomId} is deleted, room log time updated`))
+                    return;
                 } else {
-                    res.json(MessageResponse("Error when update exam room"));
+                    res.json(MessageResponse("Error when update room log time"));
                     return;
                 }
             } else {
-                res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+                res.json(MessageResponse("Error when update exam room"));
                 return;
             }
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse());
-    }
-
-    try {
-        const rowAffected = await ExamRoom.update(
-            {
-                roomId: null,
-            }, {
-            where: {
-                id: id,
-            }
-        })
-        if (rowAffected[0] === 0) {
-            res.json(NotFoundResponse());
         } else {
-            res.json(MessageResponse(`Room in row ${id} is removed`))
+            res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
+            return;
         }
+
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
@@ -1038,6 +1400,22 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
     const { startTime, endTime, day } = req.body;
 
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const semester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if (!semester) {
+            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+            return;
+        }
         const timeSlot = await TimeSlot.findOne({
             where: {
                 startTime: startTime,
@@ -1050,24 +1428,52 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
         }
         // console.log(timeSlot.id);
 
+        const statusMap = new Map([
+            ['lecturer', 0],
+            ['staff', 1],
+            ['volunteer', 2]
+        ]);
+        const user = await User.findAll();
+        
+        user.forEach(async (item) => {
+            const examiner = await Examiner.findOne({
+                where: {
+                    userId: parseInt(item.dataValues.id),
+                    semesterId: parseInt(semester.id),
+                }
+            })
+            if(!examiner){
+                const ex = await Examiner.create({
+                    userId: item.dataValues.id,
+                    typeExaminer: statusMap.get(item.dataValues.role),
+                    semesterId: parseInt(semester.id),
+                    status: 0
+                })
+            }
+        });
 
-        const lecturers = await Lecturer.findAll();
-        const lecList = lecturers.map(lec => lec.dataValues);
-        const lecIdList = lecList.map(lecL => lecL.id);
+        const allExaminer = await Examiner.findAll({
+            where:{
+                semesterId: parseInt(semester.id),
+            }
+        });
+        const examinerList = allExaminer.map(ex => ex.dataValues);
+        const exIdList = examinerList.map(exL => exL.id);
         // console.log(lecIdList);
         let i = 0;
         let freeLecList = [];
-        for (i; i < lecIdList.length; i++) {
-            const availableLecturerInSlot = await LecturerLogTime.findOne({
+        for (i; i < exIdList.length; i++) {
+            const availableLecturerInSlot = await ExaminerLogTime.findOne({
                 where: {
-                    lecturerId: lecIdList[i],
+                    examinerId: exIdList[i],
                     timeSlotId: timeSlot.id,
-                    day: day
+                    day: day,
+                    semId: parseInt(semester.id)
                 }
             })
             if (!availableLecturerInSlot) {
                 const lc = {
-                    lecturerId: lecIdList[i],
+                    examinerId: exIdList[i],
                     startTime: startTime,
                     endTime: endTime,
                     day: day
@@ -1077,7 +1483,7 @@ router.get('/allFreeLecturersInSlot', async (req, res) => {
         }
         console.log(freeLecList);
         if (freeLecList.length == 0) {
-            res.json(MessageResponse(`All lecturers are busy at ${startTime} - ${endTime} - ${day}`));
+            res.json(MessageResponse(`All examiners are busy at ${startTime} - ${endTime} - ${day}`));
             return;
         } else {
             res.json(DataResponse(freeLecList));

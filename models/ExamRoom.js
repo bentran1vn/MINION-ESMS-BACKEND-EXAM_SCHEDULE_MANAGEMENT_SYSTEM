@@ -27,12 +27,6 @@ const ExamRoom = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    typeExaminer: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    //0: Lecturer
-    //1: CTV
     des: {
         type: DataTypes.STRING,
         allowNull: false,
