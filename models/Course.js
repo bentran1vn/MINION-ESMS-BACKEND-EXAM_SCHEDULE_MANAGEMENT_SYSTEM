@@ -18,9 +18,13 @@ const Course = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    ePName: {
+    ePId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+            model: ExamPhase,
+            key: 'id'
+        }
     },
     status: {
         type: DataTypes.INTEGER,
@@ -30,6 +34,9 @@ const Course = sequelize.define(tableName, {
     //1 là hiện ra
     //0 là ko hiện ra
 });
+
+ExamPhase.hasMany(Course, { foreignKey: 'ePId' })
+Course.belongsTo(ExamPhase, { foreignKey: 'ePId' })
 
 Subject.hasMany(Course, { foreignKey: 'subId' })
 Course.belongsTo(Subject, { foreignKey: 'subId' })
