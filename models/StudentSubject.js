@@ -21,7 +21,15 @@ const StudentSubject = sequelize.define(tableName, {
             model: Student,
             key: 'id'
         }
-    }
+    },
+    startDay: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    endDay: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
 });
 
 Subject.hasMany(StudentSubject, { foreignKey: 'subjectId' })

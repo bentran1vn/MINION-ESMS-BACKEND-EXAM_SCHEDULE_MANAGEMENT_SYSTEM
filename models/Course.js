@@ -1,7 +1,7 @@
 import sequelize from "../database/database.js";
 import { DataTypes } from "sequelize";
 import Subject from "./Subject.js";
-import Semester from "./Semester.js"
+import ExamPhase from "./ExamPhase.js";
 
 let tableName = 'courses'
 
@@ -18,11 +18,11 @@ const Course = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    semesterId: {
+    ePId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Semester,
+            model: ExamPhase,
             key: 'id'
         }
     },
