@@ -14,9 +14,11 @@ const StaffLogChange = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: false
         // 0 table ExamRoom
-        // 1 table StudentCourse
-        // 2 table ExamPhase
-        // 3 table Student Exam
+        // 1 table StudentSubject
+        // 2 table StudentExam
+        // 3 table examSlot
+        // 4 table user
+        // 5 table Examiner
     },
     userId: {
         type: DataTypes.INTEGER,

@@ -5,7 +5,7 @@ import SubInSlot from "./SubInSlot.js";
 import SQLModel from "../common/SQLModel.js";
 
 let tableName = 'examRooms'
-
+//nhớ sửa typechange của staff nha quân
 const ExamRoom = sequelize.define(tableName, {
     sSId: {
         type: DataTypes.INTEGER,

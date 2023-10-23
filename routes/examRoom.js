@@ -15,6 +15,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import Semester from '../models/Semester.js'
 import User from '../models/User.js'
 import { Op } from 'sequelize'
+import ExamPhase from '../models/ExamPhase.js'
 
 
 const router = express.Router()
@@ -43,15 +44,11 @@ const router = express.Router()
  *          examinerId:
  *              type: integer
  *              description:  Reference to Examiner id
- *          des: 
- *              type: string
- *              description:  FE or PE
  *       example:
  *           id: 1
  *           sSId: 1
  *           roomId: 1
  *           examinerId: 1
- *           des: FE
  */
 
 /**
@@ -83,14 +80,10 @@ const router = express.Router()
  *               examinerId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
- *               des:
- *                 type: String
- *                 example: PE
  *           required:
  *             - sSId
  *             - roomId
  *             - examinerId
- *             - des
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -330,7 +323,6 @@ router.post('/', async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
     const userId = parseInt(req.body.userId);
-    const des = req.body.des;
 
     try {
         const user = await User.findOne({
@@ -378,8 +370,19 @@ router.post('/', async (req, res) => {
             res.json(MessageResponse("Table semester has no data of current date"));
             return;
         }
-        if (examSlot.day < semester.startDay) {
-            res.json(MessageResponse("Can't create exam room for passed semester"));
+
+        const currentExamPhase = await ExamPhase.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if ( (!currentExamPhase && examSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= examSlot.day))) {
+            res.json(MessageResponse("Can't change on-going or passed schedule"));
             return;
         }
         const examiner = await Examiner.findOne({
@@ -424,7 +427,6 @@ router.post('/', async (req, res) => {
                         sSId: sSId,
                         roomId: roomId,
                         examinerId: parseInt(newExaminer.id),
-                        des: des
                     })
                     console.log(examRoom);
                     res.json(MessageResponse("Create Success !"));
@@ -454,7 +456,6 @@ router.post('/', async (req, res) => {
                     sSId: sSId,
                     roomId: roomId,
                     examinerId: parseInt(examiner.id),
-                    des: des
                 })
                 console.log(examRoom);
                 res.json(MessageResponse("Create Success !"));
@@ -498,6 +499,7 @@ router.post('/auto', async (req, res) => {
             res.json(MessageResponse("Table semester hasn't have data for this semester"))
             return;
         }
+
         const lecturer = await User.findAll({
             where: {
                 role: 'lecturer'
@@ -519,8 +521,41 @@ router.post('/auto', async (req, res) => {
                     status: 0
                 })
                 if (!lecToExaminer) {
-                    res.json(MessageResponse("Error when add lecturer to examiner"));
+                    res.json(MessageResponse(`Error when add lecturer ${item.dataValues.id} to examiner`));
                     return;
+                }else{
+                    const stafflog = await StaffLogChange.create({
+                        rowId: parseInt(lecToExaminer.id),
+                        tableName: 5,
+                        userId: staffId,
+                        typeChange: 10
+                    })
+                    if(!stafflog){
+                        res.json("Fail to update staff log change");
+                        return;
+                    }
+                }
+            }else if(check && check.status == 1){
+                const row = await Examiner.update({status: 0}, {
+                    where:{
+                        userId: item.dataValues.id,
+                        semesterId: parseInt(semester.id)
+                    }
+                })
+                if(row[0] == 0){
+                    res.json(MessageResponse(`Fail to update status of examiner ${check.id}`));
+                    return;
+                }else{
+                    const stafflog = await StaffLogChange.create({
+                        rowId: parseInt(check.id),
+                        tableName: 5,
+                        userId: staffId,
+                        typeChange: 10
+                    })
+                    if(!stafflog){
+                        res.json("Fail to update staff log change");
+                        return;
+                    }
                 }
             }
         });
@@ -560,7 +595,7 @@ router.post('/auto', async (req, res) => {
                     id: subInSlot.exSlId
                 }
             })
-            if (examSlot.day >= semester.startDay) {
+            if ( examSlot > timeFormatted ) {
                 roomToSchedule.push(item);
             }
         });
@@ -606,6 +641,7 @@ router.post('/auto', async (req, res) => {
                         }
                     })
                     if (examRoom) {
+                        
                         const updateLecLogTime = await ExaminerLogTime.create({
                             examinerId: randomLecId,
                             timeSlotId: timeSlot.id,
@@ -624,26 +660,18 @@ router.post('/auto', async (req, res) => {
         })
         if (examRoomAtferfill.length != 0) {
             const staffLog = await StaffLogChange.create({
-                // rowId: 0,
                 tableName: 0,
                 staffId: staffId,
-                typeChange: 5,
+                typeChange: 1,
             })
-            if (!staffLog) {
-                throw new Error("Create staff log failed");
-            }
             res.json(MessageResponse("Number of examiner not enough to fill up exam room"));
             return;
         } else {
             const staffLog = await StaffLogChange.create({
-                // rowId: 0,
                 tableName: 0,
                 staffId: staffId,
-                typeChange: 5,
+                typeChange: 1,
             })
-            if (!staffLog) {
-                throw new Error("Create staff log failed");
-            }
             res.json(MessageResponse("All rooms assigned"));
             return;
         }
@@ -716,10 +744,6 @@ router.put('/lecturer', async (req, res) => {
                 semesterId: parseInt(semester.id),
                 status: 0
             })
-            if (!lecToExaminer) {
-                res.json(MessageResponse("Error when add lectuer to examiner"));
-                return;
-            }
         }
         const lecToExaminer = await Examiner.findOne({
             where: {
@@ -744,13 +768,13 @@ router.put('/lecturer', async (req, res) => {
             const examSlot = await ExamSlot.findOne({
                 id: item.dataValues.exSlId
             })
-            if (examSlot.day >= semester.startDay) { // đổi lại thành exPh
+            if (examSlot.day > timeFormatted) { // đổi lại thành exPh
                 subInSlot2.push(item);
             }
         });
 
         if (subInSlot2.length == 0) {
-            res.json(MessageResponse(`Current semester doesn't have any exam room for this ${startTime} - ${endTime}`));
+            res.json(MessageResponse(`Incoming exam phase doesn't have any exam room for this ${startTime} - ${endTime}`));
             return;
         }
 
@@ -870,7 +894,7 @@ router.put('/delLecturer', async (req, res) => {
             const examSlot = await ExamSlot.findOne({
                 id: item.dataValues.exSlId
             })
-            if (examSlot.day >= semester.startDay) {
+            if (examSlot.day > timeFormatted) {
                 subInSlot2.push(item);
             }
         });
@@ -993,12 +1017,24 @@ router.put('/addExaminer', async (req, res) => {
                     semesterId: parseInt(semester.id)
                 }
             })
+            await StaffLogChange.create({
+                rowId: parseInt(examiner.id),
+                tableName: 5,
+                userId: staffId,
+                typeChange: 10
+            })
         } else {
-            await Examiner.create({
+            const e = await Examiner.create({
                 userId: parseInt(userId),
                 semesterId: parseInt(semester.id),
                 status: 0,
                 typeExaminer: statusMap.get(user.role)
+            })
+            await StaffLogChange.create({
+                rowId: parseInt(e.id),
+                tableName: 5,
+                userId: staffId,
+                typeChange: 10
             })
         }
         const lecToExaminer = await Examiner.findOne({
@@ -1028,9 +1064,18 @@ router.put('/addExaminer', async (req, res) => {
                 id: subSlot.exSlId
             }
         })
-
-        if (exSlot.day < semester.startDay) {
-            res.json(MessageResponse("Can't add examiner to passed semester"));
+        const currentExamPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                endDay: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if ( (!currentExamPhase && exSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= exSlot.day))) {
+            res.json(MessageResponse("Can't change on-going or passed schedule"));
             return;
         }
 
@@ -1064,11 +1109,9 @@ router.put('/addExaminer', async (req, res) => {
                         rowId: parseInt(id),
                         staffId: staffId,
                         tableName: 0,
-                        typeChange: 2
+                        typeChange: 0
                     })
-                    if (!staffLog) {
-                        throw new Error("Create staff log failed");
-                    }
+                    
                     const addToLecLogTime = await ExaminerLogTime.create({
                         examinerId: parseInt(lecToExaminer.id),
                         timeSlotId: timeSlot.id,
@@ -1397,6 +1440,8 @@ router.get('/', async (req, res) => {
 //role staff
 //PASS
 router.get('/allExaminerInSlot', async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+
     const { startTime, endTime, day } = req.body;
 
     try {
@@ -1441,6 +1486,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
             }
         });
 
+        let check = 0;
         user.forEach(async (item) => {
             const examiner = await Examiner.findOne({
                 where: {
@@ -1455,8 +1501,25 @@ router.get('/allExaminerInSlot', async (req, res) => {
                     semesterId: parseInt(semester.id),
                     status: 0
                 })
+                check++;
+            }else if(examiner.status == 1){
+                await Examiner.update({status: 0}, {
+                    where: {
+                        userId: parseInt(item.dataValues.id),
+                        semesterId: parseInt(semester.id),
+                    }
+                })
+                check++;
             }
         });
+
+        if(check != 0){
+            await StaffLogChange.create({
+                tableName: 5,
+                userId: staffId,
+                typeChange: 11,
+            })
+        }
 
         const allExaminer = await Examiner.findAll({
             where: {

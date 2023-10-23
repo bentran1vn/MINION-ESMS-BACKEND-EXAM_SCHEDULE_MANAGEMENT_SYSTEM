@@ -5,6 +5,7 @@ import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import Examiner from '../models/Examiner.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Semester from '../models/Semester.js'
+import { Op } from 'sequelize'
 
 /**
  * @swagger
