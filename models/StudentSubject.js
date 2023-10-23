@@ -22,6 +22,10 @@ const StudentSubject = sequelize.define(tableName, {
             key: 'id'
         }
     },
+    ePName: {
+        type: DataTypes.STRING,
+        allowNull: null
+    },
     startDay: {
         type: DataTypes.DATEONLY,
         allowNull: true,
