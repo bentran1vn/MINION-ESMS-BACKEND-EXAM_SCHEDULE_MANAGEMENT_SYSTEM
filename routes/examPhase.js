@@ -1,10 +1,12 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import ExamType from '../models/ExamType.js'
 import ExamPhase from '../models/ExamPhase.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import { Op, STRING } from 'sequelize'
+import { checkTime } from '../services/examPhaseService.js'
 
 /**
  * @swagger
@@ -14,9 +16,10 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *       type: object
  *       required:
  *          - semId
- *          - eTId
+ *          - ePName
  *          - startDay
  *          - endDay
+ *          - status
  *       properties:
  *          id:
  *              type: integer
@@ -24,21 +27,25 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *          semId:
  *              type: integer
  *              description: Describe semester Id, reference to table Semester
- *          eTId:
- *              type: integer
- *              description: Describe Exam Type Id, reference to table ExamType
+ *          ePName:
+ *              type: string
+ *              description: Describe the name of exam phase
  *          startDay:
  *              type: DATEONLY
  *              description: Describe the exam start day
  *          endDay:
  *              type: DATEONLY
  *              description: Describe the exam end day
+ *          status: 
+ *              type: BOOLEAN
+ *              description: 0 is pending, 1 is finish
  *       example:
  *           id: 1
  *           semId: 1
- *           eTId: 1
+ *           ePName: Đợt 1
  *           startDay: 2023-10-10
  *           endDay: 2023-10-15
+ *           status: 0
  */
 
 /**
@@ -61,12 +68,9 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *           schema:
  *             type: object
  *             properties:
- *               semId:
- *                 type: int
- *                 example: 1
- *               eTId:
- *                 type: int
- *                 example: 1
+ *               ePName:
+ *                 type: string
+ *                 example: Đợt 1
  *               startDay:
  *                 type: DATEONLY
  *                 example: 2023-10-10
@@ -74,8 +78,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *                 type: DATEONLY
  *                 example: 2023-10-15
  *           required:
- *             - semId
- *             - eTId
+ *             - ePName
  *             - startDay
  *             - endDay
  *     responses:
@@ -102,9 +105,9 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *               semId:
  *                 type: int
  *                 example: 1
- *               eTId:
- *                 type: int
- *                 example: 1
+ *               ePName:
+ *                 type: string
+ *                 example: Đợt 1
  *               startDay:
  *                 type: DATEONLY
  *                 example: 2023-10-10
@@ -114,7 +117,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
  *           required:
  *             - id
  *             - semId
- *             - eTId
+ *             - ePName
  *             - startDay
  *             - endDay
  *     responses:
@@ -182,42 +185,38 @@ import StaffLogChange from '../models/StaffLogChange.js'
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const semId = parseInt(req.body.semId);
-    const eTId = parseInt(req.body.eTId);
+    const ePName = req.body.ePName
     const startDay = req.body.startDay;
     const endDay = req.body.endDay;
-    const changerId = parseInt(res.locals.userData.id)
 
     try {
+        const currentYear = new Date().getFullYear();
+
         const semester = await Semester.findOne({
             where: {
-                id: semId
+                [Op.and]: {
+                    year: currentYear,
+                    status: 1
+                }
             }
         })
-        const examType = await ExamType.findOne({
-            where: {
-                id: eTId
-            }
-        })
-        if (!semester || !examType) {
+        try {
+            !checkTime(startDay, endDay)
+
+        } catch (err) {
+            res.json(ErrorResponse(500, err.message))
+            return
+        }
+        if (!semester) {
             res.json(NotFoundResponse());
             return;
         } else {
-            const examPhase = await ExamPhase.create({
-                semId: semId,
-                eTId: eTId,
+            await ExamPhase.create({
+                semId: semester.id,
+                ePName: ePName,
                 startDay: startDay,
                 endDay: endDay,
-                status: 0
             })
-            if (examPhase) {
-                await StaffLogChange.create({
-                    rowId: examPhase.id,
-                    tableName: 2,
-                    staffId: changerId,
-                    typeChange: 7
-                })
-            }
             res.json(MessageResponse('Create successfully !'))
         }
     } catch (errer) {
@@ -229,27 +228,20 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
     const examPhaseUp = req.body
     const id = parseInt(examPhaseUp.examPhaseId)
-    const changerId = parseInt(res.locals.userData.id)
 
     try {
         const check = await ExamPhase.update({
             semId: examPhaseUp.semId,
-            eTId: examPhaseUp.eTId,
+            ePName: examPhaseUp.ePName,
             startDay: examPhaseUp.startDay,
             endDay: examPhaseUp.endDay,
-            status: 1
         }, {
             where: {
                 id: id,
+                status: 1
             }
         })
         if (check[0] === 1) {
-            await StaffLogChange.create({
-                rowId: id,
-                tableName: 2,
-                staffId: changerId,
-                typeChange: 4
-            })
             res.json(MessageResponse("ExamPhase Update !"))
         } else {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -262,8 +254,6 @@ router.put('/', async (req, res) => {
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
-    // const changerId = parseInt(res.locals.userData.id)
-    const changerId = 1
     try {
         const result = await ExamPhase.destroy({
             where: {
@@ -273,12 +263,6 @@ router.delete('/', async (req, res) => {
         if (result === 0) {
             res.json(NotFoundResponse('Not found'))
         } else {
-            await StaffLogChange.create({
-                rowId: id,
-                tableName: 2,
-                staffId: changerId,
-                typeChange: 8
-            })
             res.json(MessageResponse('Exam Phase deleted'))
         }
     } catch (error) {
@@ -289,18 +273,14 @@ router.delete('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(id, ss, y, t, bl, sd, ed) {
+    function insertExamPhase(id, ss, y, sd, ed) {
         const EPDetail = {
-            id: id, season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
     try {
-        const examPhases = await ExamPhase.findAll({
-            where: {
-                status: 1
-            }
-        })
+        const examPhases = await ExamPhase.findAll({ where: { status: 1 } })
 
         for (let i = 0; i < examPhases.length; i++) {
             const semester = await Semester.findOne({
@@ -309,14 +289,8 @@ router.get('/', async (req, res) => {
                 }
             })
 
-            const examType = await ExamType.findOne({
-                where: {
-                    id: examPhases[i].eTId
-                }
-            })
-
-            if (semester && examType) {
-                insertExamPhase(semester.id, semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+            if (semester) {
+                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
         res.json(DataResponse(detailExamPhase))
@@ -329,18 +303,14 @@ router.get('/', async (req, res) => {
 
 router.get('/notScheduled', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(ss, y, t, bl, sd, ed) {
+    function insertExamPhase(id, ss, y, sd, ed) {
         const EPDetail = {
-            season: ss, year: y, type: t, block: bl, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
     try {
-        const examPhases = await ExamPhase.findAll({
-            where: {
-                status: 0
-            }
-        })
+        const examPhases = await ExamPhase.findAll({ where: { status: 0 } })
 
         for (let i = 0; i < examPhases.length; i++) {
             const semester = await Semester.findOne({
@@ -349,14 +319,8 @@ router.get('/notScheduled', async (req, res) => {
                 }
             })
 
-            const examType = await ExamType.findOne({
-                where: {
-                    id: examPhases[i].eTId
-                }
-            })
-
-            if (semester && examType) {
-                insertExamPhase(semester.season, semester.year, examType.type, examType.block, examPhases[i].startDay, examPhases[i].endDay)
+            if (semester) {
+                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
     } catch (error) {
