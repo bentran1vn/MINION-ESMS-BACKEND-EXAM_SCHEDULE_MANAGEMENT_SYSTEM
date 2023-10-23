@@ -744,7 +744,7 @@ router.put('/lecturer', async (req, res) => {
             const examSlot = await ExamSlot.findOne({
                 id: item.dataValues.exSlId
             })
-            if (examSlot.day >= semester.startDay) {
+            if (examSlot.day >= semester.startDay) { // đổi lại thành exPh
                 subInSlot2.push(item);
             }
         });
@@ -1440,7 +1440,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
                 }
             }
         });
-        
+
         user.forEach(async (item) => {
             const examiner = await Examiner.findOne({
                 where: {
@@ -1448,7 +1448,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
                     semesterId: parseInt(semester.id),
                 }
             })
-            if(!examiner){
+            if (!examiner) {
                 const ex = await Examiner.create({
                     userId: item.dataValues.id,
                     typeExaminer: statusMap.get(item.dataValues.role),
@@ -1459,7 +1459,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
         });
 
         const allExaminer = await Examiner.findAll({
-            where:{
+            where: {
                 semesterId: parseInt(semester.id),
             }
         });
