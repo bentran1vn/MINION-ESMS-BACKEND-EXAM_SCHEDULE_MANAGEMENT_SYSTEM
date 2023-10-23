@@ -18,13 +18,9 @@ const Course = sequelize.define(tableName, {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    ePId: {
+    ePName: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-            model: ExamPhase,
-            key: 'id'
-        }
     },
     status: {
         type: DataTypes.INTEGER,
@@ -37,9 +33,6 @@ const Course = sequelize.define(tableName, {
 
 Subject.hasMany(Course, { foreignKey: 'subId' })
 Course.belongsTo(Subject, { foreignKey: 'subId' })
-
-Semester.hasMany(Course, { foreignKey: 'semesterId' })
-Course.belongsTo(Semester, { foreignKey: 'semesterId' })
 
 await Course.sync().then(() => {
     console.log(`${tableName} table is ready`);

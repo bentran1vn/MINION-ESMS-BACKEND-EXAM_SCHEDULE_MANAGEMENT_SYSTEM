@@ -25,7 +25,7 @@ const StudentSubject = sequelize.define(tableName, {
     ePName: {
         type: DataTypes.STRING,
         allowNull: null
-    },
+    }, // buộc phải giống với exam phase name của phase tương ứng
     startDay: {
         type: DataTypes.DATEONLY,
         allowNull: true,
