@@ -5,29 +5,23 @@ import Student from "./Student.js"
 
 let tableName = 'studentExams'
 
-const StudentExam = sequelize.define( tableName , {
-    eRId:{
+const StudentExam = sequelize.define(tableName, {
+    eRId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references:{
+        references: {
             model: ExamRoom,
             key: 'id'
         }
     },
-    stuId:{
+    stuId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references:{
+        references: {
             model: Student,
             key: 'id'
         }
-    },
-    status: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: 0,
     }
-    //0 is Not Pass
-    //1 is Pass
 });
 
 Student.hasMany(StudentExam, { foreignKey: 'stuId' })
@@ -36,7 +30,7 @@ StudentExam.belongsTo(Student, { foreignKey: 'stuId' })
 ExamRoom.hasMany(StudentExam, { foreignKey: 'eRId' })
 StudentExam.belongsTo(ExamRoom, { foreignKey: 'eRId' })
 
-await StudentExam.sync().then(()=> {
+await StudentExam.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

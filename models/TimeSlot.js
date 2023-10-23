@@ -1,5 +1,6 @@
 import sequelize from "../database/database.js";
-import { DataTypes } from "sequelize";
+import { DataTypes, INTEGER } from "sequelize";
+import Semester from "./Semester.js";
 
 let tableName = 'timeSlots'
 
@@ -12,6 +13,14 @@ const TimeSlot = sequelize.define(tableName, {
         type: DataTypes.TIME,
         allowNull: false
     },
+    semesterId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        Reference: {
+            model: Semester,
+            key: 'id'
+        }
+    }
 });
 
 await TimeSlot.sync().then(() => {

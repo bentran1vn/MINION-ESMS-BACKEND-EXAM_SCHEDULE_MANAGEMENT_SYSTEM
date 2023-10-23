@@ -26,14 +26,15 @@ router.post('/', async (req, res) => {
             })
 
             const ListStudentIdInCourse = [] // Array tổng số student ID 
-            if (ArrStudentIdInCourse) {
+            if (ArrStudentIdInCourse.length !== 0) {
                 ArrStudentIdInCourse.forEach(e => { // Lấy ID ra và nhét vào array tổng số student ID của học sinh (cho dễ những thao tác sau)
                     ListStudentIdInCourse.push(e.stuId)
                 });
+                break
             }
             const SubInSlotList = await SubInSlot.findAll({ // Lấy ra những slot trong SubInSlot bằng courId
                 where: {
-                    courId: course[i].id
+                    courId: subject[i].id
                 }
             })
 
