@@ -5,6 +5,8 @@ import Subject from '../models/Subject.js'
 import Student from '../models/Student.js'
 import StudentSubject from '../models/StudentSubject.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import Semester from '../models/Semester.js'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
@@ -12,39 +14,54 @@ const router = express.Router()
  * @swagger
  * components:
  *   schemas:
- *    StudentCourses:
+ *    StudentSubject:
  *       type: object
  *       required:
- *          - courId
+ *          - subjectId
  *          - stuId
+ *          - ePName
+ *          - startDay
+ *          - endDay
  *       properties:
  *          id:
  *              type: integer
  *              description: Auto generate id
- *          courId:
+ *          subjectId:
  *              type: integer
- *              description: Reference to Course id
+ *              description: Reference to Subject id
  *          stuId:
  *              type: String
  *              description: Reference to Student id
+ *          ePName:
+ *              type: String
+ *              description: Name of the exam phase of this list
+ *          startDay:
+ *              type: DATEONLY
+ *              description: Estimate start day of the examphase
+ *          endDay:
+ *              type: DATEONLY
+ *              description: Estimate end day of the examphase
  *       example:
  *           id: 1
- *           courId: 1
+ *           subjectId: 1
  *           stuId: 1
+ *           ePName: FALL_2023_SE01
+ *           startDay: 2023-11-12
+ *           endDay: 2023-11-21
  */
 
 /**
  * @swagger
  * tags:
- *    name: StudentCourses
- *    description: The StudentCourses managing API
+ *    name: StudentSubjects
+ *    description: The StudentSubjects managing API
  */
 /**
  * @swagger
- * /studentCourses/:
+ * /studentSubjects/:
  *   post:
- *     summary: Create a new StudentCourses
- *     tags: [StudentCourses]
+ *     summary: Create a new StudentSubject
+ *     tags: [StudentSubjects]
  *     requestBody:
  *       required: true
  *       content:
@@ -52,15 +69,27 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               courId:
+ *               subjectId:
  *                 type: integer
  *                 example: 1, 2, 3, 4
  *               stuId:
  *                 type: integer
  *                 example: 1, 2, 3, 4
- *           required:
- *             - courId
- *             - stuId
+ *               ePName:
+ *                 type: String
+ *                 description: Name of the exam phase of this list
+ *               startDay:
+ *                 type: DATEONLY
+ *                 description: Estimate start day of the examphase
+ *               endDay:
+ *                 type: DATEONLY
+ *                 description: Estimate end day of the examphase
+ *               required:
+ *                 - subjectId
+ *                 - stuId
+ *                 - ePName
+ *                 - startDay
+ *                 - endDay
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -68,14 +97,54 @@ const router = express.Router()
  *          description: Internal Server Error!
  */
 
+/**
+ * @swagger
+ * /studentSubjects/:
+ *   get:
+ *     summary: Return all StudentSubject data of incoming ExamPhase
+ *     tags: [StudentSubjects]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/studentSubjects'
+ *       '500':
+ *          description: Internal Server Error!
+ */
+
 //req role staff
 router.post('/', async (req, res) => {
+    //staff id thực chất là userId của role staff lấy từ token
     const staffId = parseInt(res.locals.userData.id);
 
     const subjectId = parseInt(req.body.subjectId);
     const stuId = parseInt(req.body.stuId);
+    const ePName = req.body.ePName;
+    const startDay = req.body.startDay;
+    const endDay = req.body.endDay;
 
     try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+        const curSemester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if(curSemester.start > startDay || curSemester.endDay < endDay){
+            res.json(MessageResponse("You can't create student subject out of current semester"));;
+            return;
+        }
+
         const subject = await Subject.findOne({
             where: {
                 id: subjectId
@@ -87,21 +156,24 @@ router.post('/', async (req, res) => {
             }
         })
         if (!subject || !student) {
-            res.json(NotFoundResponse());
+            res.json(MessageResponse("Not found this subject or student"));
             return;
         } else {
             const studentSubject = await StudentSubject.create({
                 subjectId: subjectId,
-                stuId: stuId
+                stuId: stuId,
+                ePName: ePName,
+                startDay: startDay,
+                endDay: endDay
             })
-            if(studentSubject){
+            if (studentSubject) {
                 const staffLog = await StaffLogChange.create({
                     rowId: studentSubject.id,
                     tableName: 1,
                     staffId: staffId,
-                    typeChange: 6,
+                    typeChange: 2,
                 })
-                if(!staffLog){
+                if (!staffLog) {
                     throw new Error("Create staff log failed");
                 }
             }
@@ -110,6 +182,35 @@ router.post('/', async (req, res) => {
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
+    }
+})
+
+router.get('/', async (req, res) => {
+    try {
+        //dữ liệu vừa được thêm thì phải xếp ngay
+        //start và end day trong dữ liệu kiểu gì cũng là tương lai so với hiện tại
+        //nên thg mới nhất sẽ là start >= ngày hiện tại
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+
+        const dataForIncomingPhase = await StudentSubject.findAll({
+            where: {
+                startDay: {
+                    [Op.gt]: timeFormatted
+                }
+            }
+        })
+
+        if (!dataForIncomingPhase) {
+            res.json(MessageResponse("Nothing new to create schedule!"));
+            return;
+        } else {
+            res.json(DataResponse(dataForIncomingPhase));
+            return;
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        return;
     }
 })
 

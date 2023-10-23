@@ -11,9 +11,10 @@ import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
-import { DATEONLY } from 'sequelize'
 import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
+import { Op } from 'sequelize'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 const router = express.Router()
 
@@ -75,12 +76,8 @@ const router = express.Router()
  *               userId:
  *                 type: integer
  *                 example: 1, 2, 3
- *               typeExaminer:
- *                 type: interger
- *                 example: 0, 1, 2 
  *           required:
  *             - userId
- *             - typeExaminer
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -145,7 +142,14 @@ const router = express.Router()
  */
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
-    const typeExaminer = parseInt(req.body.typeExaminer)
+    const statusMap = new Map([
+        [0, 'passed'],
+        [1, 'on-going'],
+        [2, 'future']
+    ]);
+
+    //staff id thực chất là userId của role staff lấy từ token
+    const staffId = parseInt(res.locals.userData.id);
 
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
@@ -153,11 +157,10 @@ router.post('/', async (req, res) => {
     try {
         const user = await User.findOne({
             where: {
-                id: userId,
-                status: 1,
+                id: userId
             }
         })
-        if (!user) {
+        if ((user && user.status == 1) || !user) {
             res.json(MessageResponse("Not found user"));
             return;
         } else {
@@ -172,18 +175,29 @@ router.post('/', async (req, res) => {
                 }
             })
             if (!semester) {
-                res.json(MessageResponse("Table semester hasn't have data for this semester"));
+                res.json(MessageResponse("Table semester hasn't have any semester for current day"));
                 return;
             } else {
                 const examiner = await Examiner.create({
                     userId: userId,
-                    typeExaminer: typeExaminer,
+                    typeExaminer: statusMap.get(user.role),
                     semesterId: semester.id,
                     status: 0,
                 })
                 if (examiner) {
-                    res.json(MessageResponse("Create Success !"))
-                    return;
+                    const staffLog = await StaffLogChange.create({
+                        rowId: parseInt(examiner.id),
+                        tableName: 5,
+                        userId: parseInt(staffId),
+                        typeChange: 10,
+                    })
+                    if(staffLog){
+                        res.json(MessageResponse("Create Success !"))
+                        return;
+                    }else{
+                        res.json(MessageResponse("Error when update staff log change"));
+                        return;
+                    }
                 } else {
                     res.json(MessageResponse("Error when create examiner!"));
                     return;
@@ -199,12 +213,24 @@ router.post('/', async (req, res) => {
 //PASS
 router.get('/scheduled', async (req, res) => {
     const id = parseInt(req.query.id);
+    const time = new Date() //ngày hiện tại
+    var timeFormatted = time.toISOString().slice(0, 10)
 
     if (!id) {
         res.json(MessageResponse("Examiner id is required"));
         return;
     }
     try {
+        const curPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                endDay: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
         const result = await ExamRoom.findAll({
             where: { examinerId: id },
             include: [
@@ -262,11 +288,51 @@ router.get('/scheduled', async (req, res) => {
                 }
                 listSchedule.push(sche);
             });
-            console.log(listSchedule);
-            if (listSchedule.length == 0) {
+            // console.log(listSchedule);
+            let finalList = [];
+            listSchedule.forEach(sche => {
+                if(curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)){
+                    const f = {
+                        subCode: sche,subCode,
+                        subName: sche.subName,
+                        startTime: sche.startTime,
+                        endTime: sche.endTime,
+                        day: sche.day,
+                        roomCode: sche.roomNum,
+                        roomLocation: sche.location,
+                        phase: "on-going",
+                    }
+                    finalList.push(f);
+                }else if(!curPhase && (timeFormatted <= sche.day)){
+                    const f = {
+                        subCode: sche,subCode,
+                        subName: sche.subName,
+                        startTime: sche.startTime,
+                        endTime: sche.endTime,
+                        day: sche.day,
+                        roomCode: sche.roomNum,
+                        roomLocation: sche.location,
+                        phase: "future",
+                    }
+                    finalList.push(f);
+                }else if(!curPhase && (timeFormatted > sche.day)){
+                    const f = {
+                        subCode: sche,subCode,
+                        subName: sche.subName,
+                        startTime: sche.startTime,
+                        endTime: sche.endTime,
+                        day: sche.day,
+                        roomCode: sche.roomNum,
+                        roomLocation: sche.location,
+                        phase: "passed",
+                    }
+                    finalList.push(f);
+                }
+            });
+            if (finalList.length == 0) {
                 res.json(NotFoundResponse);
             } else {
-                res.json(DataResponse(listSchedule));
+                res.json(DataResponse(finalList));
             }
         }
     } catch (error) {
@@ -282,11 +348,12 @@ router.get('/scheduled', async (req, res) => {
 router.get('/availableSlot', async (req, res) => {
 
     try {// Nhận userId xong đi check trong examiner 
-        const examinerId = parseInt(req.query.examinerId)//cái này sẽ đổi thành lấy từ token sau
+        const examinerId = parseInt(req.query.examinerId) //cái này sẽ đổi thành lấy từ token sau
 
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
-        const semester = await Semester.findOne({ // Đổi theo exam phase
+
+        const semester = await Semester.findOne({
             where: {
                 start: {
                     [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
@@ -296,8 +363,8 @@ router.get('/availableSlot', async (req, res) => {
                 },
             }
         })
-        if (!semester) {
-            res.json(MessageResponse("Table semester hasn't have data for this semester"))
+        if(!semester){
+            res.json(MessageResponse("Table semester have no data for current day"));
             return;
         }
 
@@ -378,10 +445,6 @@ router.get('/availableSlot', async (req, res) => {
                 },
             }
         })
-        if (!currentExamPhase) {
-            res.json(MessageResponse(`Exam phase hasn't have data of ${timeFormatted}`));
-            return;
-        }
 
         const statusMap = new Map([
             [0, 'passed'],
@@ -393,7 +456,7 @@ router.get('/availableSlot', async (req, res) => {
         let futureSchedule = [];
 
         availableSlotList.forEach(item => {
-            if (item.day < currentExamPhase.startDay) {
+            if (timeFormatted > item.day) {
                 const s1 = {
                     day: item.day,
                     startTime: item.startTime,
@@ -403,7 +466,7 @@ router.get('/availableSlot', async (req, res) => {
                     status: statusMap.get(0)
                 }
                 passedSchedule.push(s1)
-            } else if (item.day >= currentExamPhase.startDay && item.day <= currentExamPhase.endDay) {
+            } else if (currentExamPhase && (item.day >= currentExamPhase.startDay && item.day <= currentExamPhase.endDay)) {
                 const s2 = {
                     day: item.day,
                     startTime: item.startTime,
@@ -413,7 +476,7 @@ router.get('/availableSlot', async (req, res) => {
                     status: statusMap.get(1)
                 }
                 currentSchedule.push(s2)
-            } else if (item.day > currentExamPhase.endDay) {
+            } else if (item.day > timeFormatted) {
                 const s3 = {
                     day: item.day,
                     startTime: item.startTime,

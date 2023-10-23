@@ -204,7 +204,8 @@ router.get('/', requireRole('admin'), async (req, res) => {
     }
 })// Get all User (status = 1)
 
-router.post('/', requireRole('admin'), async (req, res) => {
+//requireRole('admin')
+router.post('/', async (req, res) => {
     try {
         const userData = req.body
 
@@ -217,7 +218,8 @@ router.post('/', requireRole('admin'), async (req, res) => {
             await User.create({
                 email: userData.email,
                 name: userData.name,
-                role: userData.role
+                role: userData.role,
+                status: 0
             })
             res.json(MessageResponse("Create Successfully !"))
         } else {
