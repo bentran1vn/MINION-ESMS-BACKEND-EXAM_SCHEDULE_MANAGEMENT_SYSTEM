@@ -26,14 +26,6 @@ const StudentSubject = sequelize.define(tableName, {
         type: DataTypes.STRING,
         allowNull: null
     }, // buộc phải giống với exam phase name của phase tương ứng
-    startDay: {
-        type: DataTypes.DATEONLY,
-        allowNull: true,
-    },
-    endDay: {
-        type: DataTypes.DATEONLY,
-        allowNull: true,
-    },
 });
 
 Subject.hasMany(StudentSubject, { foreignKey: 'subjectId' })
