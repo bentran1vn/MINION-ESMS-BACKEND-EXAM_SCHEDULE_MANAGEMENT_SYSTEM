@@ -281,12 +281,12 @@ router.get('/scheduled', async (req, res) => {
 //nếu vậy thì tất cả các lịch trống đều có thể đăng kí
 router.get('/availableSlot', async (req, res) => {
 
-    try {
+    try {// Nhận userId xong đi check trong examiner 
         const examinerId = parseInt(req.query.examinerId)//cái này sẽ đổi thành lấy từ token sau
 
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
-        const semester = await Semester.findOne({
+        const semester = await Semester.findOne({ // Đổi theo exam phase
             where: {
                 start: {
                     [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
@@ -312,7 +312,7 @@ router.get('/availableSlot', async (req, res) => {
         for (const item of slotAvailable) {
             const sSId = item.sSId;
 
-            const subjectInSlot = await SubInSlot.findOne({
+            const subjectInSlot = await SubInSlot.findOne({ // Lọc ra, chỉ láy những
                 where: {
                     id: sSId
                 }
@@ -472,7 +472,7 @@ router.delete('/', async (req, res) => {
                 id: id
             }
         })
-        if(row[0] != 0){
+        if (row[0] != 0) {
             res.json(MessageResponse("Deleted !"));
             return;
         }
