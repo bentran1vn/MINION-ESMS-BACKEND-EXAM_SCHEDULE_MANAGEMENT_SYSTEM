@@ -68,3 +68,24 @@ export async function findOneSemester(valueList, typeList){
         return semester;
     }
 }
+
+export function validateYearAndSeason(year, season) {
+    const currentYear = new Date().getFullYear();
+    
+    if (isNaN(year) || year < currentYear || year.toString().length !== 4) {
+        return false;
+    }
+
+    if (season !== 'SPRING' && season !== 'SUMMER' && season !== 'FALL') {
+        return false;
+    }
+
+    const currentMonth = new Date().getMonth() + 1;
+    if ((season === 'SPRING' && (currentMonth < 0 || currentMonth >= 5)) ||
+        (season === 'SUMMER' && (currentMonth < 5 || currentMonth >= 9)) ||
+        (season === 'FALL' && (currentMonth < 9 || currentMonth >= 12))) {
+        return false;
+    } else {
+        return true
+    }
+}
