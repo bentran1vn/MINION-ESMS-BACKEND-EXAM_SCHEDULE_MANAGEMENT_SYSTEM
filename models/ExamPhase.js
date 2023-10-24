@@ -28,9 +28,14 @@ const ExamPhase = sequelize.define(tableName, {
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: 1,
+    },//1 is pending //0 is finish
+    des: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     }
-    //1 is pending
-    //0 is finish
+    // 0 is Nor
+    // 1 is Cour
+    
 });
 
 Semester.hasMany(ExamPhase, { foreignKey: 'semId' })
