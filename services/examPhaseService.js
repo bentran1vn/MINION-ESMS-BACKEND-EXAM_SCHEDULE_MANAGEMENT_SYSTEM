@@ -1,4 +1,4 @@
-import ExamType from '../models/ExamType.js'
+//import ExamType from '../models/ExamType.js'
 import ExamPhase from '../models/ExamPhase.js'
 
 export async function createExamPhases(course, semesterId) {
