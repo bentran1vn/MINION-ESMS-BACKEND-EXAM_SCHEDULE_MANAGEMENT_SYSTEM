@@ -97,8 +97,7 @@ export async function courseByPhase(examPhase) {
             order: [
                 ['numOfStu', 'ASC']
             ]
-        }
-    )
+        })
 
     let subList = []
 
