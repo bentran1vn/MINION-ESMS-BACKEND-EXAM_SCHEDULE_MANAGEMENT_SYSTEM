@@ -87,17 +87,18 @@ export async function courseByPhase(examPhase) {
 
     const course = await Course.findAll(
         {
-            where : {
+            where: {
                 status: {
                     [Op.eq]: 1
                 }
             }
         },
         {
-        order: [
-            ['numOfStu', 'ASC']
-        ]
-    })
+            order: [
+                ['numOfStu', 'ASC']
+            ]
+        }
+    )
 
     let subList = []
 

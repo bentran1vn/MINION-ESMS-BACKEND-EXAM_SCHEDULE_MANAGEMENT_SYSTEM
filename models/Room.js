@@ -5,7 +5,7 @@ let tableName = 'rooms'
 
 const Room = sequelize.define(tableName, {
     roomNum: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(3),
         allowNull: false,
     },
     location: {
