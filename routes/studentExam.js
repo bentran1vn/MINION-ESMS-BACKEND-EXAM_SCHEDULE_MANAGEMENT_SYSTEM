@@ -16,13 +16,14 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const staffId = parseInt(res.locals.userData.id);
     try {
-        const subject = await Subject.findAll() // Lấy tất cả subject
-        for (let i = 0; i < subject.length; i++) { // Duyệt từng subject
+        const subIdInCourse = await Course.findAll({ where: { status: 1 } })// Lấy tất cả subject id trong course cần thi
+
+        for (let i = 0; i < subIdInCourse.length; i++) { // Duyệt từng subject
             const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
                 where: {
-                    subjectId: subject[i].id
+                    subjectId: subIdInCourse[i].subId,
+                    status: 1
                 },
-                attributes: ['stuId']
             })
 
             const ListStudentIdInCourse = [] // Array tổng số student ID 
@@ -30,11 +31,10 @@ router.post('/', async (req, res) => {
                 ArrStudentIdInCourse.forEach(e => { // Lấy ID ra và nhét vào array tổng số student ID của học sinh (cho dễ những thao tác sau)
                     ListStudentIdInCourse.push(e.stuId)
                 });
-                break
             }
             const SubInSlotList = await SubInSlot.findAll({ // Lấy ra những slot trong SubInSlot bằng courId
                 where: {
-                    courId: subject[i].id
+                    courId: subIdInCourse[i].id
                 }
             })
 
@@ -46,64 +46,58 @@ router.post('/', async (req, res) => {
                             sSId: SubInSlotList[i].id
                         }
                     })
-                    if (!examRoom) {
+                    if (examRoom.length === 0) {
                         res.json(MessageResponse('Error found in examRoom'))
                         return
+                    } else {
+                        examRoom.forEach(e => {
+                            ListExamRoom.push(e) // Có room thì nhét vào Array tổng
+                        });
                     }
-                    examRoom.forEach(e => {
-                        ListExamRoom.push(e.id) // Có room thì nhét vào Array tổng
-                    });
                 }
             } else {
                 res.json(MessageResponse('Error found in SubInSlot'))
                 return
             }
 
-            // console.log('Tổng số student trong 1 môn: ' + ListStudentIdInCourse.length);
-            // console.log('Số phòng cần thiết cho 1 môn: ' + ListExamRoom.length);
-            const numStuInRoom = Math.floor(ListStudentIdInCourse.length / ListExamRoom.length)
-            // console.log('Số học sinh trong 1 phòng: ' + numStuInRoom);
+            const numStuInRoom = Math.floor(ListStudentIdInCourse.length / ListExamRoom.length) // Số học sinh có thể trong 1 lớp
 
             for (let i = 0; i < ListExamRoom.length; i++) { // Duyệt từng room trong array tổng các Exam room
-                console.log('Room: ' + ListExamRoom[i]);
                 const listStu = ListStudentIdInCourse.slice(0, numStuInRoom) // Biến chứa tổng số học sinh trong 1 room (<= 15)
                 ListStudentIdInCourse.splice(0, numStuInRoom) // Bỏ những phần tử đã dc sử dụng trong Array tổng số student ID
 
-                console.log('Nhóm student in room: ' + listStu);
                 for (let j = 0; j < listStu.length; j++) { // Duyệt từng student
                     const item = await StudentExam.create({ // Tạo row trong StudentExam
-                        eRId: ListExamRoom[i],
+                        eRId: ListExamRoom[i].id,
                         stuId: listStu[j]
                     })
                     let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
                     fs.appendFileSync("test.txt", dataT + "\n");
                 }
             }
-            if (ListStudentIdInCourse.length > 0) {
-                console.log('Student dư: ' + ListStudentIdInCourse);
+            console.log("Số hs còn lại trc khi chia: " + ListStudentIdInCourse);
+            while (ListStudentIdInCourse.length != 0) {
                 for (let i = 0; i < ListExamRoom.length; i++) {
                     const item = await StudentExam.create({
-                        eRId: ListExamRoom[i],
+                        eRId: ListExamRoom[i].id,
                         stuId: ListStudentIdInCourse[0],
                     })
                     let dataT = item.eRId + " - " + item.stuId // Xuất ra file để kiểm tra. Ko push lên
                     fs.appendFileSync("test.txt", dataT + "\n");
-                    console.log(item.eRId + " - " + item.stuId);
                     ListStudentIdInCourse.splice(0, 1)
+                    if (ListStudentIdInCourse.length == 0) break
                 }
             }
-
-            // console.log('Số học sinh còn dư trong 1 phòng: ' + ListStudentIdInCourse.length);
-            // console.log('==================');
         }
         const staffLog = await StaffLogChange.create({
-            tableName: 3,
-            staffId: staffId,
-            typeChange: 9
+            tableName: 2,
+            userId: staffId,
+            typeChange: 5
         })
         if (!staffLog) {
             throw new Error("Create staff log failed");
         }
+        res.json(MessageResponse('Auto fill completed'))
     } catch (error) {
         console.log(error);
         res.json(MessageResponse('Error found in Auto fill student completed'))
