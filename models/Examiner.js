@@ -4,14 +4,22 @@ import User from "./User.js";
 
 let tableName = 'examiners'
 
-const Examiner = sequelize.define( tableName , {
-    userId:{
+const Examiner = sequelize.define(tableName, {
+    userId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        references:{
+        allowNull: true,
+        references: {
             model: User,
             key: 'id'
         }
+    },
+    exName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    exEmail: {
+        type: DataTypes.STRING,
+        allowNull: false
     },
     typeExaminer: {
         type: DataTypes.INTEGER,
@@ -23,11 +31,11 @@ const Examiner = sequelize.define( tableName , {
     semesterId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-    }, 
+    },
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: 0,
-    }   
+    }
     //0 còn 
     //1 xóa
 });
@@ -35,7 +43,7 @@ const Examiner = sequelize.define( tableName , {
 User.hasOne(Examiner, { foreignKey: 'userId' });
 Examiner.belongsTo(User, { foreignKey: 'userId' });
 
-await Examiner.sync().then(()=> {
+await Examiner.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })
 

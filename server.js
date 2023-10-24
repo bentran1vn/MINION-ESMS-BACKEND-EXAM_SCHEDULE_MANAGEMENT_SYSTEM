@@ -13,15 +13,12 @@ import swaggerJsDoc from "swagger-jsdoc"
 import './database/database.js'
 
 import userRouter from './routes/user.js'
-import examTypeRouter from './routes/examType.js'
-// import lecturerRouter from './routes/lecturer.js'
 import roomRouter from './routes/room.js'
 import semesterRouter from './routes/semester.js'
 import studentRouter from './routes/student.js'
 import subjectRouter from './routes/subject.js'
 import timeSlotRouter from './routes/timeSlot.js'
 import roomLogTimeRouter from './routes/roomLogTime.js'
-// import lecturerLogTimeRouter from './routes/lecturerLogTime.js'
 import courseRouter from './routes/course.js'
 import examPhaseRouter from './routes/examPhase.js'
 import examSlotRouter from './routes/examSlot.js'
@@ -69,15 +66,12 @@ server.use('examinerLogTimes', examinerLogTimeRouter)
 
 server.use('/users', userRouter)
 server.use('/students', studentRouter)
-server.use('/examTypes', examTypeRouter)
-// server.use('/lecturers', lecturerRouter)
 server.use('/rooms', roomRouter)
 server.use('/semesters', semesterRouter)
 server.use('/students', studentRouter)
 server.use('/subjects', subjectRouter)
 server.use('/timeSlots', timeSlotRouter)
 server.use('/roomLogTimes', roomLogTimeRouter)
-// server.use('/lecturerLogTimes', lecturerLogTimeRouter)
 server.use('/courses', courseRouter)
 server.use('/examPhases', examPhaseRouter)
 server.use('/examSlots', examSlotRouter)

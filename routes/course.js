@@ -3,7 +3,6 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
-import ExamType from '../models/ExamType.js'
 import { Op } from 'sequelize'
 
 const router = express.Router()
