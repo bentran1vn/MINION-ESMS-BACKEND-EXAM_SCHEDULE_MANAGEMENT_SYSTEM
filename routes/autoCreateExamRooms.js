@@ -9,10 +9,10 @@ import fs from 'fs'
 import ExamRoom from '../models/ExamRoom.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import { courseByPhase } from '../utility/courseUtility.js'
-import ExamType from '../models/ExamType.js'
-import { autoFillStu } from '../utility/examRoomUtility.js' 
+import { autoFillStu } from '../utility/examRoomUtility.js'
 import { expandTimePhase, getExamPhasesStartOrder } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
@@ -20,183 +20,171 @@ router.get('/', async (req, res) => {
     console.log("System is running !");
     console.log("Creating Exam Room !");
 
-    let examPhaseList
-    await getExamPhasesStartOrder().then(value => examPhaseList = value)
-    //Đảm bảo thứ tự của ExamPhase từ ngày sớm nhất đến trễ nhất
-    if(examPhaseList === null){
-        throw new Error("Can not create exam rooms! Sorting phases problem!")
-    }
-
-    let roomList 
+    let roomList
     await findAll().then(value => roomList = value)
-    if(roomList === null){
+    if (roomList === null) {
         throw new Error("Can not create exam rooms! Room problem!")
     }
 
-    for (const key in examPhaseList) {
-
-        let slotList
-
-        let examType = await ExamType.findOne({
-            where: {
-                id: examPhaseList[key].eTId
-            }
-        })
-
-        if (examType.des == 0) {
-            slotList = await TimeSlot.findAll({
-                limit: 6,
-            })
-        } else {
-            slotList = await TimeSlot.findAll({
-                limit: 3,
-                offset: 6
-            })
+    let examPhase = await ExamPhase.findOne({
+        where: {
+            status: 1
         }
-        //Lấy ra đúng loại Slot Time
+    })
+    if(examPhase === null){
+        throw new Error("Can not create exam rooms! Examphase problem!")
+    }
 
-        let course
-        await courseByPhase(examPhaseList[key]).then(val => course = val)
-        if(courseByPhase === null){
-            throw new Error("Can not create exam rooms! Course Problem!")
-        }
-        //Lấy ra danh sách các Course trong Examphase tương ứng
-
-        const dayLength = expandTimePhase(examPhaseList[key])
-        //Lấy ra khoảng thời gian giữa 2 ngày start và end của 1 examPhase
-
-        let dayList = []
-
-        for (let i = 0; i <= dayLength; i++) {
-            let day = new Date(startDay);
-            if (i !== 0) {
-                day.setDate(startDay.getDate() + i);
+    let slotList = await TimeSlot.findAll({
+        where: {
+            des: {
+                [Op.eq]: examPhase.des
             }
-            dayList.push(day)
-        }//Add day vào danh sách dayList của 1 examPhase
+        }
+    })
+    //Lấy ra đúng loại Slot Time
 
-        let roomSlot = 0
-        let dayCount = 0
-        let slotCount = 0
-        let roomCount = 0
+    let course
+    await courseByPhase(examPhase).then(val => course = val)
+    if (courseByPhase === null) {
+        throw new Error("Can not create exam rooms! Course Problem!")
+    }
+    //Lấy ra danh sách các Course trong Examphase tương ứng
 
-        let examSlot = await ExamSlot.create({
-            ePId: examPhaseList[key].id,
-            day: dayList[0],
-            timeSlotId: slotList[0].id
-        })//Khởi tạo ExamSlot mặc định
+    const dayLength = expandTimePhase(examPhase)
+    //Lấy ra khoảng thời gian giữa 2 ngày start và end của 1 examPhase
 
-        for (let i = 0; i < course.length; i++) { //Duyệt danh sách Môn Thi
+    let dayList = []
 
-            /*TestFile-NewCouse
-            // let msg = "New Course"
-            // fs.appendFileSync("test.txt", msg + "\n");
-            */
+    for (let i = 0; i <= dayLength; i++) {
+        let day = new Date(startDay);
+        if (i !== 0) {
+            day.setDate(startDay.getDate() + i);
+        }
+        dayList.push(day)
+    }//Add day vào danh sách dayList của 1 examPhase
 
-            let daySlot = dayList[dayCount]
-            let slot = slotList[slotCount].id
+    let roomSlot = 0
+    let dayCount = 0
+    let slotCount = 0
+    let roomCount = 0
 
-            if (roomSlot > process.env.NUMBER_OF_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
-                roomSlot = 0
-                roomCount = 0
-                slotCount++;
+    let examSlot = await ExamSlot.create({
+        ePId: examPhase.id,
+        day: dayList[0],
+        timeSlotId: slotList[0].id
+    })//Khởi tạo ExamSlot mặc định
+
+    for (let i = 0; i < course.length; i++) { //Duyệt danh sách Môn Thi
+
+        /*TestFile-NewCouse
+        // let msg = "New Course"
+        // fs.appendFileSync("test.txt", msg + "\n");
+        */
+
+        let daySlot = dayList[dayCount]
+        let slot = slotList[slotCount].id
+
+        if (roomSlot > process.env.NUMBER_OF_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
+            roomSlot = 0
+            roomCount = 0
+            slotCount++;
+            if (slotCount <= slotList.length - 1) {
+                slot = slotList[slotCount].id
+                examSlot = await ExamSlot.create({
+                    ePId: examPhase.id,
+                    day: daySlot,
+                    timeSlotId: slot,
+                })
+            }// Cộng thêm 1 Slot mỗi khi không đủ phòng thi
+
+
+            if (slotCount > slotList.length - 1) {
+                slotCount = 0
+                dayCount++;
                 if (slotCount <= slotList.length - 1) {
                     slot = slotList[slotCount].id
+                    daySlot = dayList[dayCount]
                     examSlot = await ExamSlot.create({
-                        ePId: examPhaseList[key].id,
+                        ePId: examPhase.id,
                         day: daySlot,
                         timeSlotId: slot,
                     })
-                }// Cộng thêm 1 Slot mỗi khi không đủ phòng thi
 
+                }
+            }// Cộng thêm 1 Day mỗi khi không đủ phòng thi
+        }
 
-                if (slotCount > slotList.length - 1) {
-                    slotCount = 0
-                    dayCount++;
-                    if (slotCount <= slotList.length - 1) {
-                        slot = slotList[slotCount].id
-                        daySlot = dayList[dayCount]
-                        examSlot = await ExamSlot.create({
-                            ePId: examPhaseList[key].id,
+        const val = course[i];
+
+        let NumRoomOfCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+
+        /* TestFile-CurrentSlot-NumRoomOfCourse
+            //let currentSlot = "Current Slot: " + slotCount
+            //fs.appendFileSync("test.txt", currentSlot + "\n");
+            //let roomCourseData = "roomCourse của môn: " + roomCourse
+            //fs.appendFileSync("test.txt", roomCourseData + "\n");
+        */
+
+        roomSlot += NumRoomOfCourse
+
+        /* TestFile-RoomSlot
+        // let roomSlotData = "RoomSlot sau khi add: " + roomSlot
+        // fs.appendFileSync("test.txt", roomSlotData + "\n");
+        */
+
+        if (roomSlot <= process.env.NUMBER_OF_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
+
+            //Tạo mới 1 SubjectInSlot
+            let subjectInSlot = await SubInSlot.create({
+                courId: val.id,
+                exSlId: examSlot.id
+            })
+
+            /* TestFile-subID--examSlotID
+            // let data = subjectInSlot.courId + "--" + subjectInSlot.exSlId
+            // fs.appendFileSync("test1.txt", data + "\n");
+            */
+
+            for (let i = 0; i < NumRoomOfCourse; i++) {
+                let room
+                room = roomList[roomCount]
+                /**
+                let roomCheck
+                do {
+                    room = await randomRoom().then(val => room = val)
+                    roomCheck = {}
+                    roomCheck = await RoomLogTime.findOne({
+                        where: {
+                            roomId: room.id,
                             day: daySlot,
-                            timeSlotId: slot,
-                        })
+                            timeSlotId: slot
+                        }
+                    })
+                } while (roomCheck);
 
-                    }
-                }// Cộng thêm 1 Day mỗi khi không đủ phòng thi
-            }
-
-            const val = course[i];
-
-            let NumRoomOfCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
-
-            /* TestFile-CurrentSlot-NumRoomOfCourse
-                //let currentSlot = "Current Slot: " + slotCount
-                //fs.appendFileSync("test.txt", currentSlot + "\n");
-                //let roomCourseData = "roomCourse của môn: " + roomCourse
-                //fs.appendFileSync("test.txt", roomCourseData + "\n");
-            */
-
-            roomSlot += NumRoomOfCourse
-
-            /* TestFile-RoomSlot
-            // let roomSlotData = "RoomSlot sau khi add: " + roomSlot
-            // fs.appendFileSync("test.txt", roomSlotData + "\n");
-            */
-
-            if (roomSlot <= process.env.NUMBER_OF_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
-
-                //Tạo mới 1 SubjectInSlot
-                let subjectInSlot = await SubInSlot.create({
-                    courId: val.id,
-                    exSlId: examSlot.id
-                })
-
-                /* TestFile-subID--examSlotID
-                // let data = subjectInSlot.courId + "--" + subjectInSlot.exSlId
-                // fs.appendFileSync("test1.txt", data + "\n");
+                //TestFile-subID--examSlotID  
+                // let data = val.id + ".." + val.numOfStu + ".." + daySlot.getDate() + ".." + slot
+                // let data1 = dayCount + "---" + slotCount
+                // fs.appendFileSync("test.txt", data1 + "\n");
+                // fs.appendFileSync("test.txt", data + "\n");
+                console.log(room.id);
                 */
 
-                for (let i = 0; i < NumRoomOfCourse; i++) {
-                    let room
-                    room = roomList[roomCount]
-                    /**
-                    let roomCheck
-                    do {
-                        room = await randomRoom().then(val => room = val)
-                        roomCheck = {}
-                        roomCheck = await RoomLogTime.findOne({
-                            where: {
-                                roomId: room.id,
-                                day: daySlot,
-                                timeSlotId: slot
-                            }
-                        })
-                    } while (roomCheck);
-
-                    //TestFile-subID--examSlotID  
-                    // let data = val.id + ".." + val.numOfStu + ".." + daySlot.getDate() + ".." + slot
-                    // let data1 = dayCount + "---" + slotCount
-                    // fs.appendFileSync("test.txt", data1 + "\n");
-                    // fs.appendFileSync("test.txt", data + "\n");
-                    console.log(room.id);
-                    */
-
-                    await ExamRoom.create({
-                        sSId: subjectInSlot.id,
-                        roomId: room.id,
-                        des: examType.type
-                    })
-                    await RoomLogTime.create({
-                        roomId: room.id,
-                        day: daySlot,
-                        timeSlotId: slot
-                    })
-                    roomCount++
-                }
-            } else {
-                i--
+                await ExamRoom.create({
+                    sSId: subjectInSlot.id,
+                    roomId: room.id,
+                    des: examType.type
+                })
+                await RoomLogTime.create({
+                    roomId: room.id,
+                    day: daySlot,
+                    timeSlotId: slot
+                })
+                roomCount++
             }
+        } else {
+            i--
         }
     }
     console.log("Filling Student Into Exam Room !");
