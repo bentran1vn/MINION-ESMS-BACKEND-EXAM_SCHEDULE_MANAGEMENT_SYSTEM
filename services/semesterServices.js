@@ -1,29 +1,29 @@
 import Semester from "../models/Semester.js";
 
-export async function createNewSemesterS(season, year, startDay, endDay){
+export async function createNewSemesterS(season, year, startDay, endDay) {
     const semester = await Semester.create({
         season: season,
         year: year,
         start: startDay,
         end: endDay,
     })
-    if(semester == null) {
+    if (semester == null) {
         throw new Error("Can not create new Semester!")
     } else {
         return semester
     }
 }
 
-export async function deleteSemesterById(semId){
+export async function deleteSemesterById(semId) {
     const result = await Semester.update({
         status: 0
     },
-    {
-        where : {
-            id : semId
-        }
-    })
-    if(!result) {
+        {
+            where: {
+                id: semId
+            }
+        })
+    if (!result) {
         throw new Error("Can not delete Semester!")
     } else {
         return result
@@ -32,16 +32,18 @@ export async function deleteSemesterById(semId){
 
 export async function findAllSemester(value, filterBy) {
     let whereClause
-    if(filterBy === "year"){
+    let semesterList
+    if (filterBy === "year") {
         whereClause = { year: parseInt(value) }
-    } else if (filterBy === "season"){
+    } else if (filterBy === "season") {
         whereClause = { season: value }
-    } else if (filterBy === "status"){
+    } else if (filterBy === "status") {
         whereClause = { status: parseInt(value) }
     } else {
-        throw new Error("Can not find the List Of Semester!")
+        semesterList = await Semester.findAll();
+        return semesterList;
     }
-    const semesterList = await Semester.findAll({ where: whereClause });
+    semesterList = await Semester.findAll({ where: whereClause });
 
     if (semesterList == null || semesterList.length === 0) {
         throw new Error("Can not find the List Of Semester!");
@@ -50,13 +52,13 @@ export async function findAllSemester(value, filterBy) {
     }
 }
 
-export async function findOneSemester(valueList, typeList){
+export async function findOneSemester(valueList, typeList) {
     let whereClause = []
     for (let i = 0; i < typeList.length; i++) {
         const value = valueList[i];
         const type = typeList[i];
         whereClause.push({
-            [type] : value
+            [type]: value
         })
     }
 
@@ -71,7 +73,7 @@ export async function findOneSemester(valueList, typeList){
 
 export function validateYearAndSeason(year, season) {
     const currentYear = new Date().getFullYear();
-    
+
     if (isNaN(year) || year < currentYear || year.toString().length !== 4) {
         return false;
     }

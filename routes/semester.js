@@ -45,7 +45,7 @@ const router = express.Router()
  *           startDay: 2023-04-13
  *           endDay: 2023-08-13
  *           status: 1   
- */             
+ */
 
 //Swagger Tag
 /**
@@ -143,8 +143,8 @@ router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
-    const end = req.body.end; 
-    
+    const end = req.body.end;
+
     if (!validateYearAndSeason(year, season)) {
         res.json(MessageResponse("The year and season must be equal to the current time"));
         return;
@@ -157,7 +157,7 @@ router.post('/', async (req, res) => {
     // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
     const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
 
-    if ( (startDate >= endDate) || (monthsDiff < 3) ) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
+    if ((startDate >= endDate) || (monthsDiff < 3)) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
         res.json(MessageResponse("Start date must be earlier than end time atleast 3 month"));
         return;
     }
@@ -165,7 +165,7 @@ router.post('/', async (req, res) => {
     try {
         const existingSemesters = await Semester.findOne({
             where: {
-                [Op.and]:{
+                [Op.and]: {
                     year: year,
                     season: season
                 }
@@ -174,13 +174,13 @@ router.post('/', async (req, res) => {
         if (existingSemesters) {
             res.json(MessageResponse("Collision to others semester"));
             return;
-        }else{
+        } else {
             const semester = await createNewSemesterS(season, year, start, end)
-            if(semester != null){
-            res.json(MessageResponse("Create new semester successfully!"))
+            if (semester != null) {
+                res.json(MessageResponse("Create new semester successfully!"))
+            }
         }
-        }
-        
+
     } catch (err) {
         res.json(ErrorResponse(500, Error.message));
     }
@@ -192,20 +192,20 @@ router.get('/', async (req, res) => {
     try {
         let semesterList
         await findAllSemester(value, type).then(value => semesterList = value)
-        if(semesterList != null && semesterList.length > 0){
+        if (semesterList != null && semesterList.length > 0) {
             res.json(DataResponse(semesterList));
         }
     } catch (Error) {
         res.json(ErrorResponse(500, Error.message));
     }
-})
+})// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
 router.delete('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
     try {
         let result
         await deleteSemesterById(semId).then(value => result = value)
-        if(result){
+        if (result) {
             res.json(MessageResponse('Delete successfully'))
         }
     } catch (Error) {
