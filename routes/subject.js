@@ -73,21 +73,9 @@ const router = express.Router()
  *               name:
  *                 type: String
  *                 example: Mathematic for Engineering
- *               semesterNo:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               fe:
- *                 type: integer
- *                 example: 60, 0 (0 = no test)
- *               pe:    
- *                 type: integer
- *                 example: 60, 90, 0
  *           required:
  *             - code
  *             - name
- *             - semesterNo
- *             - fe
- *             - pe
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -169,7 +157,26 @@ const router = express.Router()
  * @swagger
  * /subjects/:
  *   get:
- *     summary: Return all Subjects
+ *     summary: Return all Subjects with status: 1
+ *     tags: [Subjects]
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Subjects'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /subjects/all/:
+ *   get:
+ *     summary: Return all Subjects with all status
  *     tags: [Subjects]
  *     responses:
  *       '200':
@@ -185,17 +192,33 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const { code, name, semesterNo, fe, pe } = req.body;
+    const body = req.body;
 
     try {
-        const subject = await Subject.create({
-            code: code,
-            name: name,
-            semesterNo: parseInt(semesterNo),
-            fe: parseInt(fe),
-            pe: parseInt(pe)
+        const subject = await Subject.findOne({
+            where: {
+                code: body.code,
+                status: 1
+            }
         })
-        console.log(subject);
+        if (subject) {
+            await Subject.update(
+                {
+                    code: body.code,
+                    name: body.name,
+                }, {
+                where: {
+                    id: subject.id
+                }
+            })
+        } else {
+            await Subject.create({
+                code: body.code,
+                name: body.name
+            })
+        }
+
+        // console.log(subject);
         res.json(MessageResponse("Create Success !"))
 
     } catch (err) {
@@ -278,7 +301,22 @@ router.get('/', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Get all subject theo status: 1 
+
+router.get('/all', async (req, res) => {
+    try {
+        const subjects = await Subject.findAll();
+        if (subjects.length == 0) {
+            res.json(MessageResponse("Not Found!"));
+        } else {
+            res.json(DataResponse(subjects));
+            return;
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})// Get all subject bất kể status
 
 export async function subjectById(id) {
     const subject = await Subject.findOne({

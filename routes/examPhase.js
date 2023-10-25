@@ -272,9 +272,9 @@ router.delete('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(id, ss, y, sd, ed) {
+    function insertExamPhase(id, ss, y, pN, sd, ed) {
         const EPDetail = {
-            id: id, season: ss, year: y, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, ePName: pN, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
@@ -289,7 +289,7 @@ router.get('/', async (req, res) => {
             })
 
             if (semester) {
-                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].startDay, examPhases[i].endDay)
+                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
         res.json(DataResponse(detailExamPhase))
@@ -302,9 +302,9 @@ router.get('/', async (req, res) => {
 
 router.get('/notScheduled', async (req, res) => {
     const detailExamPhase = []
-    function insertExamPhase(id, ss, y, sd, ed) {
+    function insertExamPhase(id, ss, y, pN, sd, ed) {
         const EPDetail = {
-            id: id, season: ss, year: y, sDay: sd, eDay: ed
+            id: id, season: ss, year: y, ePName: pN, sDay: sd, eDay: ed
         }
         detailExamPhase.push(EPDetail)
     }
@@ -319,7 +319,7 @@ router.get('/notScheduled', async (req, res) => {
             })
 
             if (semester) {
-                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].startDay, examPhases[i].endDay)
+                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
     } catch (error) {
