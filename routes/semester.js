@@ -3,7 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import { createNewSemesterS, deleteSemesterById, findAllSemester } from '../services/semesterServices.js'
+import { createNewSemesterS, deleteSemesterById, findAllSemester, validateYearAndSeason } from '../services/semesterServices.js'
 
 const router = express.Router()
 
@@ -143,8 +143,12 @@ router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
-    const end = req.body.end;
-
+    const end = req.body.end; 
+    
+    if (!validateYearAndSeason(year, season)) {
+        res.json(MessageResponse("The year and season must be equal to the current time"));
+        return;
+    }
 
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -161,8 +165,9 @@ router.post('/', async (req, res) => {
     try {
         const existingSemesters = await Semester.findOne({
             where: {
-                end: {
-                    [Op.gte]: start,
+                [Op.and]:{
+                    year: year,
+                    season: season
                 }
             }
         });

@@ -1,42 +1,56 @@
 import StudentSubject from '../models/StudentSubject.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
+import ExamPhase from '../models/ExamPhase.js'
 import { Op } from 'sequelize'
 
 
 export async function autoCreateCourse() {
     const arrIdSub = []
-    const stuSub = await StudentSubject.findAll()
-
-    stuSub.forEach(e => {
-        if (!arrIdSub.includes(e.subjectId)) {
-            arrIdSub.push(e.subjectId);
-        }
-    });
-
-    const subject = await Subject.findAll({
+    const stuSub = await StudentSubject.findAll({
         where: {
-            id: {
-                [Op.or]: arrIdSub
-            }
+            status: 1
         }
     })
+    const ePName = stuSub[0].ePName
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            ePName: ePName
+        }
+    })
+    if (examPhase) {
+        stuSub.forEach(e => {
+            if (!arrIdSub.includes(e.subjectId)) {
+                arrIdSub.push(e.subjectId);
+            }
+        });
 
-    for (let i = 0; i < subject.length; i++) {
-        const stuSub = await StudentSubject.findAll({
+        const subject = await Subject.findAll({
             where: {
-                subjectId: subject[i].id
+                id: {
+                    [Op.or]: arrIdSub
+                }
             }
         })
 
-        await Course.create({
-            subId: subject[i].id,
-            numOfStu: stuSub.length,
-            semesterId: subject[i].semesterNo,
-            status: 1
-        })
+        for (let i = 0; i < subject.length; i++) {
+            const stuSub = await StudentSubject.findAll({
+                where: {
+                    subjectId: subject[i].id
+                }
+            })
+
+            await Course.create({
+                subId: subject[i].id,
+                numOfStu: stuSub.length,
+                ePId: examPhase.id,
+                status: 1
+            })
+        }
+        return true
     }
-    return true
+
+
 }
 
 export async function countCourse() {
@@ -87,17 +101,17 @@ export async function courseByPhase(examPhase) {
 
     const course = await Course.findAll(
         {
-            where : {
+            where: {
                 status: {
                     [Op.eq]: 1
                 }
             }
         },
         {
-        order: [
-            ['numOfStu', 'ASC']
-        ]
-    })
+            order: [
+                ['numOfStu', 'ASC']
+            ]
+        })
 
     let subList = []
 

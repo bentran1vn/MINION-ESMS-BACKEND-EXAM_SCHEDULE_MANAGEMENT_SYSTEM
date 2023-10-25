@@ -140,7 +140,7 @@ router.post('/', async (req, res) => {
                 },
             }
         })
-        if(curSemester.start > startDay || curSemester.endDay < endDay){
+        if (curSemester.start > startDay || curSemester.endDay < endDay) {
             res.json(MessageResponse("You can't create student subject out of current semester"));;
             return;
         }
@@ -197,7 +197,8 @@ router.get('/', async (req, res) => {
             where: {
                 startDay: {
                     [Op.gt]: timeFormatted
-                }
+                },
+                status: 1
             }
         })
 

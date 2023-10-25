@@ -31,7 +31,6 @@ const StaffLogChange = sequelize.define(tableName, {
     typeChange: {
         type: DataTypes.INTEGER,
         allowNull: false,
-
         // 0 thay đổi dữ liệu Examiner 1 row trong examRoom (ghi nhận rowId)
         // 1 thay đổi dữ liệu nhiều Examiner row trong examRoom
         // 2 thay đổi dữ liệu 1 row trong studentSubject (ghi nhận rowId)

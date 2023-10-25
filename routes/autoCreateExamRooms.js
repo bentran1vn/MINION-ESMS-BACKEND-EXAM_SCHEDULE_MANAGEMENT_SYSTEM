@@ -1,5 +1,5 @@
 import express from 'express'
-import { MessageResponse } from '../common/reponses.js'
+import { ErrorResponse, MessageResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import ExamPhase from '../models/ExamPhase.js'
 import TimeSlot from '../models/TimeSlot.js'
@@ -8,11 +8,11 @@ import SubInSlot from '../models/SubInSlot.js'
 import fs from 'fs'
 import ExamRoom from '../models/ExamRoom.js'
 import RoomLogTime from '../models/RoomLogTime.js'
-import { courseByPhase } from '../utility/courseUtility.js'
-import ExamType from '../models/ExamType.js'
-import { autoFillStu } from '../utility/examRoomUtility.js' 
-import { expandTimePhase, getExamPhasesStartOrder } from '../services/examPhaseService.js'
+import { autoFillStu } from '../utility/examRoomUtility.js'
+import { expandTimePhase } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
+import { Op } from 'sequelize'
+import Course from '../models/Course.js'
 
 const router = express.Router()
 
@@ -20,49 +20,57 @@ router.get('/', async (req, res) => {
     console.log("System is running !");
     console.log("Creating Exam Room !");
 
-    let examPhaseList
-    await getExamPhasesStartOrder().then(value => examPhaseList = value)
-    //Đảm bảo thứ tự của ExamPhase từ ngày sớm nhất đến trễ nhất
-    if(examPhaseList === null){
-        throw new Error("Can not create exam rooms! Sorting phases problem!")
-    }
+    try {
+        let roomList
+        await findAll().then(value => roomList = value)
+        if (roomList === null) {
+            throw new Error("Can not create exam rooms! Room problem!")
+        }
 
-    let roomList 
-    await findAll().then(value => roomList = value)
-    if(roomList === null){
-        throw new Error("Can not create exam rooms! Room problem!")
-    }
-
-    for (const key in examPhaseList) {
-
-        let slotList
-
-        let examType = await ExamType.findOne({
+        let examPhase = await ExamPhase.findOne({
             where: {
-                id: examPhaseList[key].eTId
+                status: 1
             }
         })
-
-        if (examType.des == 0) {
-            slotList = await TimeSlot.findAll({
-                limit: 6,
-            })
-        } else {
-            slotList = await TimeSlot.findAll({
-                limit: 3,
-                offset: 6
-            })
+        if (examPhase === null) {
+            throw new Error("Can not create exam rooms! Examphase problem!")
         }
+
+        let slotList = await TimeSlot.findAll(
+            {
+                where: {
+                    des: {
+                        [Op.eq]: examPhase.des
+                    },
+                },
+            },
+        )
         //Lấy ra đúng loại Slot Time
 
-        let course
-        await courseByPhase(examPhaseList[key]).then(val => course = val)
-        if(courseByPhase === null){
+
+        let course = await Course.findAll(
+            {
+                where: {
+                    ePId: {
+                        [Op.eq]: examPhase.id
+                    },
+                    status: {
+                        [Op.eq]: 1
+                    }
+                },
+            },
+            {
+                order: [
+                    ['numOfStu', 'ASC']
+                ]
+            }
+        )
+        if (course === null) {
             throw new Error("Can not create exam rooms! Course Problem!")
         }
         //Lấy ra danh sách các Course trong Examphase tương ứng
-
-        const dayLength = expandTimePhase(examPhaseList[key])
+        const startDay = new Date(examPhase.startDay)
+        const dayLength = expandTimePhase(examPhase)
         //Lấy ra khoảng thời gian giữa 2 ngày start và end của 1 examPhase
 
         let dayList = []
@@ -81,7 +89,7 @@ router.get('/', async (req, res) => {
         let roomCount = 0
 
         let examSlot = await ExamSlot.create({
-            ePId: examPhaseList[key].id,
+            ePId: examPhase.id,
             day: dayList[0],
             timeSlotId: slotList[0].id
         })//Khởi tạo ExamSlot mặc định
@@ -103,7 +111,7 @@ router.get('/', async (req, res) => {
                 if (slotCount <= slotList.length - 1) {
                     slot = slotList[slotCount].id
                     examSlot = await ExamSlot.create({
-                        ePId: examPhaseList[key].id,
+                        ePId: examPhase.id,
                         day: daySlot,
                         timeSlotId: slot,
                     })
@@ -117,7 +125,7 @@ router.get('/', async (req, res) => {
                         slot = slotList[slotCount].id
                         daySlot = dayList[dayCount]
                         examSlot = await ExamSlot.create({
-                            ePId: examPhaseList[key].id,
+                            ePId: examPhase.id,
                             day: daySlot,
                             timeSlotId: slot,
                         })
@@ -173,7 +181,7 @@ router.get('/', async (req, res) => {
                             }
                         })
                     } while (roomCheck);
-
+    
                     //TestFile-subID--examSlotID  
                     // let data = val.id + ".." + val.numOfStu + ".." + daySlot.getDate() + ".." + slot
                     // let data1 = dayCount + "---" + slotCount
@@ -181,16 +189,16 @@ router.get('/', async (req, res) => {
                     // fs.appendFileSync("test.txt", data + "\n");
                     console.log(room.id);
                     */
-
                     await ExamRoom.create({
                         sSId: subjectInSlot.id,
                         roomId: room.id,
-                        des: examType.type
+                        des: examPhase.des
                     })
                     await RoomLogTime.create({
                         roomId: room.id,
                         day: daySlot,
-                        timeSlotId: slot
+                        timeSlotId: slot,
+                        semId: examPhase.semId
                     })
                     roomCount++
                 }
@@ -198,11 +206,14 @@ router.get('/', async (req, res) => {
                 i--
             }
         }
+        console.log("Filling Student Into Exam Room !");
+        await autoFillStu()
+        console.log("Building System Successfully !");
+        res.json(MessageResponse("Create ExamRooms Successfully !"))
+    } catch(err){
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
-    console.log("Filling Student Into Exam Room !");
-    await autoFillStu()
-    console.log("Building System Successfully !");
-    res.json(MessageResponse("Create ExamRooms Successfully !"))
 })
 
 export default router
