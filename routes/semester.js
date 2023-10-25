@@ -143,8 +143,8 @@ router.post('/', async (req, res) => {
     const year = parseInt(req.body.year);
     const season = req.body.season;
     const start = req.body.start;
-    const end = req.body.end; 
-    
+    const end = req.body.end;
+
     if (!validateYearAndSeason(year, season)) {
         res.json(MessageResponse("The year and season must be equal to the current time"));
         return;
@@ -165,7 +165,7 @@ router.post('/', async (req, res) => {
     try {
         const existingSemesters = await Semester.findOne({
             where: {
-                [Op.and]:{
+                [Op.and]: {
                     year: year,
                     season: season
                 }
@@ -198,7 +198,7 @@ router.get('/', async (req, res) => {
     } catch (Error) {
         res.json(ErrorResponse(500, Error.message));
     }
-})
+})// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
 router.get('/season', async (req, res) => {
     try {

@@ -15,6 +15,7 @@ import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
+import Examiner from '../models/Examiner.js'
 
 const router = express.Router()
 
@@ -123,6 +124,31 @@ const router = express.Router()
  *               items: 
  *                 $ref: '#/components/schemas/Examiners'
  */
+
+/**
+ * @swagger
+ * /examiners/:
+ *   get:
+ *     summary: Return all slot that have no Examiners
+ *     tags: [Lecturers]
+ *     parameters:
+ *        - in: query
+ *          name: semId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The semester user want to get list examiner
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Examiners'
+ */
+
 /**
  * @swagger
  * /examiners/:
@@ -140,6 +166,7 @@ const router = express.Router()
  *       200:
  *         description: Deleted !
  */
+
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
     const statusMap = new Map([
@@ -191,10 +218,10 @@ router.post('/', async (req, res) => {
                         userId: parseInt(staffId),
                         typeChange: 10,
                     })
-                    if(staffLog){
+                    if (staffLog) {
                         res.json(MessageResponse("Create Success !"))
                         return;
-                    }else{
+                    } else {
                         res.json(MessageResponse("Error when update staff log change"));
                         return;
                     }
@@ -291,9 +318,9 @@ router.get('/scheduled', async (req, res) => {
             // console.log(listSchedule);
             let finalList = [];
             listSchedule.forEach(sche => {
-                if(curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)){
+                if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
                     const f = {
-                        subCode: sche,subCode,
+                        subCode: sche, subCode,
                         subName: sche.subName,
                         startTime: sche.startTime,
                         endTime: sche.endTime,
@@ -303,9 +330,9 @@ router.get('/scheduled', async (req, res) => {
                         phase: "on-going",
                     }
                     finalList.push(f);
-                }else if(!curPhase && (timeFormatted <= sche.day)){
+                } else if (!curPhase && (timeFormatted <= sche.day)) {
                     const f = {
-                        subCode: sche,subCode,
+                        subCode: sche, subCode,
                         subName: sche.subName,
                         startTime: sche.startTime,
                         endTime: sche.endTime,
@@ -315,9 +342,9 @@ router.get('/scheduled', async (req, res) => {
                         phase: "future",
                     }
                     finalList.push(f);
-                }else if(!curPhase && (timeFormatted > sche.day)){
+                } else if (!curPhase && (timeFormatted > sche.day)) {
                     const f = {
-                        subCode: sche,subCode,
+                        subCode: sche, subCode,
                         subName: sche.subName,
                         startTime: sche.startTime,
                         endTime: sche.endTime,
@@ -363,7 +390,7 @@ router.get('/availableSlot', async (req, res) => {
                 },
             }
         })
-        if(!semester){
+        if (!semester) {
             res.json(MessageResponse("Table semester have no data for current day"));
             return;
         }
@@ -523,6 +550,21 @@ router.get('/availableSlot', async (req, res) => {
         console.log(error);
     }
 
+})
+
+router.get('/', async (req, res) => {
+    try {
+        const semId = req.query.semId
+        const examiner = await Examiner.findAll({
+            where: {
+                semesterId: semId
+            }
+        })
+        res.json(DataResponse(examiner))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
 })
 
 router.delete('/', async (req, res) => {
