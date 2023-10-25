@@ -15,7 +15,6 @@ import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
-import Examiner from '../models/Examiner.js'
 
 const router = express.Router()
 
