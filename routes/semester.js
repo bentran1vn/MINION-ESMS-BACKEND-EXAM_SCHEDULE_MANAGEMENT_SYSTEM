@@ -200,7 +200,7 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
+router.get('/season', async (req, res) => {
     try {
         let final = [];
         const semester = await Semester.findAll();
