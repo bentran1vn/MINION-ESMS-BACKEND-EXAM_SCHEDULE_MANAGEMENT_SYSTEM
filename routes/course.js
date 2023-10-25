@@ -92,24 +92,34 @@ router.get('/', async (req, res) => {
     let listCourse = [];
     try {
         const result = await Course.findAll({
-            where: {
-                status: 1
-            },
             include: [{
                 model: Subject,
                 attributes: ['code']
-            }],
+            }]
         });
 
         result.forEach(course => {
-            const subject = course.subject;
-            const sub = {
-                courseId: course.dataValues.id,
-                subCode: subject.code,
-                numOfStu: course.dataValues.numOfStu,
-                semesterId: course.dataValues.semesterId
+            if (course.dataValues.status == 1) {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu,
+                    semesterId: course.dataValues.semesterId,
+                    status: 1
+                }
+                listCourse.push(sub);
+            } else {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu,
+                    semesterId: course.dataValues.semesterId,
+                    status: 0
+                }
+                listCourse.push(sub);
             }
-            listCourse.push(sub);
         });
         if (listCourse.length == 0) {
             res.json(NotFoundResponse);
