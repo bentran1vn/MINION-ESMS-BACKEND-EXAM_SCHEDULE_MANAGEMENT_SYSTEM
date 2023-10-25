@@ -143,9 +143,9 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
     const statusMap = new Map([
-        [0, 'passed'],
-        [1, 'on-going'],
-        [2, 'future']
+        ['lecturer', 0],
+        ['staff', 1],
+        ['volunteer', 2]
     ]);
 
     //staff id thực chất là userId của role staff lấy từ token
