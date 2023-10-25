@@ -1,4 +1,4 @@
-import Jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { UnauthorizedResponse } from "../common/reponses.js";
 
 
@@ -13,10 +13,10 @@ function roleLevel(role){
 }
 
 export function requireRole(role){
-    const middleware = (req,res,next) => {
+    const middleware = (req, res, next) => {
         const token = req.cookies.token
         try{
-            const data = Jwt.verify(token, process.env.SECRET)
+            const data = jwt.verify(token, process.env.SECRET)
             res.locals.userData = data
             if(roleLevel(data.role) >= roleLevel(role)){
                 next()
