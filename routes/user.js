@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
-import Jwt from "jsonwebtoken";
+import jwt  from 'jsonwebtoken'
 import { Op } from "sequelize";
 import { DataResponse, ErrorResponse, InternalErrResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
@@ -177,8 +177,8 @@ import { requireRole } from "../middlewares/auth.js";
  */
 
 const router = express.Router()
-
-router.get('/', requireRole('admin'), async (req, res) => {
+//, requireRole('admin')
+router.get('/', async (req, res) => {
 
     try {
         const pageNo = parseInt(req.query.page_no) || 1
@@ -259,8 +259,8 @@ router.get('/:searchValue', async (req, res) => {
         res.json(InternalErrResponse())
     }
 })// Get User or Users by name 
-
-router.delete('/', requireRole('admin'), async (req, res) => {
+//, requireRole('admin')
+router.delete('/', async (req, res) => {
     const email = req.body.email
 
     try {
@@ -281,9 +281,47 @@ router.delete('/', requireRole('admin'), async (req, res) => {
     }
 })// Delete User by email (status = 0)
 
-router.get('/logout', requireRole('lecturer'), (req, res) => {
+//, requireRole('lecturer')
+router.get('/logout', (req, res) => {
     res.clearCookie('token')
     res.json(DataResponse())
 })
+
+
+function sendToken(res, user) {
+    const payload = {
+        id: user.id,
+        name: user.username,
+        role: user.role,
+    }
+    const token = jwt.sign(payload, process.env.SECRET, {
+        expiresIn: '3h'
+    })
+    res.cookie('token', token)
+    res.json(DataResponse({
+        token: token
+    }))
+}
+
+router.post('/login', async (req, res) => {
+    const userInfo = req.body;
+
+    const user = await User.findOne({
+        where:{
+            email: userInfo.email
+        }
+    })
+    if(!user){
+        res.json(NotFoundResponse())
+        return;
+    }
+    const isMatch = await bcrypt.compare(userInfo.password, user.password)
+    if(isMatch){
+        sendToken(res, user)
+    }else{
+        res.json(ErrorResponse(401, 'Invalid user or password'))
+    }
+})
+
 
 export default router

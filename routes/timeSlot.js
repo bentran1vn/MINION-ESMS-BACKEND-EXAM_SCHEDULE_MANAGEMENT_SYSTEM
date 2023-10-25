@@ -3,6 +3,8 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import TimeSlot from '../models/TimeSlot.js'
 import { Op } from 'sequelize'
+import Semester from '../models/Semester.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -148,23 +150,92 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const { startTime, endTime } = req.body;
-    // const startTime = req.body.startTime
-    // const endTime = req.body.endTime
+    const timeSlotDatas = req.body;
+
+    const {season, year} = req.body.season.split("_");
 
     try {
-        const timeSlot = await TimeSlot.create({
-            startTime: startTime,
-            endTime: endTime
+        let index = 0;
+        const semester = await Semester.findOne({
+            where:{
+                season: season,
+                year: year
+            }
         })
-        console.log(timeSlot);
-        res.json(MessageResponse("Create Success !"))
+        if(!semester){
+            res.json(MessageResponse("Semester doesn't exist"));
+            return;
+        }
+
+        timeSlotDatas.forEach(async (time) => {
+            const timeSlot = await TimeSlot.create({
+                startTime: time.startTime,
+                endTime: time.endTime,
+                semId: parseInt(semester.id),
+                des: parseInt(time.des),
+            })
+            if(timeSlot){
+                index++;
+            }
+            if(index == timeSlotDatas.length){
+                res.json(MessageResponse("Create Success !"))
+                return;
+            }
+        });
 
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
     }
 })
+
+//api trả timeslot theo des của exphase
+//cái này hiện lúc mà staff tạo examSlot
+router.get('/des', async (req, res) => {
+    
+    try {
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10);
+        const curSemester = await Semester.findOne({
+            where: {
+                start: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                end: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        const curExamPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                endDay: {
+                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+        if(!curSemester || !curExamPhase){
+            res.json(MessageResponse("Not found semester or examphase"));
+            return;
+        }
+        const slot = await TimeSlot.findAll({
+            where:{
+                semId: parseInt(curSemester.id),
+                des: parseInt(curExamPhase.des)
+            }
+        })
+        if(slot){
+            res.json(DataResponse(slot));
+            return;
+        }
+    } catch (error) {
+        res.json(InternalErrResponse());
+        return;
+    }
+})
+
 
 router.get('/', async (req, res) => {
     //get All timeSlot nếu không nhập gì

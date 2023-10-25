@@ -200,6 +200,26 @@ router.get('/', async (req, res) => {
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
+router.get('/season', async (req, res) => {
+    try {
+        let final = [];
+        const semester = await Semester.findAll();
+        semester.forEach(async (item) => {
+            const c = {
+                start: item.dataValues.start,
+                end: item.dataValues.end,
+                season: `${season.toUpperCase()}_${year}`
+            }
+            final.push(c);
+        });
+        res.json(DataResponse(final));
+        return;
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})
+
 router.delete('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
     try {
