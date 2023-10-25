@@ -1,8 +1,6 @@
 import sequelize from "../database/database.js";
-import { DataTypes, INTEGER } from "sequelize";
+import { DataTypes} from "sequelize";
 import Semester from "./Semester.js";
-import ExamPhase from "./ExamPhase.js";
-import { Sequence } from "mysql2/typings/mysql/lib/protocol/sequences/Sequence.js";
 
 let tableName = 'timeSlots'
 
