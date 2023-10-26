@@ -71,17 +71,17 @@ const router = express.Router()
 
 /**
  * @swagger
- * /timeSlots/:
+ * /timeSlots/semId:
  *   get:
- *     summary: Return all TimeSlots, Return a TimeSlot by id
+ *     summary: Return all TimeSlots of 1 semester by id
  *     tags: [TimeSlots]
  *     parameters:
  *       - in: query
- *         name: id
+ *         name: semId
  *         schema:
  *           type: integer
- *         required: false
- *         description: The time slot id Client want to get.             
+ *         required: true
+ *         description: The time slot of 1 semester Client want to get.             
  *     responses:
  *       '200':
  *         description: OK !
@@ -152,17 +152,17 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const timeSlotDatas = req.body;
 
-    const {season, year} = req.body.season.split("_");
+    const { season, year } = req.body.season.split("_");
 
     try {
         let index = 0;
         const semester = await Semester.findOne({
-            where:{
+            where: {
                 season: season,
                 year: year
             }
         })
-        if(!semester){
+        if (!semester) {
             res.json(MessageResponse("Semester doesn't exist"));
             return;
         }
@@ -174,10 +174,10 @@ router.post('/', async (req, res) => {
                 semId: parseInt(semester.id),
                 des: parseInt(time.des),
             })
-            if(timeSlot){
+            if (timeSlot) {
                 index++;
             }
-            if(index == timeSlotDatas.length){
+            if (index == timeSlotDatas.length) {
                 res.json(MessageResponse("Create Success !"))
                 return;
             }
@@ -192,7 +192,7 @@ router.post('/', async (req, res) => {
 //api trả timeslot theo des của exphase
 //cái này hiện lúc mà staff tạo examSlot
 router.get('/des', async (req, res) => {
-    
+
     try {
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10);
@@ -216,17 +216,17 @@ router.get('/des', async (req, res) => {
                 },
             }
         })
-        if(!curSemester || !curExamPhase){
+        if (!curSemester || !curExamPhase) {
             res.json(MessageResponse("Not found semester or examphase"));
             return;
         }
         const slot = await TimeSlot.findAll({
-            where:{
+            where: {
                 semId: parseInt(curSemester.id),
                 des: parseInt(curExamPhase.des)
             }
         })
-        if(slot){
+        if (slot) {
             res.json(DataResponse(slot));
             return;
         }
@@ -237,55 +237,34 @@ router.get('/des', async (req, res) => {
 })
 
 
-router.get('/', async (req, res) => {
+router.get('/semId', async (req, res) => {
     //get All timeSlot nếu không nhập gì
     //get 1 theo id nếu có
     //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime  
     try {
-        const pageNo = parseInt(req.query.page_no) || 1
-        const limit = parseInt(req.query.limit) || 20
+        const semId = parseInt(req.query.semId);
 
-        const id = parseInt(req.query.id) || null;
-        const timeSlotList = []
-
-        if (id != null) {
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: id
-                }
-            })
-            if (timeSlot) {
-                res.json(DataResponse(timeSlot))
-                return;
-            } else {
-                res.json(MessageResponse("This id doesn't belong to any time slot"));
-                return;
+        const timeSlots = await TimeSlot.findAll({
+            where: {
+                semId: semId
             }
+        });
+        if (!timeSlots) {
+            res.json(MessageResponse("The time slot table has no data of this semester!"));
+            return;
         } else {
-            const timeSlots = await TimeSlot.findAll();
-            if (!timeSlots) {
-                res.json(MessageResponse("The time slot table has no data!"));
-                return;
-            } else {
-                for (const key of timeSlots) {
-                    const time = {
-                        id: key.id,
-                        startTime: key.startTime,
-                        endTime: key.endTime
-                    }
-                    timeSlotList.push(time);
-                }
-                res.json(DataResponse(timeSlotList))
-                return;
-            }
+            res.json(DataResponse(timeSlots))
+            return;
         }
+
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
     }
 })
 
-router.delete('/', requireRole("admin"), async (req, res) => {
+//, requireRole("admin")
+router.delete('/', async (req, res) => {
     //delete timeSlot
     //nếu id có thì xóa 1 không thì xóa hết
     //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
