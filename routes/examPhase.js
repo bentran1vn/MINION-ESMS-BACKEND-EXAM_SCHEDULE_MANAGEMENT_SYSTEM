@@ -272,7 +272,7 @@ router.delete('/', async (req, res) => {
 })// Delete Exam Phase
 
 router.get('/semId', async (req, res) => {
-    const semesterId = parseInt(req.body.semesterId);
+    const semesterId = parseInt(req.query.semesterId);
     try{
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
