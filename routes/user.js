@@ -252,7 +252,7 @@ router.get('/:searchValue', async (req, res) => {
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        const count_User = { Total: users.length, Data: users }
+        const count_User = { Total: users.length, Data: users.rows }
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
