@@ -274,11 +274,25 @@ router.delete('/', async (req, res) => {
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.body.semesterId);
     try{
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+
         const examPhase = await ExamPhase.findAll({
             where: {
                 semId: semesterId
             }
         })
+        examPhase.forEach(async (item) => {
+            const start = new Date(item.dataValues.startDay)
+            const threeDay = Math.abs(start.getDate() - timeFormatted.getDate());
+            if((item.dataValues.startDay > timeFormatted && threeDay == 3) || item.dataValues.startDay <= timeFormatted){
+                await ExamPhase.update({status: 0}, {
+                    where: {
+                        id: item.dataValues.id
+                    }
+                })
+            }
+        });
         if(examPhase.length != 0){
             res.json(DataResponse(examPhase));
             return;
