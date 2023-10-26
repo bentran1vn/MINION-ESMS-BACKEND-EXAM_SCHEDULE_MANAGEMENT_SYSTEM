@@ -217,6 +217,7 @@ router.post('/', async (req, res) => {
                 endDay: endDay,
             })
             res.json(MessageResponse('Create successfully !'))
+            return;
         }
     } catch (errer) {
         console.log(errer)
@@ -292,12 +293,13 @@ router.get('/', async (req, res) => {
                 insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay)
             }
         }
-        res.json(DataResponse(detailExamPhase))
+        res.json(DataResponse(detailExamPhase));
+        return;
     } catch (error) {
         console.log(error);
         res.json(MessageResponse('Error found'))
     }
-    res.json(DataResponse(detailExamPhase))
+    
 })// Get all detail Exam Phase has been scheduled
 
 router.get('/notScheduled', async (req, res) => {
