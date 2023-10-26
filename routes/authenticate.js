@@ -2,7 +2,7 @@ import passport from "passport";
 import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { NotFoundResponse } from "../common/reponses.js";
+import { NotFoundResponse, InternalErrResponse } from "../common/reponses.js";
 
 const router = express.Router()
 
@@ -25,7 +25,8 @@ router.get('/google/callback', passport.authenticate('google', {
                 }
             })
             if (!user) {
-                res.json(NotFoundResponse());
+                localStorage.setItem("message", "Invalid Account")
+                res.redirect(`${process.env.CLIENT_URL}`)
             } else {
                 const payload = {
                     id: user.id,
