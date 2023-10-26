@@ -237,7 +237,7 @@ router.get('/:searchValue', async (req, res) => {
         const limit = parseInt(req.query.limit) || 20
 
         const string = req.params.searchValue
-        const users = await User.findAll({
+        const users = await User.findAndCountAll({
             where: {
                 [Op.or]: {
                     name: {
@@ -252,7 +252,7 @@ router.get('/:searchValue', async (req, res) => {
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        const count_User = { Total: users.length, Data: users.rows }
+        const count_User = { Total: users.count, Data: users.rows }
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
