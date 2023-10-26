@@ -271,6 +271,24 @@ router.delete('/', async (req, res) => {
     }
 })// Delete Exam Phase
 
+router.get('/semId', async (req, res) => {
+    const semesterId = parseInt(req.body.semesterId);
+    try{
+        const examPhase = await ExamPhase.findAll({
+            where: {
+                semId: semesterId
+            }
+        })
+        if(examPhase.length != 0){
+            res.json(DataResponse(examPhase));
+            return;
+        }
+    }catch(err){
+        res.json(InternalErrResponse());
+        return;
+    }
+})
+
 router.get('/', async (req, res) => {
     const detailExamPhase = []
     function insertExamPhase(id, ss, y, pN, sd, ed) {
