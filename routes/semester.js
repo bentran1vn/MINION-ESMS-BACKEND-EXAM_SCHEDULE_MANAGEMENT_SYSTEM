@@ -63,7 +63,6 @@ const router = express.Router()
  *     summary: Create a new Semester with information.
  *     tags: [Semesters]
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:

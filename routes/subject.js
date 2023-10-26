@@ -157,7 +157,7 @@ const router = express.Router()
  * @swagger
  * /subjects/:
  *   get:
- *     summary: Return all Subjects with status: 1
+ *     summary: Return all Subjects with status 1
  *     tags: [Subjects]
  *     responses:
  *       '200':
