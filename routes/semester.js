@@ -203,13 +203,26 @@ router.get('/season', async (req, res) => {
     try {
         let final = [];
         const semester = await Semester.findAll();
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
         semester.forEach(async (item) => {
-            const c = {
-                start: item.dataValues.start,
-                end: item.dataValues.end,
-                season: `${season.toUpperCase()}_${year}`
+            if(timeFormatted >= item.dataValues.start && timeFormatted <= item.dataValues.end){
+                const c = {
+                    start: item.dataValues.start,
+                    end: item.dataValues.end,
+                    season: `${season.toUpperCase()}_${year}`,
+                    cur: 1,//ongoing
+                }
+                final.push(c);
+            }else{
+                const c = {
+                    start: item.dataValues.start,
+                    end: item.dataValues.end,
+                    season: `${season.toUpperCase()}_${year}`,
+                    cur: 0,//close
+                }
+                final.push(c);
             }
-            final.push(c);
         });
         res.json(DataResponse(final));
         return;

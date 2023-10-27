@@ -187,6 +187,7 @@ router.post('/', async (req, res) => {
     const ePName = req.body.ePName
     const startDay = req.body.startDay;
     const endDay = req.body.endDay;
+    const des = parseInt(req.body.des)
 
     try {
         const currentYear = new Date().getFullYear();
@@ -215,6 +216,7 @@ router.post('/', async (req, res) => {
                 ePName: ePName,
                 startDay: startDay,
                 endDay: endDay,
+                des: des
             })
             res.json(MessageResponse('Create successfully !'))
             return;
@@ -274,6 +276,7 @@ router.delete('/', async (req, res) => {
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try{
+
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
 
@@ -284,7 +287,9 @@ router.get('/semId', async (req, res) => {
         })
         examPhase.forEach(async (item) => {
             const start = new Date(item.dataValues.startDay)
-            const threeDay = Math.abs(start.getDate() - timeFormatted.getDate());
+            const cur = new Date(timeFormatted);
+            const timeDifference = Math.abs(start.getTime() - cur.getTime());
+            const threeDay = Math.ceil(timeDifference / (1000 * 3600 * 24));
             if((item.dataValues.startDay > timeFormatted && threeDay == 3) || item.dataValues.startDay <= timeFormatted){
                 await ExamPhase.update({status: 0}, {
                     where: {
