@@ -30,7 +30,7 @@ export async function deleteSemesterById(semId) {
     }
 }
 
-export async function findAllSemester(value, filterBy) {
+export async function findAllSemester(value, filterBy, pageNo, limit) {
     let whereClause
     let semesterList
     if (filterBy === "year") {
@@ -40,10 +40,17 @@ export async function findAllSemester(value, filterBy) {
     } else if (filterBy === "status") {
         whereClause = { status: parseInt(value) }
     } else {
-        semesterList = await Semester.findAll();
+        semesterList = await Semester.findAll({
+            limit: limit || 1,
+            offset: (pageNo - 1) * limit
+        });
         return semesterList;
     }
-    semesterList = await Semester.findAll({ where: whereClause });
+    semesterList = await Semester.findAll({
+        where: whereClause,
+        limit: limit || 1,
+        offset: (pageNo - 1) * limit
+    });
 
     if (semesterList == null || semesterList.length === 0) {
         throw new Error("Can not find the List Of Semester!");
