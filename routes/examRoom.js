@@ -381,7 +381,7 @@ router.post('/', async (req, res) => {
                 },
             }
         })
-        if ( (!currentExamPhase && examSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= examSlot.day))) {
+        if ((!currentExamPhase && examSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= examSlot.day))) {
             res.json(MessageResponse("Can't change on-going or passed schedule"));
             return;
         }
@@ -523,36 +523,36 @@ router.post('/auto', async (req, res) => {
                 if (!lecToExaminer) {
                     res.json(MessageResponse(`Error when add lecturer ${item.dataValues.id} to examiner`));
                     return;
-                }else{
+                } else {
                     const stafflog = await StaffLogChange.create({
                         rowId: parseInt(lecToExaminer.id),
                         tableName: 5,
                         userId: staffId,
                         typeChange: 10
                     })
-                    if(!stafflog){
+                    if (!stafflog) {
                         res.json("Fail to update staff log change");
                         return;
                     }
                 }
-            }else if(check && check.status == 1){
-                const row = await Examiner.update({status: 0}, {
-                    where:{
+            } else if (check && check.status == 1) {
+                const row = await Examiner.update({ status: 0 }, {
+                    where: {
                         userId: item.dataValues.id,
                         semesterId: parseInt(semester.id)
                     }
                 })
-                if(row[0] == 0){
+                if (row[0] == 0) {
                     res.json(MessageResponse(`Fail to update status of examiner ${check.id}`));
                     return;
-                }else{
+                } else {
                     const stafflog = await StaffLogChange.create({
                         rowId: parseInt(check.id),
                         tableName: 5,
                         userId: staffId,
                         typeChange: 10
                     })
-                    if(!stafflog){
+                    if (!stafflog) {
                         res.json("Fail to update staff log change");
                         return;
                     }
@@ -595,7 +595,7 @@ router.post('/auto', async (req, res) => {
                     id: subInSlot.exSlId
                 }
             })
-            if ( examSlot > timeFormatted ) {
+            if (examSlot > timeFormatted) {
                 roomToSchedule.push(item);
             }
         });
@@ -641,7 +641,7 @@ router.post('/auto', async (req, res) => {
                         }
                     })
                     if (examRoom) {
-                        
+
                         const updateLecLogTime = await ExaminerLogTime.create({
                             examinerId: randomLecId,
                             timeSlotId: timeSlot.id,
@@ -705,10 +705,27 @@ router.put('/lecturer', async (req, res) => {
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
+    const incomingPhase = parseInt(req.body.exPhaseId);
+
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
+
+        const exPhase = await ExamPhase.findOne({
+            where: {
+                id: incomingPhase
+            }
+        })
+        const startPhase = new Date(exPhase.startDay);
+        const cur = new Date(timeFormatted);
+        const timeDifference = Math.abs(startPhase.getTime() - cur.getTime());
+        const fiveDay = Math.ceil(timeDifference / (1000 * 3600 * 24));
+        if ((startPhase > cur && fiveDay <= 5) || exPhase.status == 0) {
+            res.json(MessageResponse("Register time closed"));
+            return;
+        }
+
         const semester = await Semester.findOne({
             where: {
                 start: {
@@ -1074,7 +1091,7 @@ router.put('/addExaminer', async (req, res) => {
                 },
             }
         })
-        if ( (!currentExamPhase && exSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= exSlot.day))) {
+        if ((!currentExamPhase && exSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= exSlot.day))) {
             res.json(MessageResponse("Can't change on-going or passed schedule"));
             return;
         }
@@ -1111,7 +1128,7 @@ router.put('/addExaminer', async (req, res) => {
                         tableName: 0,
                         typeChange: 0
                     })
-                    
+
                     const addToLecLogTime = await ExaminerLogTime.create({
                         examinerId: parseInt(lecToExaminer.id),
                         timeSlotId: timeSlot.id,
@@ -1502,8 +1519,8 @@ router.get('/allExaminerInSlot', async (req, res) => {
                     status: 0
                 })
                 check++;
-            }else if(examiner.status == 1){
-                await Examiner.update({status: 0}, {
+            } else if (examiner.status == 1) {
+                await Examiner.update({ status: 0 }, {
                     where: {
                         userId: parseInt(item.dataValues.id),
                         semesterId: parseInt(semester.id),
@@ -1513,7 +1530,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
             }
         });
 
-        if(check != 0){
+        if (check != 0) {
             await StaffLogChange.create({
                 tableName: 5,
                 userId: staffId,
