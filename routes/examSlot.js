@@ -104,6 +104,33 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+/**
+ * @swagger
+ * /examSlots:
+ *   get:
+ *     summary: Return all data of exam slot by semId and ePId.
+ *     tags: [ExamSlots]
+ *     parameters:
+ *       - in: query
+ *         name: semId
+ *         schema:
+ *           type: int
+ *         required: true
+ *         example: 1, 2.
+ *         description: The time semester of list exam slot you want to get.   
+ *       - in: query
+ *         name: ePId
+ *         schema:
+ *           type: int
+ *         required: true
+ *         example: 1, 2.
+ *         description: The time exam phase of list exam slot you want to get.           
+ *     responses:
+ *       '200':
+ *         description: Get all exam slot successfully!
+ *       '500':
+ *         description: Can not get all exam slot!
+ */
 
 router.post('/', async (req, res) => {
     const ePId = parseInt(req.body.ePId);
@@ -161,31 +188,15 @@ router.delete('/', async (req, res) => {
     }
 })
 
-router.get('/statistic', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        var type = req.query.type
-        const time = new Date()
-        // var timeFormat = time.toISOString().slice(0, 10)
-        var timeFormat = "2023-12-03"
-        const semester = await Semester.findOne({
-            where: {
-                start: {
-                    [Op.lt]: timeFormat
-                },
-                end: {
-                    [Op.gt]: timeFormat
-                }
-            }
-        })
+        const semId = parseInt(req.query.semID)
+        const ePId = parseInt(req.query.ePId)
+
         const examPhase = await ExamPhase.findOne({
             where: {
-                startDay: {
-                    [Op.lt]: timeFormat
-                },
-                endDay: {
-                    [Op.gt]: timeFormat
-                },
-                semId: semester.id
+                id: ePId,
+                semId: semId
             }
         })
 
@@ -194,32 +205,11 @@ router.get('/statistic', async (req, res) => {
                 ePId: examPhase.id
             }
         })
-        const exSlotPast = []
-        const exSlotCur = []
-        if (type == "") {
-            res.json(DataResponse(exSlotFull))
-        } else if (type == '1') {
-            exSlotFull.forEach(e => {
-                if (Date.parse(e.day) < Date.parse(timeFormat)) {
-                    exSlotPast.push(e)
-                }
-            });
-            res.json(DataResponse(exSlotPast))
-        } else if (type == '0') {
-            exSlotFull.forEach(e => {
-                if (Date.parse(e.day) > Date.parse(timeFormat)) {
-                    exSlotCur.push(e)
-                }
-            });
-            res.json(DataResponse(exSlotCur))
-        }
-        //res.json(DataResponse(examPhase))
-        // res.json(MessageResponse("allo"))
+        res.json(DataResponse(exSlotFull))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})// Thống kê exam slots, type = ““ thì getAll; = 1 thì lấy đã hoàn tất; = 0 thì lấy chưa hoàn tất 
-// theo loại kì thi như PE, FE, RE dựa vào time hiện tại
+})// Lấy tất cả exam slot theo exam phase
 
 export default router

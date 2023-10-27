@@ -188,9 +188,12 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const type = req.query.type
     const value = req.query.value
+    const pageNo = parseInt(req.query.page_no) || 1
+    const limit = parseInt(req.query.limit) || 10
+
     try {
         let semesterList
-        await findAllSemester(value, type).then(value => semesterList = value)
+        await findAllSemester(value, type, pageNo, limit).then(value => semesterList = value)
         if (semesterList != null && semesterList.length > 0) {
             res.json(DataResponse(semesterList));
         }
