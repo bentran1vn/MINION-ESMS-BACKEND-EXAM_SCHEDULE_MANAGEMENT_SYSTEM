@@ -3,6 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
+
 const router = express.Router()
 
 /**

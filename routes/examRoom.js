@@ -1580,4 +1580,173 @@ router.get('/allExaminerInSlot', async (req, res) => {
         res.json(InternalErrResponse());
     }
 })
+
+router.get('/getCourseOneSlot', async (req, res) => {
+    const exSlotID = parseInt(req.query.exSlotID);
+    try {
+        let coursesWithSlot = [];
+        const exSlot = await ExamSlot.findOne({
+            where:{
+                id: exSlotID
+            }
+        })
+
+        const exPhase = await ExamPhase.findOne({
+            where:{
+                [Op.and]: [
+                    { startDay: { [Op.gte]: exSlot.day } }, // startDay >= day
+                    { endDay: { [Op.lte]: exSlot.day } }     // endDay <= day
+                ]
+            }
+        })
+
+        const subWithSlot = await SubInSlot.findAll({
+            where: {
+                exSlId: exSlotID
+            }
+        })
+
+        subWithSlot.forEach(async (item) => {
+            const course = await Course.findOne({
+                where: {
+                    id: item.dataValues.courId,
+                    ePId: exPhase.id
+                }
+            })
+            const subject = await Subject.findOne({
+                where:{
+                    id: course.subId
+                }
+            })
+            const cour = {
+                courId: course.id,
+                subCode: subject.code,
+                numOfStu: course.numOfStu,
+            }
+            coursesWithSlot.push(cour);
+        });
+
+        res.json(DataResponse(coursesWithSlot));
+        return;
+
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+router.get('/getRoomOneSlot', async (req, res) => {
+    const exSlotID = parseInt(req.query.exSlotID);
+    try {
+        let roomsWithSlot = [];
+
+        const subWithSlot = await SubInSlot.findAll({
+            where: {
+                exSlId: exSlotID
+            }
+        })
+
+        subWithSlot.forEach(async (item) => {
+            const exRoom = await ExamRoom.findAll({
+                where: {
+                    sSId: item.dataValues.id
+                }
+            })
+
+            exRoom.forEach(async (ex) => {
+                const room = await Room.findOne({
+                    where: {
+                        id: ex.dataValues.roomId
+                    }
+                })
+                const rm = {
+                    roomId: ex.dataValues.roomId,
+                    roomNum: room.roomNum,
+                    location: room.location
+                }
+                roomsWithSlot.push(rm);
+            });
+                       
+        });
+
+        res.json(DataResponse(roomsWithSlot));
+        return;
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+router.get('/getExaminerOneSlot', async (req, res) => {
+    const exSlotID = parseInt(req.query.exSlotID);
+    try {
+        let examinersWithSlot = [];
+
+        const subWithSlot = await SubInSlot.findAll({
+            where: {
+                exSlId: exSlotID
+            }
+        })
+
+        
+        const exSlot = await ExamSlot.findOne({
+            where:{
+                id: exSlotID
+            }
+        })
+
+        const semester = await Semester.findOne({
+            where:{
+                [Op.and]: [
+                    { start: { [Op.gte]: exSlot.day } }, // startDay >= day
+                    { end: { [Op.lte]: exSlot.day } }     // endDay <= day
+                ]
+            }
+        })
+
+        subWithSlot.forEach(async (item) => {
+            const exRoom = await ExamRoom.findAll({
+                where: {
+                    sSId: item.dataValues.id
+                }
+            })
+
+            exRoom.forEach(async (item) => {
+                const examiner = await Examiner.findOne({
+                    where: {
+                        id: item.dataValues.examinerId,
+                        semesterId: parseInt(semester.id)
+                    }
+                })
+                if(examiner.typeExaminer == 1 || examiner.typeExaminer == 0){
+                    const user = await User.findOne({
+                        where:{
+                            id: parseInt(examiner.userId)
+                        }
+                    })
+                    const ex = {
+                        examinerId: examiner.id,
+                        examinerName: user.name,
+                        examinerEmail: user.email
+                    }
+                    examinersWithSlot.push(ex);
+                }else if(examiner.typeExaminer == 2){
+                    const ex = {
+                        examinerId: examiner.id,
+                        examinerName: examiner.exName,
+                        examinerEmail: examiner.exEmail
+                    }
+                    examinersWithSlot.push(ex);
+                } 
+            });  
+        });
+
+        res.json(DataResponse(examinersWithSlot));
+        return;
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
 export default router
