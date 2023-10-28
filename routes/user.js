@@ -284,7 +284,7 @@ router.delete('/', async (req, res) => {
 //, requireRole('lecturer')
 router.get('/logout', (req, res) => {
     res.clearCookie('token')
-    res.json(DataResponse())
+    res.redirect(env.process.CLIENT_URL)
 })
 
 
