@@ -284,7 +284,7 @@ router.delete('/', async (req, res) => {
 //, requireRole('lecturer')
 router.get('/logout', (req, res) => {
     res.clearCookie('token')
-    res.json(DataResponse())
+    res.redirect(env.process.CLIENT_URL)
 })
 
 
@@ -302,26 +302,5 @@ function sendToken(res, user) {
         token: token
     }))
 }
-
-router.post('/login', async (req, res) => {
-    const userInfo = req.body;
-
-    const user = await User.findOne({
-        where:{
-            email: userInfo.email
-        }
-    })
-    if(!user){
-        res.json(NotFoundResponse())
-        return;
-    }
-    const isMatch = await bcrypt.compare(userInfo.password, user.password)
-    if(isMatch){
-        sendToken(res, user)
-    }else{
-        res.json(ErrorResponse(401, 'Invalid user or password'))
-    }
-})
-
 
 export default router

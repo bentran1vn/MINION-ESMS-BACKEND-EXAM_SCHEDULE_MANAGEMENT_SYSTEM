@@ -26,7 +26,7 @@ router.get('/google/callback', passport.authenticate('google', {
             })
             if (!user) {
                 localStorage.setItem("message", "Invalid Account")
-                res.redirect(`${process.env.CLIENT_URL}`)
+                res.redirect(`${process.env.CLIENT_URL}?error_message=Can not find User!`)
             } else {
                 const payload = {
                     id: user.id,
