@@ -622,7 +622,33 @@ router.get('/examPhaseId', async (req, res) => {
                 });
             });
         });
-        res.json(DataResponse(scheduleWithPhase));
+        let result = [];
+        const counts = {};
+        // Duyệt qua danh sách slot available và đếm số lần xuất hiện của mỗi khung giờ khác nhau
+        scheduleWithPhase.forEach(item => {
+            // Tạo một chuỗi duy nhất để đại diện cho mục
+            const key = JSON.stringify(item);
+            // Kiểm tra nếu đã có mục này trong counts, nếu chưa thì đặt giá trị mặc định là 0
+            if (!counts[key]) {
+                counts[key] = 0;
+            }
+            // Tăng số lần xuất hiện lên 1
+            counts[key]++;
+        });
+
+        // Hiển thị kết quả
+        for (const key in counts) {
+            const item = JSON.parse(key);
+            const kq = {
+                day: item.day,
+                startTime: item.startTime,
+                endTime: item.endTime,
+                available: counts[key],
+                register: item.register
+            }
+            result.push(kq);
+        }
+        res.json(DataResponse(result));
         return;
     } catch (error) {
         res.json(InternalErrResponse());
