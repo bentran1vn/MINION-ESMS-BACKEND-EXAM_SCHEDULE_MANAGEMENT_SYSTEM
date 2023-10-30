@@ -39,6 +39,9 @@ router.get('/', async (req, res) => {
         let slotList = await TimeSlot.findAll(
             {
                 where: {
+                    semId:{
+                        [Op.eq]: examPhase.semId
+                    },
                     des: {
                         [Op.eq]: examPhase.des
                     },
