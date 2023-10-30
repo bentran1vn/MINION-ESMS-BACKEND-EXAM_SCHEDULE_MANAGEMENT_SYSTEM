@@ -1,4 +1,4 @@
-import ExamSlot from "../models/ExamSlot"
+import ExamSlot from "../models/ExamSlot.js"
 
 export async function findAllExamSlotByPhase(id){
     let slotList = ExamSlot.findAll({
