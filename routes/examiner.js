@@ -548,7 +548,86 @@ router.get('/availableSlot', async (req, res) => {
         res.json(InternalErrResponse());
         console.log(error);
     }
+})
 
+router.get('/examPhaseId', async (req, res) => {
+    try {// Nhận userId xong đi check trong examiner 
+        const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
+        const examPhaseId = parseInt(req.query.examPhaseId)
+        const semId = parseInt(req.query.semId)
+        let scheduleWithPhase = [];
+
+        const exPhase = await ExamPhase.findOne({
+            where: {
+                id: examPhaseId
+            }
+        })
+        
+        const exMiner = await Examiner.findOne({
+            where: {
+                userId: userId,
+                semesterId: semId
+            }
+        })
+
+        const examSlot = await ExamSlot.findAll({
+            where: {
+                ePId: examPhaseId
+            }
+        })
+
+        examSlot.forEach(async (item) => {
+            const timeSlot = await TimeSlot.findOne({
+                where: {
+                    id: parseInt(item.dataValues.timeSlotId)
+                }
+            })
+            const subSlot = await SubInSlot.findAll({
+                where:{
+                    exSlId: parseInt(item.dataValues.id)
+                }
+            })
+            subSlot.forEach(async (sub) => {
+                const exRoom = await ExamRoom.findAll({
+                    where:{
+                        sSId: sub.dataValues.id
+                    }
+                })
+                exRoom.forEach(async (ex) => {
+                    const examinerLog = await ExaminerLogTime.findOne({
+                        where: {
+                            day: item.dataValues.day,
+                            timeSlotId: timeSlot.id,
+                            examinerId: exMiner.id,
+                            semId: semId
+                        }
+                    })
+                    if(!examinerLog && exPhase.status == 1){
+                        const sche = {
+                            day: item.dataValues.day,
+                            startTime: timeSlot.startTime,
+                            endTime: timeSlot.endTime,
+                            register: 1  //được đk
+                        }
+                        scheduleWithPhase.push(sche)
+                    }else if(examinerLog || examPhaseId.status == 0){
+                        const sche = {
+                            day: item.dataValues.day,
+                            startTime: timeSlot.startTime,
+                            endTime: timeSlot.endTime,
+                            register: 0 //ko được đk
+                        }
+                        scheduleWithPhase.push(sche)
+                    }
+                });
+            });
+        });
+        res.json(DataResponse(scheduleWithPhase));
+        return;
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
 })
 
 router.get('/', async (req, res) => {
