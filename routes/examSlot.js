@@ -212,4 +212,8 @@ router.get('/', async (req, res) => {
     }
 })// Lấy tất cả exam slot theo exam phase
 
+router.get('', async (req, res) => {
+    
+})
+
 export default router

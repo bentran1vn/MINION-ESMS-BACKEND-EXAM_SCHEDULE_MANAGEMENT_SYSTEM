@@ -368,4 +368,15 @@ router.get('/notScheduled', async (req, res) => {
     res.json(DataResponse(detailExamPhase))
 })// Get all Exam Phase has not been scheduled
 
+router.get('/:id',  async (req, res) => {
+    const semId = parseInt(req.params.id)
+    try{
+        let phaseList
+        await findPhaseBySemId(semId).then(value => phaseList = value)
+    } catch(err){
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
+    }
+})
+
 export default router

@@ -83,3 +83,13 @@ export function checkTime(startDay, endDay) {
     }
 
 }
+
+export function findPhaseBySemId(id){
+    let phaseList = ExamPhase.findAll({
+        where : {
+            semId: id
+        }
+    })
+    if(!phaseList) throw new Error("Can not find exam phases !")
+    return phaseList
+}
