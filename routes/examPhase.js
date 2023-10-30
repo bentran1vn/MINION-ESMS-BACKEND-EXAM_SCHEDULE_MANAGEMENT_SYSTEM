@@ -5,7 +5,7 @@ import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { Op, STRING } from 'sequelize'
-import { checkTime } from '../services/examPhaseService.js'
+import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
 
 /**
  * @swagger
@@ -373,6 +373,7 @@ router.get('/:id',  async (req, res) => {
     try{
         let phaseList
         await findPhaseBySemId(semId).then(value => phaseList = value)
+        res.json(DataResponse(phaseList))
     } catch(err){
         console.log(err);
         res.json(ErrorResponse(500, err.message))
