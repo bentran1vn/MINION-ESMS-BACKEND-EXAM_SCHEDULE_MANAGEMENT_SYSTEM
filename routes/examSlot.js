@@ -1,11 +1,12 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import ExamPhase from '../models/ExamPhase.js'
 import TimeSlot from '../models/TimeSlot.js'
 import ExamSlot from '../models/ExamSlot.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
+import { findAllExamSlotByPhase } from '../services/examSlotService.js'
 
 const router = express.Router()
 
@@ -222,8 +223,16 @@ router.get('/statistic', async (req, res) => {
 })// Thống kê exam slots, type = ““ thì getAll; = 1 thì lấy đã hoàn tất; = 0 thì lấy chưa hoàn tất 
 // theo loại kì thi như PE, FE, RE dựa vào time hiện tại
 
-router.get('', async (req, res) => {
-    
+router.get('/:id', async (req, res) => {
+    const phaseId = req.params.id
+    try{
+        let slotList 
+        await findAllExamSlotByPhase(phaseId).then(value => slotList = value)
+        res.json(DataResponse(slotList))
+    }catch(err){
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
+    }
 })
 
 export default router
