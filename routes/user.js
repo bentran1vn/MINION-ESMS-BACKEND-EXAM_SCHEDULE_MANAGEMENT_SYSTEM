@@ -281,13 +281,6 @@ router.delete('/', async (req, res) => {
     }
 })// Delete User by email (status = 0)
 
-//, requireRole('lecturer')
-router.get('/logout', (req, res) => {
-    res.clearCookie('token')
-    res.redirect(env.process.CLIENT_URL)
-})
-
-
 function sendToken(res, user) {
     const payload = {
         id: user.id,

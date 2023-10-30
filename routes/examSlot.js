@@ -222,4 +222,8 @@ router.get('/statistic', async (req, res) => {
 })// Thống kê exam slots, type = ““ thì getAll; = 1 thì lấy đã hoàn tất; = 0 thì lấy chưa hoàn tất 
 // theo loại kì thi như PE, FE, RE dựa vào time hiện tại
 
+router.get('', async (req, res) => {
+    
+})
+
 export default router
