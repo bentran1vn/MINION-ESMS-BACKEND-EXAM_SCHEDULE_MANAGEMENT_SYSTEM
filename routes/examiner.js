@@ -7,6 +7,8 @@ import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { getScheduleByPhase, getAllSchedule, getScheduledOneExaminer } from '../services/examinerService.js'
+import ExaminerLogTime from '../models/ExaminerLogTime.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -326,5 +328,65 @@ router.delete('/', async (req, res) => {
         return;
     }
 })
+
+router.get('/getExaminerByPhase', async (req, res) => {
+    const exPhaseId = parseInt(req.query.exPhaseId);
+    try{
+        const statusMap = new Map([
+            [0, 'lecturer'],
+            [1, 'staff'],
+            [2, 'volunteer']
+        ]);
+        let examinerLists = [];
+        const exPhase = await ExamPhase.findOne({
+            where: {
+                id: exPhaseId
+            }
+        })
+        if (exPhase) {    
+            const examiners = await ExaminerLogTime.findAll({
+                where: {
+                    day: {
+                        [Op.gte]: exPhase.startDay, // Lấy examiner có day lớn hơn hoặc bằng startDay
+                        [Op.lte]: exPhase.endDay,   // và nhỏ hơn hoặc bằng endDay
+                    }
+                }
+            });
+            const uniqueExaminers = examiners.reduce((acc, current) => {
+                const x = acc.find(item => item.examinerId === current.examinerId);
+                if (!x) {
+                    return acc.concat([current]);
+                } else {
+                    return acc;
+                }
+            }, []);
+
+            for (const item of uniqueExaminers) {
+                const examiner = await Examiner.findOne({
+                    where: {
+                        id: item.examinerId,
+                        semesterId: item.semId
+                    }
+                });
+            
+                const ex = {
+                    exEmail: examiner.exEmail,
+                    exName: examiner.exName,
+                    role: statusMap.get(examiner.typeExaminer),
+                    status: examiner.status
+                };
+                
+                examinerLists.push(ex);
+            }
+            res.json(DataResponse(examinerLists))
+            return;
+        }
+    }catch(err){
+        res.json(InternalErrResponse());
+        console.log(err);
+    }
+    //trả ra email name, role, status
+})
+
 export default router
 //add được

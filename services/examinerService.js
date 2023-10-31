@@ -415,4 +415,6 @@ export async function getScheduledOneExaminer(id) {
 
     }
     return finalList;
-}
+}//lấy hết lịch đã đk của 1 thg theo phase
+//lấy hết lịch đã dk của 1 thg nhưng k theo bất kì gì hết
+
