@@ -33,11 +33,15 @@ const router = express.Router()
  *          day:
  *              type: DATEONLY
  *              description: The exam day
+ *          des: 
+ *              type: int
+ *              description: 0 - Nomal test or 1 - Coursera test
  *       example:
  *           id: 1
  *           ePId: 1
  *           timeSlotId: 1
  *           day: 2023-04-13
+ *           des: 0
  */
 
 /**
@@ -112,25 +116,51 @@ const router = express.Router()
  *     summary: Return all data of exam slot by semId and ePId.
  *     tags: [ExamSlots]
  *     parameters:
- *       - in: query
- *         name: semId
- *         schema:
- *           type: int
- *         required: true
- *         example: 1, 2.
- *         description: The time semester of list exam slot you want to get.   
- *       - in: query
- *         name: ePId
- *         schema:
- *           type: int
- *         required: true
- *         example: 1, 2.
- *         description: The time exam phase of list exam slot you want to get.           
+ *        - in: query
+ *          name: semId
+ *          schema:
+ *            type: int
+ *          required: true
+ *          example: 1, 2.
+ *          description: The time semester of list exam slot you want to get.   
+ *        - in: query
+ *          name: ePId
+ *          schema:
+ *            type: int
+ *          required: true
+ *          example: 1, 2.
+ *          description: The time exam phase of list exam slot you want to get.           
  *     responses:
  *       '200':
  *         description: Get all exam slot successfully!
  *       '500':
  *         description: Can not get all exam slot!
+ */
+
+/**
+ * @swagger
+ * /examSlots/{id} :
+ *   get:
+ *     summary: Return all ExamSlot by ExamPhase Id.
+ *     tags: [ExamSlots]
+ *     parameters:
+ *        - in: path
+ *          name: id
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The ExamPhase ID client want to get.         
+ *     responses :
+ *       200 :
+ *         description: Get exam slot successfully!
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamPhases'
+ *       500 :
+ *         description: Can not get exam slot!
  */
 
 router.post('/', async (req, res) => {
@@ -215,11 +245,13 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const phaseId = req.params.id
-    try{
-        let slotList 
-        await findAllExamSlotByPhase(phaseId).then(value => slotList = value)
-        res.json(DataResponse(slotList))
-    }catch(err){
+    try {
+        const slotList = await findAllExamSlotByPhase(phaseId)
+        //.then(value => slotList = value)
+        if (slotList) {
+            res.json(DataResponse(slotList))
+        }
+    } catch (err) {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
