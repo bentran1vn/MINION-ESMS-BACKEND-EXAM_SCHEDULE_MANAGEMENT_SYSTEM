@@ -489,7 +489,6 @@ router.post('/auto', async (req, res) => {
 
 })
 
-
 //update lecturerId to 1 examRoom //đăng kí
 //có 1 giao diện như cái excel của thầy phương
 //nhận từ giao diện về giờ, ngày, lecid => examslotid

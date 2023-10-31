@@ -1000,7 +1000,6 @@ export async function getAllCourseOneSlot(exSlotID) {
             subCode: subject.code,
             numOfStu: course.numOfStu,
         };
-
         coursesWithSlot.push(cour);
     }
     return coursesWithSlot;

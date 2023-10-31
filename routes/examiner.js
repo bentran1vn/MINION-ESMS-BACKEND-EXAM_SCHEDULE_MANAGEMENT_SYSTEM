@@ -228,17 +228,17 @@ router.post('/', async (req, res) => {
 //PASS
 router.get('/scheduled', async (req, res) => {
     const id = parseInt(req.query.examinerId);
-    
+
     try {
         const finalList = await getScheduledOneExaminer(id);
 
-        if(Array.isArray(finalList) && finalList.length == 0){
+        if (Array.isArray(finalList) && finalList.length == 0) {
             res.json(MessageResponse("You have no schedule"));
             return;
-        }else if(Array.isArray(finalList) && finalList.length != 0){
+        } else if (Array.isArray(finalList) && finalList.length != 0) {
             res.json(DataResponse(finalList));
             return;
-        }else if(!Array.isArray(finalList)){
+        } else if (!Array.isArray(finalList)) {
             res.json(MessageResponse(finalList));
             return;
         }
@@ -255,35 +255,34 @@ router.get('/scheduled', async (req, res) => {
 router.get('/availableSlot', async (req, res) => {
 
     try {// Nhận userId xong đi check trong examiner 
-        const examinerId = parseInt(req.query.examinerId) //cái này sẽ đổi thành lấy từ token sau
-
+        //const examinerId = parseInt(req.query.examinerId) //cái này sẽ đổi thành lấy từ token sau
+        const examinerId = 1;
         const result = await getAllSchedule(examinerId);
-        
-        if(Array.isArray(result)){
+
+        if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        }else{
+        } else {
             res.json(MessageResponse(result));
             return;
         }
-        
+
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
     }
 })
-
 router.get('/examPhaseId', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
         const examPhaseId = parseInt(req.query.examPhaseId)
         const semId = parseInt(req.query.semId)
-        
+
         const result = await getScheduleByPhase(userId, examPhaseId, semId);
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        }else{
+        } else {
             res.json(MessageResponse(result));
             return;
         }

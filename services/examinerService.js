@@ -61,12 +61,13 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
                         day: item.dataValues.day,
                         timeSlotId: timeSlot.id,
                         examinerId: exMiner.id,
-                        semId: semId
+                        semId: semId,
                     }
                 });
 
                 if (!examinerLog && exPhase.status == 1) {
                     const sche = {
+                        examinerId: ex.dataValues.examinerId || null,
                         day: item.dataValues.day,
                         startTime: timeSlot.startTime,
                         endTime: timeSlot.endTime,
@@ -75,6 +76,7 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
                     scheduleWithPhase.push(sche);
                 } else if (examinerLog || examPhaseId.status == 0) {
                     const sche = {
+                        examinerId: ex.dataValues.examinerId || null,
                         day: item.dataValues.day,
                         startTime: timeSlot.startTime,
                         endTime: timeSlot.endTime,
@@ -85,31 +87,43 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
             }
         }
     }
-    let result = [];
-    const counts = {};
-    // Duyệt qua danh sách slot available và đếm số lần xuất hiện của mỗi khung giờ khác nhau
-    scheduleWithPhase.forEach(item => {
-        // Tạo một chuỗi duy nhất để đại diện cho mục
-        const key = JSON.stringify(item);
-        // Kiểm tra nếu đã có mục này trong counts, nếu chưa thì đặt giá trị mặc định là 0
-        if (!counts[key]) {
-            counts[key] = 0;
-        }
-        // Tăng số lần xuất hiện lên 1
-        counts[key]++;
-    });
 
-    // Hiển thị kết quả
-    for (const key in counts) {
-        const item = JSON.parse(key);
-        const kq = {
+    let result = [];
+    const tempArray = [...scheduleWithPhase]; // Tạo một bản sao của mảng gốc
+
+    for (const item of scheduleWithPhase) {
+        const sche = {
             day: item.day,
             startTime: item.startTime,
             endTime: item.endTime,
-            available: counts[key],
-            register: item.register
+            register: item.register,
+        };
+
+        let check = 0;
+
+        for (const i of tempArray) {
+            if (item.day === i.day &&
+                item.startTime === i.startTime &&
+                item.endTime === i.endTime &&
+                i.examinerId === null) {
+                check++;
+            }
         }
-        result.push(kq);
+        
+        if (check === 0) {
+            sche.available = 0;
+            const isContained = result.some(item => JSON.stringify(item) === JSON.stringify(sche));
+            if(!isContained){
+                result.push(sche);
+            }
+       
+        } else if (check !== 0) {
+            sche.available = check;
+            const isContained = result.some(item => JSON.stringify(item) === JSON.stringify(sche));
+            if(!isContained){
+                result.push(sche);
+            }
+        }
     }
     return result;
 }
@@ -346,7 +360,7 @@ export async function getScheduledOneExaminer(id) {
             const subject = schedule.subInSlot.course.subject;
             const examSlot = schedule.subInSlot.examSlot;
             const timeSlot = schedule.subInSlot.examSlot.timeSlot;
-            const sche = { 
+            const sche = {
                 subCode: subject.code,
                 subName: subject.name,
                 startTime: timeSlot.startTime,
@@ -357,7 +371,7 @@ export async function getScheduledOneExaminer(id) {
             };
             listSchedule.push(sche);
         }
-       
+
         for (const sche of listSchedule) {
             if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
                 const f = {
@@ -397,7 +411,7 @@ export async function getScheduledOneExaminer(id) {
                 finalList.push(f);
             }
         }
-        
+
     }
     return finalList;
 }
