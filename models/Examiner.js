@@ -31,7 +31,7 @@ const Examiner = sequelize.define(tableName, {
     semesterId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-    },
+    }, 
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: 0,
