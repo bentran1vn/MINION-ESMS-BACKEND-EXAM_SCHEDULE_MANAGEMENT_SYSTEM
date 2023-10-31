@@ -14,6 +14,7 @@ import { Op } from 'sequelize'
 
 
 export async function getScheduleByPhase(userId, examPhaseId, semId) {
+    //day - startTime - endTime - Room
     let scheduleWithPhase = [];
 
     const exPhase = await ExamPhase.findOne({
