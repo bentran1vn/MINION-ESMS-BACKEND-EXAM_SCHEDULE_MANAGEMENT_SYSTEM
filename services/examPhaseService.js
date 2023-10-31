@@ -41,8 +41,8 @@ export function checkTime(startDay, endDay) {
 
 }
 
-export function findPhaseBySemId(id){
-    let phaseList = ExamPhase.findAll({
+export async function findPhaseBySemId(id){
+    let phaseList = await ExamPhase.findAll({
         where : {
             semId: id
         }
