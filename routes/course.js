@@ -46,8 +46,15 @@ const router = express.Router()
  * @swagger
  * /courses/:
  *   get:
- *     summary: Return all Courses by detail courseId, subCode, numOfStu, semesterId
+ *     summary: Return all Courses by detail courseId, subCode, numOfStu, examPhase Id
  *     tags: [Courses]
+ *     parameters:
+ *        - in: query
+ *          name: ePId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The ExamPhase ID client want to get.
  *     responses:
  *       '200':
  *         description: OK !
@@ -83,9 +90,13 @@ const router = express.Router()
  */
 
 router.get('/', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     let listCourse = [];
     try {
         const result = await Course.findAll({
+            where: {
+                ePId
+            },
             include: [{
                 model: Subject,
                 attributes: ['code']
@@ -99,7 +110,7 @@ router.get('/', async (req, res) => {
                     courseId: course.dataValues.id,
                     subCode: subject.code,
                     numOfStu: course.dataValues.numOfStu,
-                    semesterId: course.dataValues.semesterId,
+                    ePId: course.dataValues.ePId,
                     status: 1
                 }
                 listCourse.push(sub);
@@ -109,7 +120,7 @@ router.get('/', async (req, res) => {
                     courseId: course.dataValues.id,
                     subCode: subject.code,
                     numOfStu: course.dataValues.numOfStu,
-                    semesterId: course.dataValues.semesterId,
+                    ePId: course.dataValues.ePId,
                     status: 0
                 }
                 listCourse.push(sub);
