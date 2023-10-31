@@ -27,7 +27,6 @@ import examRoomRouter from './routes/examRoom.js'
 import staffLogChangeRouter from './routes/staffLogChange.js'
 import studentExamRouter from './routes/studentExam.js'
 import authenticateRouter from './routes/authenticate.js'
-import autoCreateExamPhasesRouter from './routes/autoCreateExamPhase.js'
 import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
 import studentSubjectRouter from './routes/studentSubject.js'
@@ -80,7 +79,6 @@ server.use('/examRooms', examRoomRouter)
 server.use('/staffLogChanges', staffLogChangeRouter)
 server.use('/studentExams', studentExamRouter)
 server.use('/auth', authenticateRouter)
-server.use('/autoCreateExamPhases', autoCreateExamPhasesRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
 server.use('/studentSubjects', studentSubjectRouter)
 server.use('/autoCreateCourses', autoCreateCourseRouter)
