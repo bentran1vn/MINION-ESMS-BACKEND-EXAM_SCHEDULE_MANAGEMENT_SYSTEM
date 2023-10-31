@@ -16,6 +16,7 @@ import Semester from '../models/Semester.js'
 import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
+import {autoFillLecturerToExamRoom} from '../services/examRoomService.js'
 
 
 const router = express.Router()
@@ -318,7 +319,26 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+router.post('/check', async (req, res) => {
+    const time = new Date() //ngày hiện tại
+    var timeFormatted = time.toISOString().slice(0, 10)
+    const semester = await Semester.findOne({
+        where: {
+            start: {
+                [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+            },
+            end: {
+                [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+            },
+        }
+    })
 
+    if (semester.start > timeFormatted) {
+        console.log("true");
+    } else {
+        console.log("false");
+    }
+})
 router.post('/', async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
@@ -480,202 +500,12 @@ router.post('/', async (req, res) => {
 // PASS //auto này cũng require role staff để cái middle ware reqRole đây
 router.post('/auto', async (req, res) => {
     //lấy id thông qua token
-    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = parseInt(res.locals.userData.id) || 1;
+    const staffId = 1;
 
     try {
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
-        const semester = await Semester.findOne({
-            where: {
-                start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        if (!semester) {
-            res.json(MessageResponse("Table semester hasn't have data for this semester"))
-            return;
-        }
-
-        const lecturer = await User.findAll({
-            where: {
-                role: 'lecturer'
-            }
-        })
-
-        lecturer.forEach(async (item) => {
-            const check = await Examiner.findOne({
-                where: {
-                    userId: item.dataValues.id,
-                    semesterId: parseInt(semester.id)
-                }
-            })
-            if (!check) {
-                const lecToExaminer = await Examiner.create({
-                    userId: item.dataValues.id,
-                    typeExaminer: 0,
-                    semesterId: parseInt(semester.id),
-                    status: 0
-                })
-                if (!lecToExaminer) {
-                    res.json(MessageResponse(`Error when add lecturer ${item.dataValues.id} to examiner`));
-                    return;
-                } else {
-                    const stafflog = await StaffLogChange.create({
-                        rowId: parseInt(lecToExaminer.id),
-                        tableName: 5,
-                        userId: staffId,
-                        typeChange: 10
-                    })
-                    if (!stafflog) {
-                        res.json("Fail to update staff log change");
-                        return;
-                    }
-                }
-            } else if (check && check.status == 1) {
-                const row = await Examiner.update({ status: 0 }, {
-                    where: {
-                        userId: item.dataValues.id,
-                        semesterId: parseInt(semester.id)
-                    }
-                })
-                if (row[0] == 0) {
-                    res.json(MessageResponse(`Fail to update status of examiner ${check.id}`));
-                    return;
-                } else {
-                    const stafflog = await StaffLogChange.create({
-                        rowId: parseInt(check.id),
-                        tableName: 5,
-                        userId: staffId,
-                        typeChange: 10
-                    })
-                    if (!stafflog) {
-                        res.json("Fail to update staff log change");
-                        return;
-                    }
-                }
-            }
-        });
-
-        const examiner = await Examiner.findAll({
-            where: {
-                semesterId: parseInt(semester.id),
-                status: 0
-            }
-        });
-
-        if (examiner.length == 0) {
-            res.json(MessageResponse("Current semester doesn't have any examiner"));
-            return;
-        }
-        const examinerList = examiner.map(ex => ex.dataValues);
-        const examinerIdList = examinerList.map(exL => exL.id);
-
-        const roomNoExaminer = await ExamRoom.findAll({
-            where: {
-                examinerId: null
-            }
-        });
-        if (roomNoExaminer.length == 0) {
-            res.json("All rooms assigned");
-            return;
-        }
-        let roomToSchedule = [];
-        roomNoExaminer.forEach(async (item) => {
-            const subInSlot = await SubInSlot.findOne({
-                where: {
-                    id: item.dataValues.sSId
-                }
-            })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: subInSlot.exSlId
-                }
-            })
-            if (examSlot > timeFormatted) {
-                roomToSchedule.push(item);
-            }
-        });
-
-        // const randomLecId = getRandomLecturerId(lecIdList);       
-        const roomEmpty = roomToSchedule.map(examRoom => examRoom.dataValues);
-        for (const item of roomEmpty) {
-            const id = item.id;
-            const sSId = item.sSId;
-
-            const subjectInSlot = await SubInSlot.findOne({
-                where: {
-                    id: sSId
-                }
-            })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: subjectInSlot.exSlId
-                }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: examSlot.timeSlotId
-                }
-            })
-            let i = 0;
-            for (i; i < examinerIdList.length; i++) {
-                const randomLecId = examinerIdList[i];
-                const checkLecLogTime = await ExaminerLogTime.findOne({
-                    where: {
-                        examinerId: randomLecId,
-                        timeSlotId: timeSlot.id,
-                        day: examSlot.day,
-                        semId: parseInt(semester.id),
-                    }
-                })
-                if (!checkLecLogTime) {
-                    const examRoom = await ExamRoom.update({
-                        examinerId: randomLecId
-                    }, {
-                        where: {
-                            id: id
-                        }
-                    })
-                    if (examRoom) {
-
-                        const updateLecLogTime = await ExaminerLogTime.create({
-                            examinerId: randomLecId,
-                            timeSlotId: timeSlot.id,
-                            day: examSlot.day,
-                            semId: parseInt(semester.id)
-                        })
-                        break;
-                    }
-                }
-            }
-        }
-        const examRoomAtferfill = await ExamRoom.findAll({
-            where: {
-                lecturerId: null
-            }
-        })
-        if (examRoomAtferfill.length != 0) {
-            const staffLog = await StaffLogChange.create({
-                tableName: 0,
-                staffId: staffId,
-                typeChange: 1,
-            })
-            res.json(MessageResponse("Number of examiner not enough to fill up exam room"));
-            return;
-        } else {
-            const staffLog = await StaffLogChange.create({
-                tableName: 0,
-                staffId: staffId,
-                typeChange: 1,
-            })
-            res.json(MessageResponse("All rooms assigned"));
-            return;
-        }
-
+        const message = await autoFillLecturerToExamRoom(staffId);
+        res.json(MessageResponse(message));
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -1453,13 +1283,16 @@ router.get('/', async (req, res) => {
 
 })
 
-//tất cả lecturer rảnh tại cùng 1 giờ 1 ngày
+//tất cả lecturer rảnh tại cùng 1 giờ 1 ngày chưa có trong examRoom
 //role staff
 //PASS
 router.get('/allExaminerInSlot', async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = parseInt(res.locals.userData.id);
+    const staffId = 1;
 
-    const { startTime, endTime, day } = req.body;
+    const startTime = req.query.startTime;
+    const endTime = req.query.endTime;
+    const day = req.query.day;
 
     try {
         const time = new Date() //ngày hiện tại
@@ -1502,6 +1335,9 @@ router.get('/allExaminerInSlot', async (req, res) => {
                 }
             }
         });
+        user.forEach(element => {
+            console.log(element.dataValues.id);
+        });
 
         let check = 0;
         user.forEach(async (item) => {
@@ -1516,6 +1352,8 @@ router.get('/allExaminerInSlot', async (req, res) => {
                     userId: item.dataValues.id,
                     typeExaminer: statusMap.get(item.dataValues.role),
                     semesterId: parseInt(semester.id),
+                    exName: item.dataValues.name,
+                    exEmail: item.dataValues.email,
                     status: 0
                 })
                 check++;
@@ -1581,22 +1419,15 @@ router.get('/allExaminerInSlot', async (req, res) => {
     }
 })
 
+
+//tất cả ... trong 1 examSlot có trong examRoom
 router.get('/getCourseOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         let coursesWithSlot = [];
         const exSlot = await ExamSlot.findOne({
-            where:{
+            where: {
                 id: exSlotID
-            }
-        })
-
-        const exPhase = await ExamPhase.findOne({
-            where:{
-                [Op.and]: [
-                    { startDay: { [Op.gte]: exSlot.day } }, // startDay >= day
-                    { endDay: { [Op.lte]: exSlot.day } }     // endDay <= day
-                ]
             }
         })
 
@@ -1605,26 +1436,30 @@ router.get('/getCourseOneSlot', async (req, res) => {
                 exSlId: exSlotID
             }
         })
-
-        subWithSlot.forEach(async (item) => {
+        const promises = subWithSlot.map(async (item) => {
             const course = await Course.findOne({
                 where: {
-                    id: item.dataValues.courId,
-                    ePId: exPhase.id
+                    id: item.dataValues.courId
                 }
-            })
+            });
+
             const subject = await Subject.findOne({
-                where:{
+                where: {
                     id: course.subId
                 }
-            })
+            });
+
             const cour = {
                 courId: course.id,
                 subCode: subject.code,
                 numOfStu: course.numOfStu,
-            }
-            coursesWithSlot.push(cour);
+            };
+
+            return cour; // Trả về giá trị từ mỗi promise
         });
+
+        // Sử dụng Promise.all để đợi tất cả các promise hoàn thành
+        coursesWithSlot = await Promise.all(promises);
 
         res.json(DataResponse(coursesWithSlot));
         return;
@@ -1646,30 +1481,37 @@ router.get('/getRoomOneSlot', async (req, res) => {
             }
         })
 
-        subWithSlot.forEach(async (item) => {
+        const promises = subWithSlot.map(async (item) => {
             const exRoom = await ExamRoom.findAll({
                 where: {
                     sSId: item.dataValues.id
                 }
-            })
-
-            exRoom.forEach(async (ex) => {
+            });
+        
+            const roomPromises = exRoom.map(async (ex) => {
                 const room = await Room.findOne({
                     where: {
                         id: ex.dataValues.roomId
                     }
-                })
+                });
                 const rm = {
                     roomId: ex.dataValues.roomId,
                     roomNum: room.roomNum,
                     location: room.location
-                }
-                roomsWithSlot.push(rm);
+                };
+                return rm;
             });
-                       
+        
+            const roomsWithSlotForItem = await Promise.all(roomPromises);
+            return roomsWithSlotForItem;
         });
+        
+        roomsWithSlot = await Promise.all(promises);
+        
+        // Flattening the nested arrays to get a single array of rooms
+        const flattenedRooms = roomsWithSlot.flat();
 
-        res.json(DataResponse(roomsWithSlot));
+        res.json(DataResponse(flattenedRooms));
         return;
     } catch (error) {
         res.json(InternalErrResponse());
@@ -1686,60 +1528,43 @@ router.get('/getExaminerOneSlot', async (req, res) => {
             where: {
                 exSlId: exSlotID
             }
-        })
+        });
 
-        
-        const exSlot = await ExamSlot.findOne({
-            where:{
-                id: exSlotID
-            }
-        })
-
-        const semester = await Semester.findOne({
-            where:{
-                [Op.and]: [
-                    { start: { [Op.gte]: exSlot.day } }, // startDay >= day
-                    { end: { [Op.lte]: exSlot.day } }     // endDay <= day
-                ]
-            }
-        })
-
-        subWithSlot.forEach(async (item) => {
+        for (const item of subWithSlot) {
             const exRoom = await ExamRoom.findAll({
                 where: {
                     sSId: item.dataValues.id
                 }
-            })
+            });
 
-            exRoom.forEach(async (item) => {
+            for (const ex of exRoom) {
                 const examiner = await Examiner.findOne({
                     where: {
-                        id: item.dataValues.examinerId,
-                        semesterId: parseInt(semester.id)
+                        id: ex.dataValues.examinerId,
                     }
-                })
-                if(examiner.typeExaminer == 1 || examiner.typeExaminer == 0){
+                });
+                if (examiner.typeExaminer == 1 || examiner.typeExaminer == 0) {
                     const user = await User.findOne({
-                        where:{
+                        where: {
                             id: parseInt(examiner.userId)
                         }
-                    })
+                    });
                     const ex = {
                         examinerId: examiner.id,
                         examinerName: user.name,
                         examinerEmail: user.email
-                    }
+                    };
                     examinersWithSlot.push(ex);
-                }else if(examiner.typeExaminer == 2){
+                } else if (examiner.typeExaminer == 2) {
                     const ex = {
                         examinerId: examiner.id,
                         examinerName: examiner.exName,
                         examinerEmail: examiner.exEmail
-                    }
+                    };
                     examinersWithSlot.push(ex);
-                } 
-            });  
-        });
+                }
+            }
+        }
 
         res.json(DataResponse(examinersWithSlot));
         return;
@@ -1747,6 +1572,6 @@ router.get('/getExaminerOneSlot', async (req, res) => {
         res.json(InternalErrResponse());
         console.log(error);
     }
-})
+});
 
 export default router

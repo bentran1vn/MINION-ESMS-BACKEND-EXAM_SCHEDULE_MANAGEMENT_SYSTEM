@@ -3,18 +3,10 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Examiner from '../models/Examiner.js'
 import User from '../models/User.js'
-import ExamRoom from '../models/ExamRoom.js'
-import SubInSlot from '../models/SubInSlot.js'
-import Room from '../models/Room.js'
-import ExamSlot from '../models/ExamSlot.js'
-import TimeSlot from '../models/TimeSlot.js'
-import Course from '../models/Course.js'
-import Subject from '../models/Subject.js'
-import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import Semester from '../models/Semester.js'
-import ExamPhase from '../models/ExamPhase.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
+import { getScheduleByPhase, getAllSchedule, getScheduledOneExaminer } from '../services/examinerService.js'
 
 const router = express.Router()
 
@@ -168,19 +160,16 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
     const userId = parseInt(req.body.userId);
-    const statusMap = new Map([
-        ['lecturer', 0],
-        ['staff', 1],
-        ['volunteer', 2]
-    ]);
-
-    //staff id thực chất là userId của role staff lấy từ token
     const staffId = parseInt(res.locals.userData.id);
-
-    const time = new Date() //ngày hiện tại
-    var timeFormatted = time.toISOString().slice(0, 10)
-
+    //staff id thực chất là userId của role staff lấy từ token
     try {
+        const statusMap = new Map([
+            ['lecturer', 0],
+            ['staff', 1],
+            ['volunteer', 2]
+        ]);
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
         const user = await User.findOne({
             where: {
                 id: userId
@@ -238,128 +227,14 @@ router.post('/', async (req, res) => {
 
 //PASS
 router.get('/scheduled', async (req, res) => {
-    const id = parseInt(req.query.id);
-    const time = new Date() //ngày hiện tại
-    var timeFormatted = time.toISOString().slice(0, 10)
-
-    if (!id) {
-        res.json(MessageResponse("Examiner id is required"));
-        return;
-    }
+    const id = parseInt(req.query.examinerId);
+    
     try {
-        const curPhase = await ExamPhase.findOne({
-            where: {
-                startDay: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                endDay: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        const result = await ExamRoom.findAll({
-            where: { examinerId: id },
-            include: [
-                {
-                    model: SubInSlot,
-                    include: [
-                        {
-                            model: Course,
-                            where: { status: 1 },
-                            include: [
-                                {
-                                    model: Subject,
-                                    where: { status: 1 },
-                                    attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
-                                },
-                            ],
-                        },
-                        {
-                            model: ExamSlot,
-                            include: [
-                                {
-                                    model: TimeSlot,
-                                    attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
-                                },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    model: Room,
-                    where: { status: 1 },
-                    attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
-                },
-            ],
-        })
-        if (result.length === 0) {
-            res.json(MessageResponse("Your schedule is empty !"))
-            return;
+        const finalList = await getScheduledOneExaminer(id);
+        if (finalList.length == 0) {
+            res.json(MessageResponse("You have no schedule"));
         } else {
-            let listSchedule = [];
-            let i = 1;
-            result.forEach(schedule => {
-                const room = schedule.room;
-                const subject = schedule.subInSlot.course.subject;
-                const examSlot = schedule.subInSlot.examSlot;
-                const timeSlot = schedule.subInSlot.examSlot.timeSlot;
-                const sche = {
-                    subCode: subject.code,
-                    subName: subject.name,
-                    startTime: timeSlot.startTime,
-                    endTime: timeSlot.endTime,
-                    day: examSlot.day,
-                    roomCode: room.roomNum,
-                    roomLocation: room.location
-                }
-                listSchedule.push(sche);
-            });
-            // console.log(listSchedule);
-            let finalList = [];
-            listSchedule.forEach(sche => {
-                if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
-                    const f = {
-                        subCode: sche, subCode,
-                        subName: sche.subName,
-                        startTime: sche.startTime,
-                        endTime: sche.endTime,
-                        day: sche.day,
-                        roomCode: sche.roomNum,
-                        roomLocation: sche.location,
-                        phase: "on-going",
-                    }
-                    finalList.push(f);
-                } else if (!curPhase && (timeFormatted <= sche.day)) {
-                    const f = {
-                        subCode: sche, subCode,
-                        subName: sche.subName,
-                        startTime: sche.startTime,
-                        endTime: sche.endTime,
-                        day: sche.day,
-                        roomCode: sche.roomNum,
-                        roomLocation: sche.location,
-                        phase: "future",
-                    }
-                    finalList.push(f);
-                } else if (!curPhase && (timeFormatted > sche.day)) {
-                    const f = {
-                        subCode: sche, subCode,
-                        subName: sche.subName,
-                        startTime: sche.startTime,
-                        endTime: sche.endTime,
-                        day: sche.day,
-                        roomCode: sche.roomNum,
-                        roomLocation: sche.location,
-                        phase: "passed",
-                    }
-                    finalList.push(f);
-                }
-            });
-            if (finalList.length == 0) {
-                res.json(NotFoundResponse);
-            } else {
-                res.json(DataResponse(finalList));
-            }
+            res.json(DataResponse(finalList));
         }
     } catch (error) {
         console.log(error);
@@ -376,174 +251,10 @@ router.get('/availableSlot', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const examinerId = parseInt(req.query.examinerId) //cái này sẽ đổi thành lấy từ token sau
 
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
-
-        const semester = await Semester.findOne({
-            where: {
-                start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        if (!semester) {
-            res.json(MessageResponse("Table semester have no data for current day"));
-            return;
-        }
-
-        let availableSlotList = [];
-        const slotExaminer = await ExamRoom.findAll();
-        if (!slotExaminer) {
-            res.json(MessageResponse("Exam room has no data"));
-            return;
-        }
-        const slotAvailable = slotExaminer.map(examRoom => examRoom.dataValues);
-
-        for (const item of slotAvailable) {
-            const sSId = item.sSId;
-
-            const subjectInSlot = await SubInSlot.findOne({ // Lọc ra, chỉ láy những
-                where: {
-                    id: sSId
-                }
-            })
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: subjectInSlot.exSlId
-                }
-            })
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: examSlot.timeSlotId
-                }
-            })
-
-            if (examinerId != null) {
-                const checkLecLogTime = await ExaminerLogTime.findOne({
-                    where: {
-                        day: examSlot.day,
-                        timeSlotId: timeSlot.id,
-                        examinerId: examinerId,
-                        semId: semester.id,
-                    }
-                })
-                if (checkLecLogTime) {
-                    const ob = {
-                        day: examSlot.day,
-                        startTime: timeSlot.startTime,
-                        endTime: timeSlot.endTime,
-                        semId: semester.id,
-                        busy: true, //status = true là không được nhận lịch nữa, bận rồi
-                    }
-                    availableSlotList.push(ob);
-                } else {
-                    const ob = {
-                        day: examSlot.day,
-                        startTime: timeSlot.startTime,
-                        endTime: timeSlot.endTime,
-                        semId: semester.id,
-                        busy: false, //status = false là được nhận lịch nữa, rảnh
-                    }
-                    availableSlotList.push(ob);
-
-                }
-            } else if (examinerId == null) {
-                const ob = {
-                    day: examSlot.day,
-                    startTime: timeSlot.startTime,
-                    endTime: timeSlot.endTime,
-                    semId: semester.id,
-                    busy: false, //status = false là được nhận lịch nữa, rảnh
-                }
-                availableSlotList.push(ob);
-            }
-        }
-        const currentExamPhase = await ExamPhase.findOne({
-            where: {
-                startDay: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                endDay: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-
-        const statusMap = new Map([
-            [0, 'passed'],
-            [1, 'on-going'],
-            [2, 'future']
-        ]);
-        let passedSchedule = [];
-        let currentSchedule = [];
-        let futureSchedule = [];
-
-        availableSlotList.forEach(item => {
-            if (timeFormatted > item.day) {
-                const s1 = {
-                    day: item.day,
-                    startTime: item.startTime,
-                    endTime: item.endTime,
-                    semId: item.semId,
-                    busy: item.busy,
-                    status: statusMap.get(0)
-                }
-                passedSchedule.push(s1)
-            } else if (currentExamPhase && (item.day >= currentExamPhase.startDay && item.day <= currentExamPhase.endDay)) {
-                const s2 = {
-                    day: item.day,
-                    startTime: item.startTime,
-                    endTime: item.endTime,
-                    semId: item.semId,
-                    busy: item.busy,
-                    status: statusMap.get(1)
-                }
-                currentSchedule.push(s2)
-            } else if (item.day > timeFormatted) {
-                const s3 = {
-                    day: item.day,
-                    startTime: item.startTime,
-                    endTime: item.endTime,
-                    semId: item.semId,
-                    busy: item.busy,
-                    status: statusMap.get(2)
-                }
-                futureSchedule.push(s3)
-            }
-        })
-
-        let finalList = [...passedSchedule, ...currentSchedule, ...futureSchedule];
-        let result = [];
-        const counts = {};
-        // Duyệt qua danh sách slot available và đếm số lần xuất hiện của mỗi khung giờ khác nhau
-        finalList.forEach(item => {
-            // Tạo một chuỗi duy nhất để đại diện cho mục
-            const key = JSON.stringify(item);
-            // Kiểm tra nếu đã có mục này trong counts, nếu chưa thì đặt giá trị mặc định là 0
-            if (!counts[key]) {
-                counts[key] = 0;
-            }
-            // Tăng số lần xuất hiện lên 1
-            counts[key]++;
-        });
-
-        // Hiển thị kết quả
-        for (const key in counts) {
-            const item = JSON.parse(key);
-            const kq = {
-                day: item.day,
-                startTime: item.startTime,
-                endTime: item.endTime,
-                available: counts[key],
-                busy: item.busy,
-                status: item.status,
-            }
-            result.push(kq);
-        }
+        const result = await getAllSchedule(examinerId);
+        
         res.json(DataResponse(result));
+        return;
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -555,99 +266,8 @@ router.get('/examPhaseId', async (req, res) => {
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
         const examPhaseId = parseInt(req.query.examPhaseId)
         const semId = parseInt(req.query.semId)
-        let scheduleWithPhase = [];
-
-        const exPhase = await ExamPhase.findOne({
-            where: {
-                id: examPhaseId
-            }
-        })
         
-        const exMiner = await Examiner.findOne({
-            where: {
-                userId: userId,
-                semesterId: semId
-            }
-        })
-
-        const examSlot = await ExamSlot.findAll({
-            where: {
-                ePId: examPhaseId
-            }
-        })
-
-        examSlot.forEach(async (item) => {
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: parseInt(item.dataValues.timeSlotId)
-                }
-            })
-            const subSlot = await SubInSlot.findAll({
-                where:{
-                    exSlId: parseInt(item.dataValues.id)
-                }
-            })
-            subSlot.forEach(async (sub) => {
-                const exRoom = await ExamRoom.findAll({
-                    where:{
-                        sSId: sub.dataValues.id
-                    }
-                })
-                exRoom.forEach(async (ex) => {
-                    const examinerLog = await ExaminerLogTime.findOne({
-                        where: {
-                            day: item.dataValues.day,
-                            timeSlotId: timeSlot.id,
-                            examinerId: exMiner.id,
-                            semId: semId
-                        }
-                    })
-                    if(!examinerLog && exPhase.status == 1){
-                        const sche = {
-                            day: item.dataValues.day,
-                            startTime: timeSlot.startTime,
-                            endTime: timeSlot.endTime,
-                            register: 1  //được đk
-                        }
-                        scheduleWithPhase.push(sche)
-                    }else if(examinerLog || examPhaseId.status == 0){
-                        const sche = {
-                            day: item.dataValues.day,
-                            startTime: timeSlot.startTime,
-                            endTime: timeSlot.endTime,
-                            register: 0 //ko được đk
-                        }
-                        scheduleWithPhase.push(sche)
-                    }
-                });
-            });
-        });
-        let result = [];
-        const counts = {};
-        // Duyệt qua danh sách slot available và đếm số lần xuất hiện của mỗi khung giờ khác nhau
-        scheduleWithPhase.forEach(item => {
-            // Tạo một chuỗi duy nhất để đại diện cho mục
-            const key = JSON.stringify(item);
-            // Kiểm tra nếu đã có mục này trong counts, nếu chưa thì đặt giá trị mặc định là 0
-            if (!counts[key]) {
-                counts[key] = 0;
-            }
-            // Tăng số lần xuất hiện lên 1
-            counts[key]++;
-        });
-
-        // Hiển thị kết quả
-        for (const key in counts) {
-            const item = JSON.parse(key);
-            const kq = {
-                day: item.day,
-                startTime: item.startTime,
-                endTime: item.endTime,
-                available: counts[key],
-                register: item.register
-            }
-            result.push(kq);
-        }
+        const result = await getScheduleByPhase(userId, examPhaseId, semId);
         res.json(DataResponse(result));
         return;
     } catch (error) {
