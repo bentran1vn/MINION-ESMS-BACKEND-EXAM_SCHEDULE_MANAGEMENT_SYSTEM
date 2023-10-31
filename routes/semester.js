@@ -139,8 +139,8 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const year = parseInt(req.body.year);
-    const season = req.body.season;
+    const year = parseInt(req.body.season.split('_')[1]);
+    const season = req.body.season.split('_')[0];
     const start = req.body.start;
     const end = req.body.end;
 
