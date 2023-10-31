@@ -35,6 +35,13 @@ const ExaminerLogTime = sequelize.define( tableName , {
             key: 'id'
         }
     },
+    status: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: 0
+    }// khi hủy đk thì update thành 1
+    //ngta k muốn đi coi thi giờ đó
+    //tránh case hủy rồi lại bị xếp vô lại
 });
 
 Examiner.hasMany(ExaminerLogTime, { foreignKey: 'examinerId' })

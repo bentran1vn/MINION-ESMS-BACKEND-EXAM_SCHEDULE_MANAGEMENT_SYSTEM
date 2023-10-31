@@ -231,10 +231,16 @@ router.get('/scheduled', async (req, res) => {
     
     try {
         const finalList = await getScheduledOneExaminer(id);
-        if (finalList.length == 0) {
+
+        if(Array.isArray(finalList) && finalList.length == 0){
             res.json(MessageResponse("You have no schedule"));
-        } else {
+            return;
+        }else if(Array.isArray(finalList) && finalList.length != 0){
             res.json(DataResponse(finalList));
+            return;
+        }else if(!Array.isArray(finalList)){
+            res.json(MessageResponse(finalList));
+            return;
         }
     } catch (error) {
         console.log(error);
@@ -253,8 +259,14 @@ router.get('/availableSlot', async (req, res) => {
 
         const result = await getAllSchedule(examinerId);
         
-        res.json(DataResponse(result));
-        return;
+        if(Array.isArray(result)){
+            res.json(DataResponse(result));
+            return;
+        }else{
+            res.json(MessageResponse(result));
+            return;
+        }
+        
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -268,8 +280,13 @@ router.get('/examPhaseId', async (req, res) => {
         const semId = parseInt(req.query.semId)
         
         const result = await getScheduleByPhase(userId, examPhaseId, semId);
-        res.json(DataResponse(result));
-        return;
+        if(Array.isArray(result)){
+            res.json(DataResponse(result));
+            return;
+        }else{
+            res.json(MessageResponse(result));
+            return;
+        }
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);

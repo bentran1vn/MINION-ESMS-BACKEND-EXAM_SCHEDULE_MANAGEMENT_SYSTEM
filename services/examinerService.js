@@ -116,6 +116,7 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
 }
 
 export async function getAllSchedule(examinerId) {
+    let message = "";
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
 
@@ -130,15 +131,15 @@ export async function getAllSchedule(examinerId) {
         }
     })
     if (!semester) {
-        res.json(MessageResponse("Table semester have no data for current day"));
-        return;
+        // res.json(MessageResponse("Table semester have no data for current day"));
+        return message = "Table semester have no data for current day";
     }
 
     let availableSlotList = [];
     const slotExaminer = await ExamRoom.findAll();
     if (!slotExaminer) {
-        res.json(MessageResponse("Exam room has no data"));
-        return;
+        // res.json(MessageResponse("Exam room has no data"));
+        return message = "Exam room has no data";
     }
     const slotAvailable = slotExaminer.map(examRoom => examRoom.dataValues);
 
@@ -287,6 +288,7 @@ export async function getAllSchedule(examinerId) {
 }
 
 export async function getScheduledOneExaminer(id) {
+    let message = "";
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
     const curPhase = await ExamPhase.findOne({
@@ -337,8 +339,8 @@ export async function getScheduledOneExaminer(id) {
     let listSchedule = [];
     let finalList = [];
     if (result.length === 0) {
-        res.json(MessageResponse("Your schedule is empty !"))
-        return;
+        // res.json(MessageResponse("Your schedule is empty !"))
+        return message = "Your schedule is empty !";
     } else {
         for (const schedule of result) {
             const room = schedule.room;
