@@ -29,10 +29,10 @@ router.get('/', async (req, res) => {
 
         let examPhase = await ExamPhase.findOne({
             where: {
-                status: 1
+                status: true
             }
         })
-        if (examPhase === null) {
+        if (examPhase === null || examPhase.length == 0) {
             throw new Error("Can not create exam rooms! Examphase problem!")
         }
 
@@ -49,7 +49,9 @@ router.get('/', async (req, res) => {
             },
         )
         //Lấy ra đúng loại Slot Time
-
+        if (slotList === null || slotList.length == 0) {
+            throw new Error("Can not create exam rooms! Examphase problem!")
+        }    
 
         let course = await Course.findAll(
             {
@@ -68,7 +70,7 @@ router.get('/', async (req, res) => {
                 ]
             }
         )
-        if (course === null) {
+        if (course === null || course.length == 0) {
             throw new Error("Can not create exam rooms! Course Problem!")
         }
         //Lấy ra danh sách các Course trong Examphase tương ứng
@@ -210,7 +212,7 @@ router.get('/', async (req, res) => {
             }
         }
         console.log("Filling Student Into Exam Room !");
-        await autoFillStu()
+        // await autoFillStu()
         console.log("Building System Successfully !");
         res.json(MessageResponse("Create ExamRooms Successfully !"))
     } catch(err){

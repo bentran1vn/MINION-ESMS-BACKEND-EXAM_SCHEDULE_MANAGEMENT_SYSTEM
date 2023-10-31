@@ -53,50 +53,6 @@ export async function autoCreateCourse() {
 
 }
 
-export async function countCourse() {
-
-    const courses = await Course.findAll();
-    let FE = 0
-    let PE = 0
-    let FEc = 0
-    let PEc = 0
-    const subjectPromises = [];
-
-    courses.forEach(element => {
-        const subjectId = element.subId;
-
-        subjectPromises.push(
-            Subject.findOne({
-                where: {
-                    id: subjectId
-                }
-            })
-        );
-    });
-
-    const subjects = await Promise.all(subjectPromises);
-
-    subjects.forEach(subject => {
-        if (subject.dataValues.code.slice(-1) != 'c') {
-            if (subject.dataValues.fe) {
-                FE = FE + 1;
-            }
-            if (subject.dataValues.pe) {
-                PE = PE + 1;
-            }
-        } else {
-            if (subject.dataValues.fe) {
-                FEc = FEc + 1;
-            }
-            if (subject.dataValues.pe) {
-                PEc = PEc + 1;
-            }
-        }
-    });
-
-    return { numFE: FE, numPE: PE, numFEc: FEc, numPEc: PEc }
-}
-
 export async function courseByPhase(examPhase) {
 
     const course = await Course.findAll(
