@@ -10,6 +10,7 @@ import { Op } from 'sequelize'
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -30,10 +31,10 @@ const router = express.Router()
  *              type: integer
  *              description: Reference to Subject id
  *          stuId:
- *              type: String
+ *              type: string
  *              description: Reference to Student id
  *          ePName:
- *              type: String
+ *              type: string
  *              description: Name of the exam phase of this list
  *          startDay:
  *              type: DATEONLY
@@ -50,53 +51,15 @@ const router = express.Router()
  *           endDay: 2023-11-21
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
  *    name: StudentSubjects
  *    description: The StudentSubjects managing API
  */
-/**
- * @swagger
- * /studentSubjects/:
- *   post:
- *     summary: Create a new StudentSubject
- *     tags: [StudentSubjects]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               subjectId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               stuId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               ePName:
- *                 type: String
- *                 description: Name of the exam phase of this list
- *               startDay:
- *                 type: DATEONLY
- *                 description: Estimate start day of the examphase
- *               endDay:
- *                 type: DATEONLY
- *                 description: Estimate end day of the examphase
- *               required:
- *                 - subjectId
- *                 - stuId
- *                 - ePName
- *                 - startDay
- *                 - endDay
- *     responses:
- *       '200':
- *         description: Create Success !
- *       '500':
- *          description: Internal Server Error!
- */
 
+//Swagger Get
 /**
  * @swagger
  * /studentSubjects/:
@@ -117,73 +80,73 @@ const router = express.Router()
  */
 
 //req role staff
-router.post('/', async (req, res) => {
-    //staff id thực chất là userId của role staff lấy từ token
-    const staffId = parseInt(res.locals.userData.id);
+// router.post('/', async (req, res) => {
+//     //staff id thực chất là userId của role staff lấy từ token
+//     const staffId = parseInt(res.locals.userData.id);
 
-    const subjectId = parseInt(req.body.subjectId);
-    const stuId = parseInt(req.body.stuId);
-    const ePName = req.body.ePName;
-    const startDay = req.body.startDay;
-    const endDay = req.body.endDay;
+//     const subjectId = parseInt(req.body.subjectId);
+//     const stuId = parseInt(req.body.stuId);
+//     const ePName = req.body.ePName;
+//     const startDay = req.body.startDay;
+//     const endDay = req.body.endDay;
 
-    try {
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
-        const curSemester = await Semester.findOne({
-            where: {
-                start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        if (curSemester.start > startDay || curSemester.endDay < endDay) {
-            res.json(MessageResponse("You can't create student subject out of current semester"));;
-            return;
-        }
+//     try {
+//         const time = new Date() //ngày hiện tại
+//         var timeFormatted = time.toISOString().slice(0, 10)
+//         const curSemester = await Semester.findOne({
+//             where: {
+//                 start: {
+//                     [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+//                 },
+//                 end: {
+//                     [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+//                 },
+//             }
+//         })
+//         if (curSemester.start > startDay || curSemester.endDay < endDay) {
+//             res.json(MessageResponse("You can't create student subject out of current semester"));;
+//             return;
+//         }
 
-        const subject = await Subject.findOne({
-            where: {
-                id: subjectId
-            }
-        })
-        const student = await Student.findOne({
-            where: {
-                id: stuId
-            }
-        })
-        if (!subject || !student) {
-            res.json(MessageResponse("Not found this subject or student"));
-            return;
-        } else {
-            const studentSubject = await StudentSubject.create({
-                subjectId: subjectId,
-                stuId: stuId,
-                ePName: ePName,
-                startDay: startDay,
-                endDay: endDay
-            })
-            if (studentSubject) {
-                const staffLog = await StaffLogChange.create({
-                    rowId: studentSubject.id,
-                    tableName: 1,
-                    staffId: staffId,
-                    typeChange: 2,
-                })
-                if (!staffLog) {
-                    throw new Error("Create staff log failed");
-                }
-            }
-            res.json(MessageResponse("Create Success !"))
-        }
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
-    }
-})
+//         const subject = await Subject.findOne({
+//             where: {
+//                 id: subjectId
+//             }
+//         })
+//         const student = await Student.findOne({
+//             where: {
+//                 id: stuId
+//             }
+//         })
+//         if (!subject || !student) {
+//             res.json(MessageResponse("Not found this subject or student"));
+//             return;
+//         } else {
+//             const studentSubject = await StudentSubject.create({
+//                 subjectId: subjectId,
+//                 stuId: stuId,
+//                 ePName: ePName,
+//                 startDay: startDay,
+//                 endDay: endDay
+//             })
+//             if (studentSubject) {
+//                 const staffLog = await StaffLogChange.create({
+//                     rowId: studentSubject.id,
+//                     tableName: 1,
+//                     staffId: staffId,
+//                     typeChange: 2,
+//                 })
+//                 if (!staffLog) {
+//                     throw new Error("Create staff log failed");
+//                 }
+//             }
+//             res.json(MessageResponse("Create Success !"))
+//         }
+//     } catch (err) {
+//         console.log(err)
+//         res.json(InternalErrResponse());
+//     }
+// })
 
 router.get('/', async (req, res) => {
     try {
@@ -216,8 +179,8 @@ router.get('/', async (req, res) => {
 })
 
 router.put('/', async (req, res) => {
-    const ss = await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
+    await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
     res.json(MessageResponse('Update success'))
-})
+})// Update lại student subject từ status: 1 về 0
 
 export default router

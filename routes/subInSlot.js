@@ -7,9 +7,9 @@ import SubInSlot from '../models/SubInSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import { Op } from 'sequelize'
 
-
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -35,40 +35,15 @@ const router = express.Router()
  *           exSlId: 1
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
  *    name: SubInSlots
  *    description: The SubInSlots managing API
  */
-/**
- * @swagger
- * /subInSlots/:
- *   post:
- *     summary: Create a new SubInSlot
- *     tags: [SubInSlots]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               courId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               exSlId:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *           required:
- *             - courId
- *             - exSlId
- *     responses:
- *       '200':
- *         description: Create Success !
- *       '500':
- *         description: Internal Server Error !
- */
+
+
 /**
  * @swagger
  * /subInSlots/:
@@ -94,51 +69,48 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-router.post('/', async (req, res) => {
-    const courId = parseInt(req.body.courId);
-    const exSlId = parseInt(req.body.exSlId);
+// router.post('/', async (req, res) => {
+//     const courId = parseInt(req.body.courId);
+//     const exSlId = parseInt(req.body.exSlId);
 
-    try {
-        const course = await Course.findOne({
-            where: {
-                id: courId
-            }
-        })
-        const examSlot = await ExamSlot.findOne({
-            where: {
-                id: exSlId
-            }
-        })
-        if (!course || !examSlot) {
-            res.json(NotFoundResponse());
-            return;
-        } else {
-            const subInSlot = await SubInSlot.create({
-                courId: courId,
-                exSlId: exSlId
-            })
-            console.log(subInSlot);
-            res.json(MessageResponse("Create Success !"))
-        }
+//     try {
+//         const course = await Course.findOne({
+//             where: {
+//                 id: courId
+//             }
+//         })
+//         const examSlot = await ExamSlot.findOne({
+//             where: {
+//                 id: exSlId
+//             }
+//         })
+//         if (!course || !examSlot) {
+//             res.json(NotFoundResponse());
+//             return;
+//         } else {
+//             const subInSlot = await SubInSlot.create({
+//                 courId: courId,
+//                 exSlId: exSlId
+//             })
+//             console.log(subInSlot);
+//             res.json(MessageResponse("Create Success !"))
+//         }
 
 
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
-    }
-})
+//     } catch (err) {
+//         console.log(err)
+//         res.json(InternalErrResponse());
+//     }
+// })
 
-//bảng subInSlot này chứa courseId
-//nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
-//id của subinslotid
 router.delete('/', async (req, res) => {
-    const subId = parseInt(req.body.subId); 
+    const subId = parseInt(req.body.subId);
 
     try {
         const course = await Course.findOne({
             where: { subId: subId },
         })
-        if(!course){
+        if (!course) {
             res.json(MessageResponse("This subject is not exist!"))
             return;
         }
@@ -150,42 +122,44 @@ router.delete('/', async (req, res) => {
         const subInSlotArray = subjectInSlot.map(subInSlot => subInSlot.dataValues);
         const idArray = subInSlotArray.map(item => item.id); //lấy ra mảng các id của subInSlot có môn thi là courId = subId
 
-
         let rowAffected;
-        if(idArray.length === 0){
+        if (idArray.length === 0) {
             res.json(MessageResponse("This subject is not scheduled"));
             return;
-        } else{
+        } else {
             rowAffected = await ExamRoom.destroy({
-                where: { 
+                where: {
                     sSId: {
-                        [Op.or] : idArray
-                    } 
+                        [Op.or]: idArray
+                    }
                 }
             });
-        }      
-        if(rowAffected != 0){
+        }
+        if (rowAffected != 0) {
             const lineAffected = await SubInSlot.destroy({
                 where: {
                     courId: course.id
                 }
             })
-            if(lineAffected != 0){
+            if (lineAffected != 0) {
                 res.json(MessageResponse("All exam room of this subject are deleted"))
-            } 
-            return;   
-        }else{
-            res.json(MessageResponse("This subject hasn't have any exam room"));   
+            }
+            return;
+        } else {
+            res.json(MessageResponse("This subject hasn't have any exam room"));
             const rows = await SubInSlot.destroy({
                 where: {
                     courId: course.id
                 }
-            })    
-            return; 
+            })
+            return;
         }
     } catch (error) {
         console.error(error);
         res.json(InternalErrResponse());
     }
-})
+})//bảng subInSlot này chứa courseId
+  //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
+  //id của subinslotid
+
 export default router

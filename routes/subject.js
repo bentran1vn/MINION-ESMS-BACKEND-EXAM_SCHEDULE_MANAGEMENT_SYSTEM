@@ -7,6 +7,7 @@ import { MEDIUMINT } from 'sequelize'
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -16,9 +17,7 @@ const router = express.Router()
  *       required:
  *          - code
  *          - name
- *          - semesterNo
- *          - fe
- *          - pe
+ *          - status
  *       properties:
  *          id:
  *              type: integer
@@ -29,24 +28,17 @@ const router = express.Router()
  *          name:
  *              type: String
  *              description: The name of a Subject
- *          semesterNo:
+ *          status:
  *              type: integer
- *              description: The semester of a Subject
- *          fe:
- *              type: integer
- *              example: The exam time length (minutes) of Subject
- *          pe: 
- *              type: integer
- *              example: The exam time length (minutes)
+ *              description: The method of delete on Subject, 1 - exist, 0 - not exist
  *          example:
  *           id: 1
  *           code: MAE201
  *           name: Mathematics for Engineering
- *           semesterNo: 1
- *           fe: 60
- *           pe: 0 (0 = no test)
+ *           status: 1
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
@@ -54,6 +46,7 @@ const router = express.Router()
  *    description: The Subjects managing API
  */
 
+//Swagger Post
 /**
  * @swagger
  * /subjects/:
@@ -70,19 +63,22 @@ const router = express.Router()
  *               code:
  *                 type: String
  *                 example: MAE201, PRN211
+ *                 description: The code of subject Client want to create.
  *               name:
  *                 type: String
  *                 example: Mathematic for Engineering
+ *                 description: The name of subject Client want to create.
  *           required:
  *             - code
  *             - name
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create subject Successfully !
  *       '500':
  *         description: Internal Server Error !
  */
 
+//Swagger Delete
 /**
  * @swagger
  * /subjects/:
@@ -99,15 +95,17 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1, 2, 3, 4
+ *                 description: The subject id Client want to delete.
  *           required:
  *             - id
  *     responses:
  *       '200':
- *         description: Delete Success, Course updated ! / Not Found !
+ *         description: Delete Success, Course updated ! | Not Found !
  *       '500':
  *         description: Internal Server Error !
  */
 
+//Swagger Put
 /**
  * @swagger
  * /subjects/:
@@ -124,35 +122,27 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1, 2, 3, 4
+ *                 description: Auto generate id
  *               code:
  *                 type: String
  *                 example: MAE201, PRN211
+ *                 description: The code number of a Subject
  *               name:
  *                 type: String
  *                 example: Mathematic for Engineering
- *               semesterNo:
- *                 type: integer
- *                 example: 1, 2, 3, 4
- *               fe:
- *                 type: integer
- *                 example: 60, 0 (0 = no test)
- *               pe:    
- *                 type: integer
- *                 example: 60, 90, 0
+ *                 description: The name of a Subject
  *           required:
  *             - id
  *             - code
  *             - name
- *             - semesterNo
- *             - fe
- *             - pe
  *     responses:
  *       '200':
- *         description: Update Success ! / Not Found !
+ *         description: Update Success ! | Not Found !
  *       '500':
  *         description: Internal Server Error !
  */
 
+//Swagger Get
 /**
  * @swagger
  * /subjects/:
@@ -172,6 +162,7 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+//Swagger Get
 /**
  * @swagger
  * /subjects/all/:
@@ -225,7 +216,7 @@ router.post('/', async (req, res) => {
         console.log(err)
         res.json(InternalErrResponse());
     }
-})
+})// Create new subject
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id);
@@ -259,7 +250,7 @@ router.delete('/', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Delete subject
 
 router.put('/', async (req, res) => {
     const id = parseInt(req.body.id);
@@ -282,7 +273,7 @@ router.put('/', async (req, res) => {
         console.log(err);
         res.json(InternalErrResponse());
     }
-})
+})// Update subject
 
 router.get('/', async (req, res) => {
     try {
@@ -325,7 +316,7 @@ export async function subjectById(id) {
         }
     })
     return subject
-}
+}// Function find subject by Id
 
 export default router
 //add xong

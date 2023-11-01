@@ -102,57 +102,57 @@ router.post('/', async (req, res) => {
         console.log(error);
         res.json(MessageResponse('Error found in Auto fill student completed'))
     }
-})
+})// Auto fill student to exam room (đã có trong autoFillStu)
 
-router.get('/', async (req, res) => {
-    try {
-        // Đọc nội dung từ tệp văn bản
-        const fileContent = fs.readFileSync("test.txt", "utf8")
+// router.get('/', async (req, res) => {
+//     try {
+//         // Đọc nội dung từ tệp văn bản
+//         const fileContent = fs.readFileSync("test.txt", "utf8")
 
-        // Tách nội dung thành các dòng
-        const lines = fileContent.split('\n');
-        console.log(lines);
-        // Khởi tạo hàm chứa fpath
-        const tmp = [];
-        let count = 0
-        let count2 = 0
-        let flag = false
-        let flag2 = false
+//         // Tách nội dung thành các dòng
+//         const lines = fileContent.split('\n');
+//         console.log(lines);
+//         // Khởi tạo hàm chứa fpath
+//         const tmp = [];
+//         let count = 0
+//         let count2 = 0
+//         let flag = false
+//         let flag2 = false
 
-        // Duyệt qua từng dòng và kiểm tra định dạng 'FPath- LPath'
-        lines.forEach(line => {
-            const parts = line.trim().split('-');
-            const fpath = parts[0].trim();
+//         // Duyệt qua từng dòng và kiểm tra định dạng 'FPath- LPath'
+//         lines.forEach(line => {
+//             const parts = line.trim().split('-');
+//             const fpath = parts[0].trim();
 
-            if (!tmp.includes(fpath)) {
-                tmp.push(fpath)
-                count++
-                flag = true
-                flag2 = false
-            } else {
-                count++
-                flag = false
-                flag2 = true
-            }
-            if (flag2) {
-                count2 = count
-            } else {
-                console.log('Tổng số học sinh: ' + count2);
-            }
-            if (flag) {
-                console.log('Bắt đầu phòng mới: ' + fpath);
-                count = 1
-            }
+//             if (!tmp.includes(fpath)) {
+//                 tmp.push(fpath)
+//                 count++
+//                 flag = true
+//                 flag2 = false
+//             } else {
+//                 count++
+//                 flag = false
+//                 flag2 = true
+//             }
+//             if (flag2) {
+//                 count2 = count
+//             } else {
+//                 console.log('Tổng số học sinh: ' + count2);
+//             }
+//             if (flag) {
+//                 console.log('Bắt đầu phòng mới: ' + fpath);
+//                 count = 1
+//             }
 
-        });
+//         });
 
-        // Trả về số lượng hàng chứa FPath hợp lệ;
-        res.json(MessageResponse('Alooo'))
-    } catch (error) {
-        console.error(error);
-        res.json(MessageResponse('Error found'))
-    }
-})
+//         // Trả về số lượng hàng chứa FPath hợp lệ;
+//         res.json(MessageResponse('Alooo'))
+//     } catch (error) {
+//         console.error(error);
+//         res.json(MessageResponse('Error found'))
+//     }
+// })
 
 // router.get('/searchToUpdate', async (req, res) => {
 //     const uniId = parseInt(req.query.uniId) || null;

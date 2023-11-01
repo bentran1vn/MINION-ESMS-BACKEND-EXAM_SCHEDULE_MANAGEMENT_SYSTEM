@@ -14,6 +14,7 @@ import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Examiner from '../models/Examiner.js'
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -49,41 +50,15 @@ import Examiner from '../models/Examiner.js'
  *           major: Software Engineer
  */
 
+//Swagger Tag
 /**
  * @swagger
- * /students:
- *   post:
- *     summary: Create a new student.
- *     tags: [Students]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: int
- *                 example: 25
- *               uniId:
- *                 type: string
- *                 example: SE141200
- *               semester:
- *                 type: int
- *                 example: 5
- *               major:
- *                 type: string
- *                 example: Software Engineer
- *           required:
- *             - userId
- *             - uniId
- *             - semester
- *             - major
- *     responses:
- *       '200':
- *         description: Create Successfully!
+ * tags:
+ *    name: Students
+ *    description: The students managing API
  */
 
+//Swagger Get
 /**
  * @swagger
  * /students/listOfStu:
@@ -96,18 +71,21 @@ import Examiner from '../models/Examiner.js'
  *          schema:
  *            type: string
  *          required: true
- *          description: The code of subject want to find
+ *          description: The code of subject Client want to find
  *        - in: query
  *          name: roomNum
  *          schema:
  *            type: string
  *          required: true
- *          description: The room number want to find
+ *          description: The room number Client want to find
  *     responses :
- *       200 :
- *         description: OK !
+ *       '200' :
+ *         description: List all student successfully !
+ *       '500':
+ *         description: Can not list all student !
  */
 
+//Swagger Get
 /**
  * @swagger
  * /students/listScheOfStu:
@@ -120,50 +98,45 @@ import Examiner from '../models/Examiner.js'
  *          schema:
  *            type: integer
  *          required: true
- *          description: The student id want to find
+ *          description: The student id Client want to find
  *     responses :
  *       200 :
- *         description: OK !
- */
-
-/**
- * @swagger
- * tags:
- *    name: Students
- *    description: The students managing API
+ *         description: List student with that id successfully !
+ *       '500':
+ *         description: Can not list student with that id !
  */
 
 const router = express.Router()
 
-router.post('/', async (req, res) => {
-    const { userId, uniId, semester, major } = req.body;
+// router.post('/', async (req, res) => {
+//     const { userId, uniId, semester, major } = req.body;
 
-    try {
-        const user = await User.findOne({
-            where: {
-                id: parseInt(userId),
-            }
-        })
+//     try {
+//         const user = await User.findOne({
+//             where: {
+//                 id: parseInt(userId),
+//             }
+//         })
 
-        if (!user) {
-            res.json(NotFoundResponse())
-            return;
-        } else {
-            const student = await Student.create({
-                userId: parseInt(userId),
-                uniId: uniId,
-                semester: parseInt(semester),
-                major: major
-            })
-            console.log(student);
-            res.json(DataResponse(student))
-        }
+//         if (!user) {
+//             res.json(NotFoundResponse())
+//             return;
+//         } else {
+//             const student = await Student.create({
+//                 userId: parseInt(userId),
+//                 uniId: uniId,
+//                 semester: parseInt(semester),
+//                 major: major
+//             })
+//             console.log(student);
+//             res.json(DataResponse(student))
+//         }
 
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
-    }
-})
+//     } catch (err) {
+//         console.log(err)
+//         res.json(InternalErrResponse());
+//     }
+// })
 
 router.get('/listOfStu', async (req, res) => {
     const { subCode, roomNum } = req.query
