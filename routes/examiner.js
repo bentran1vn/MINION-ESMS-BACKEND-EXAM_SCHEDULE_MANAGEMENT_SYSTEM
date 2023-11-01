@@ -227,7 +227,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-//PASS
+//lấy lịch đã đăng kí của 1 examiner theo phase
 router.get('/scheduledByPhase', async (req, res) => {
     const id = parseInt(req.query.examinerId);
     const examphaseId = parseInt(req.query.examphaseId);
@@ -250,9 +250,9 @@ router.get('/scheduledByPhase', async (req, res) => {
     }
 })
 
-//PASS
+//lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {
-    const id = parseInt(req.query.examinerId);
+    const id = parseInt(req.query.examinerId);//cái này sau bắt bằng token
     
     try {
         const finalList = await getAllScheduledOneExaminer(id);
@@ -272,10 +272,8 @@ router.get('/allScheduled', async (req, res) => {
         res.json(InternalErrResponse());
     }
 })
-//tất cả những slot còn trống trong 1 ngày 1 giờ
-//PASS
-//nếu user chưa đi canh thi thì sẽ k có examinerId
-//nếu vậy thì tất cả các lịch trống đều có thể đăng kí
+
+//chưa biết dùng ở đâu/maybe xóa
 router.get('/availableSlot', async (req, res) => {
 
     try {// Nhận userId xong đi check trong examiner 
@@ -296,6 +294,8 @@ router.get('/availableSlot', async (req, res) => {
         console.log(error);
     }
 })
+
+//lấy lịch để đăng kí theo phase
 router.get('/examPhaseId', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
@@ -351,6 +351,7 @@ router.delete('/', async (req, res) => {
     }
 })
 
+//lấy danh sách examiner by phase của màn hình admin
 router.get('/getExaminerByPhase', async (req, res) => {
     const exPhaseId = parseInt(req.query.exPhaseId);
     try{
