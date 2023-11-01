@@ -1098,3 +1098,84 @@ export async function getAllExaminerOneSlot(exSlotID) {
     // res.json(DataResponse(examinersWithSlot));
     return examinersWithSlot;
 }
+
+export async function getDetailScheduleOneExamSlot(examSlotId) {
+    let returnList = [];
+    const exSlot = await ExamSlot.findOne({
+        where: {
+            id: examSlotId
+        }
+    })
+    const exPhase = await ExamPhase.findOne({
+        where: {
+            startDay: { [Op.lte]: exSlot.day },
+            endDay: { [Op.gte]: exSlot.day }
+        }
+    })
+    const subWithSlot = await SubInSlot.findAll({
+        where: {
+            exSlId: examSlotId
+        }
+    })
+    const time = await TimeSlot.findOne({
+        where: {
+            id: exSlot.timeSlotId
+        }
+    })
+    for (const item of subWithSlot) {
+        const course = await Course.findOne({
+            where: {
+                id: item.dataValues.courId
+            }
+        });
+
+        const subject = await Subject.findOne({
+            where: {
+                id: course.subId
+            }
+        });
+
+        const exRoom = await ExamRoom.findAll({
+            where: {
+                sSId: item.dataValues.id,
+            }
+        })
+        for (const ex of exRoom) {
+            const room = await Room.findOne({
+                where: {
+                    id: ex.dataValues.roomId
+                }
+            })
+            const examiner = await Examiner.findOne({
+                where: {
+                    id: ex.dataValues.examinerId
+                }
+            })
+            if (exPhase.status == 1) {
+                const a = {
+                    subCode: subject.code,
+                    day: exSlot.day,
+                    startTime: time.startTime,
+                    endTime: time.endTime,
+                    roomNum: room.roomNum,
+                    examiner: examiner.exName,
+                    status: 1//được sửa
+                }
+                returnList.push(a);
+            } else if (exPhase.status == 0) {
+                const a = {
+                    subCode: subject.code,
+                    day: exSlot.day,
+                    startTime: time.startTime,
+                    endTime: time.endTime,
+                    roomNum: room.roomNum,
+                    examiner: examiner.exName,
+                    status: 0//không được sửa
+                }
+                returnList.push(a);
+            }
+        }
+    }
+
+    return returnList;
+}
