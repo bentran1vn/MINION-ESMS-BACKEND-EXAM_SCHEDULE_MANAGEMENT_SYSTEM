@@ -119,9 +119,10 @@ export async function assignCourse(courId, examSlotId, numStu){
             throw new Error("Problem with Create SubInSlot !")
         } else {
             for (let i = 0; i < numRoom; i++) {
-                await ExamRoom.create({
+                const examRoom = await ExamRoom.create({
                     sSId: courInSlot.id
                 });
+                if(!examRoom) throw new Error("Problem with Create ExamSlot !")
             }
         }
     } else {
