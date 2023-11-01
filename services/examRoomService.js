@@ -997,6 +997,7 @@ export async function getAllCourseOneSlot(exSlotID) {
 
         const cour = {
             courId: course.id,
+            subName: subject.name,
             subCode: subject.code,
             numOfStu: course.numOfStu,
         };
