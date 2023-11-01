@@ -140,8 +140,12 @@ router.get('/', async (req, res) => {
 
 
 router.post('/assign', async (req, res) => {
+    const courseId = parseInt(req.body.courseId)
+    const date = req.body.date
+    const slot = parseInt(req.body.slot)
+    const examPhaseId = parseInt(req.body.examPhaseId)
     try {
-        assignCourse()
+        assignCourse(courseId, date, slot, examPhaseId)
         res.json(MessageResponse("Assign Slot Successfully!"))
     } catch (Error) {
         console.log(Error);

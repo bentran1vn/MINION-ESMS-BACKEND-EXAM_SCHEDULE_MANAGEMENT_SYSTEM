@@ -6,12 +6,7 @@ import ExamRoom from '../models/ExamRoom.js'
 import Course from '../models/Course.js'
 
 
-export async function assignCourse() {
-    const courseId = parseInt(req.body.courseId)
-    const date = req.body.date
-    const slot = parseInt(req.body.slot)
-    const examPhaseId = parseInt(req.body.examPhaseId)
-
+export async function assignCourse(courseId, date, slot, examPhaseId) {
     const examPhase = await ExamPhase.findOne({
         where: {
             id: examPhaseId
