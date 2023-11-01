@@ -999,7 +999,7 @@ export async function getAllCourseOneSlot(exSlotID) {
             courId: course.id,
             subName: subject.name,
             subCode: subject.code,
-            numOfStu: course.numOfStu,
+
         };
         coursesWithSlot.push(cour);
     }
