@@ -300,9 +300,8 @@ router.get('/examPhaseId', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
         const examPhaseId = parseInt(req.query.examPhaseId)
-        const semId = parseInt(req.query.semId)
-
-        const result = await getScheduleByPhase(userId, examPhaseId, semId);
+        
+        const result = await getScheduleByPhase(userId, examPhaseId);
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;

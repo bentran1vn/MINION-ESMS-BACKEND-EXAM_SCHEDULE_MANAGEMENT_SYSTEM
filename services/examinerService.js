@@ -13,7 +13,7 @@ import { Op } from 'sequelize'
 
 
 
-export async function getScheduleByPhase(userId, examPhaseId, semId) {
+export async function getScheduleByPhase(userId, examPhaseId) {
     //day - startTime - endTime - Room
     let scheduleWithPhase = [];
 
@@ -23,10 +23,17 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
         }
     })
 
+    const semester = await Semester.findOne({
+        where:{
+            start: {[Op.lte]: exPhase.startDay},
+            end: {[Op.gte]: exPhase.endDay}
+        }
+    })
+
     const exMiner = await Examiner.findOne({
         where: {
             userId: userId,
-            semesterId: semId
+            semesterId: semester.id
         }
     })
 
@@ -62,7 +69,7 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
                         day: item.dataValues.day,
                         timeSlotId: timeSlot.id,
                         examinerId: exMiner.id,
-                        semId: semId,
+                        semId: semester.id,
                     }
                 });
 
