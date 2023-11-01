@@ -5,6 +5,8 @@ import jwt  from 'jsonwebtoken'
 import { Op } from "sequelize";
 import { DataResponse, ErrorResponse, InternalErrResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
+import { fieldValidator } from "../middlewares/fieldValidator.middleware.js";
+import { searchValidation } from "../validation/userValidation.js";
 
 /**
  * @swagger
@@ -179,7 +181,6 @@ import { requireRole } from "../middlewares/auth.js";
 const router = express.Router()
 //, requireRole('admin')
 router.get('/', async (req, res) => {
-
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
@@ -231,12 +232,12 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/:searchValue', async (req, res) => {
+router.get('/:searchValue', fieldValidator(searchValidation) ,async (req, res) => {
+    const string = req.params.searchValue
+    console.log(string);
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
-
-        const string = req.params.searchValue
         const users = await User.findAndCountAll({
             where: {
                 [Op.or]: {
@@ -262,7 +263,6 @@ router.get('/:searchValue', async (req, res) => {
 //, requireRole('admin')
 router.delete('/', async (req, res) => {
     const email = req.body.email
-
     try {
         const result = await User.update({ status: 0 }, {
             where: {
