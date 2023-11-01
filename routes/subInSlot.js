@@ -162,4 +162,8 @@ router.delete('/', async (req, res) => {
   //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
   //id của subinslotid
 
+router.post('/', async (req, res) => {
+    
+})
+
 export default router
