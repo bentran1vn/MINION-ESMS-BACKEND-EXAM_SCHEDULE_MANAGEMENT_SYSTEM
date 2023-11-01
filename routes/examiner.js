@@ -20,9 +20,10 @@ const router = express.Router()
  *       type: object
  *       required:
  *          - userId
+ *          - exName
+ *          - exEmail
  *          - typeExaminer
  *          - semesterId
- *          - status
  *       properties:
  *          id:
  *              type: integer
@@ -30,6 +31,12 @@ const router = express.Router()
  *          userId:
  *              type: integer
  *              description: reference to User id
+ *          exName:
+ *              type: integer
+ *              description: Examiner's name
+ *          exEmail:
+ *              type: integer
+ *              description: Examiner's email
  *          typeExaminer:
  *              type: integer
  *              description: O is lecturer, 1 is staff, 2 is volunteer
@@ -38,13 +45,15 @@ const router = express.Router()
  *              description: reference to Semester id
  *          status:
  *              type: boolean
- *              description: Active or inactive
+ *              description: false is available, true is unavailable, default is false
  *       example:
  *           id: 1
- *           userId: 1
+ *           userId: 256
  *           typeExaminer: 0
- *           semesterId: 4
- *           status: 1
+ *           exName: Lecturer 1
+ *           exEmail: Lecturer1@gmail.com
+ *           semesterId: 9
+ *           status: 0
  */
 
 /**
@@ -56,40 +65,23 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examiners/:
- *   post:
- *     summary: Create a new Examiner
- *     tags: [Examiners]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: integer
- *                 example: 1, 2, 3
- *           required:
- *             - userId
- *     responses:
- *       '200':
- *         description: Create Success !
- */
-
-/**
- * @swagger
- * /examiners/scheduled/:
+ * /examiners/scheduledByPhase/:
  *   get:
- *     summary: Return the exam schedule of 1 Examiner by id
+ *     summary: Return the exam scheduled of 1 Examiner by phase ID
  *     tags: [Examiners]
  *     parameters:
  *       - in: query
- *         name: id
+ *         name: userId
  *         schema:
  *           type: integer
  *         required: true
- *         description: The Examiner id Client want to get.
+ *         description: The User id Client want to get / get by token.
+ *      - in: query
+ *         name: examphaseId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ExamPhase id Client want to get.
  *     responses:
  *       200:
  *         description: OK !
@@ -103,12 +95,19 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examiners/availableSlot/:
+ * /examiners/allScheduled/:
  *   get:
- *     summary: Return all slot that have no Examiners
- *     tags: [Lecturers]
+ *     summary: Return all exam scheduled of 1 Examiner
+ *     tags: [Examiners]
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The User id Client want to get / get by token.
  *     responses:
- *       '200':
+ *       200:
  *         description: OK !
  *         content: 
  *           application/json:
@@ -120,19 +119,25 @@ const router = express.Router()
 
 /**
  * @swagger
- * /examiners/:
+ * /examiners/examPhaseId/:
  *   get:
- *     summary: Return all slot that have no Examiners
- *     tags: [Lecturers]
+ *     summary: Return exam schedule to register by phase
+ *     tags: [Examiners]
  *     parameters:
- *        - in: query
- *          name: semId
- *          schema:
- *            type: integer
- *          required: true
- *          description: The semester user want to get list examiner
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The User id Client want to get / get by token.
+ *       - in: query
+ *         name: examPhaseId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ExamPhase id Client want to get.
  *     responses:
- *       '200':
+ *       200:
  *         description: OK !
  *         content: 
  *           application/json:
@@ -146,11 +151,11 @@ const router = express.Router()
  * @swagger
  * /examiners/:
  *   delete:
- *     summary: Delete a Examiner by id
+ *     summary: Delete a Examiner by Examiner id
  *     tags: [Examiners]
  *     parameters:
  *       - in: query
- *         name: id
+ *         name: examinerId
  *         schema:
  *           type: integer
  *         required: true
@@ -158,6 +163,30 @@ const router = express.Router()
  *     responses:
  *       200:
  *         description: Deleted !
+ */
+
+/**
+ * @swagger
+ * /examiners/getExaminerByPhase:
+ *   get:
+ *     summary: Return all Examiners have schedule in one ExamPhase
+ *     tags: [Lecturers]
+ *     parameters:
+ *        - in: query
+ *          name: exPhaseId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The ExamPhase Id client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Examiners'
  */
 
 router.post('/', async (req, res) => {
@@ -229,10 +258,24 @@ router.post('/', async (req, res) => {
 
 //lấy lịch đã đăng kí của 1 examiner theo phase
 router.get('/scheduledByPhase', async (req, res) => {
-    const id = parseInt(req.query.examinerId);
+    const id = parseInt(req.query.userId);
     const examphaseId = parseInt(req.query.examphaseId);
     try {
-        const finalList = await getScheduledOneExaminerByPhase(id, examphaseId);
+        const exPhase = await ExamPhase.findOne({where: {id: examphaseId}})
+        const semester = await Semester.findOne({
+            where:{
+                start: {[Op.lte]: exPhase.startDay},
+                end: {[Op.gte]: exPhase.endDay}
+            }
+        })
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: id,
+                semesterId: semester.id
+            }
+        })
+        const examinerId = examiner.id
+        const finalList = await getScheduledOneExaminerByPhase(examinerId, examphaseId);
 
         if (Array.isArray(finalList) && finalList.length == 0) {
             res.json(MessageResponse("You have no schedule"));
@@ -252,10 +295,15 @@ router.get('/scheduledByPhase', async (req, res) => {
 
 //lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {
-    const id = parseInt(req.query.examinerId);//cái này sau bắt bằng token
-    
+    const id = parseInt(req.query.userId);//cái này sau bắt bằng token
+    const examiner = await Examiner.findOne({
+        where: {
+            userId: id,
+        }
+    })
+    const examinerId = examiner.id
     try {
-        const finalList = await getAllScheduledOneExaminer(id);
+        const finalList = await getAllScheduledOneExaminer(examinerId);
 
         if (Array.isArray(finalList) && finalList.length == 0) {
             res.json(MessageResponse("You have no schedule"));
@@ -315,23 +363,8 @@ router.get('/examPhaseId', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
-    try {
-        const semId = req.query.semId
-        const examiner = await Examiner.findAll({
-            where: {
-                semesterId: semId
-            }
-        })
-        res.json(DataResponse(examiner))
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse())
-    }
-})
-
 router.delete('/', async (req, res) => {
-    const id = parseInt(req.body.id);
+    const id = parseInt(req.query.examinerId);
     try {
         const row = await Examiner.update({
             status: 1

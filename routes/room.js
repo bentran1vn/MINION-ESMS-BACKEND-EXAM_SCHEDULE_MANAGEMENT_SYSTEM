@@ -24,12 +24,20 @@ const router = express.Router()
  *              type: integer
  *              description: The code number of a Room
  *          location:
- *              type: String
+ *              type: STRING
  *              description: The location of a room
+ *          note:
+ *              type: STRING
+ *              description: The note about Room's status
+ *          status:
+ *              type: integer
+ *              description: 1 is display, 0 is hide
  *       example:
  *           id: 1
  *           roomNum: 100
  *           location: CAMPUS
+ *           note: ...
+ *           status: 1
  */
 
 /**
@@ -116,6 +124,9 @@ const router = express.Router()
  *                 example: 0
  *           required:
  *             - id
+ *             - roomNum
+ *             - location
+ *             - note
  *     responses:
  *       '200':
  *         description: Update Success! | Not Found!

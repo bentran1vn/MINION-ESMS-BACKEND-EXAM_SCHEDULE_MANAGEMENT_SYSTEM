@@ -31,7 +31,6 @@ const router = express.Router()
  *          - sSId
  *          - roomId
  *          - examinerId
- *          - des 
  *       properties:
  *          id:
  *              type: integer
@@ -78,13 +77,12 @@ const router = express.Router()
  *               roomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
- *               examinerId:
+ *               userId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *           required:
  *             - sSId
  *             - roomId
- *             - examinerId
  *     responses:
  *       '200':
  *         description: Create Success !
@@ -130,11 +128,15 @@ const router = express.Router()
  *               day:
  *                 type: DATEONLY
  *                 example: 2023-04-13
+ *               exPhaseId
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
  *           required:
  *             - userId
  *             - startTime
  *             - endTime
  *             - day
+ *             - exPhaseId
  *     responses:
  *       '200':
  *         description: Lecturer added / All rooms full / This slot hasn't have any subject
@@ -192,7 +194,7 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               id:
+ *               examRoomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *               userId:
@@ -200,7 +202,7 @@ const router = express.Router()
  *                 description: Reference to User, take staff, lecturer, volunteer
  *                 example: 1, 2, 3, 4, 5
  *           required:
- *             - id
+ *             - examRoomId
  *             - userId
  *     responses:
  *       '200':
@@ -222,14 +224,14 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               id:
+ *               examRoomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *               roomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *           required:
- *             - id
+ *             - examRoomId
  *             - roomId
  *     responses:
  *       '200':
@@ -251,14 +253,14 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               id:
+ *               examRoomId:
  *                 type: integer
  *                 example: 1, 2, 3, 4, 5
  *           required:
- *             - id
+ *             - examRoomId
  *     responses:
  *       '200':
- *         description: Room ${checkExRoom.roomId} is deleted, room log time updated
+ *         description: Room is deleted, room log time updated
  *       '500':
  *         description: Internal Server Error !
  */
@@ -320,10 +322,114 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+/**
+ * @swagger
+ * /examRooms/getCourseOneSlot/:
+ *   get:
+ *     summary: Return all scheduled Course in one ExamSlot
+ *     tags: [ExamRooms]
+ *     parameters:
+ *        - in: query
+ *          name: exSlotID
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The ExamSlot client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/getRoomOneSlot/:
+ *   get:
+ *     summary: Return all scheduled Room in one ExamSlot
+ *     tags: [ExamRooms]
+ *     parameters:
+ *        - in: query
+ *          name: exSlotID
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The ExamSlot client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/getExaminerOneSlot/:
+ *   get:
+ *     summary: Return all scheduled Examiner in one ExamSlot
+ *     tags: [ExamRooms]
+ *     parameters:
+ *        - in: query
+ *          name: exSlotID
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The ExamSlot client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+/**
+ * @swagger
+ * /examRooms/getExamRoomDetailByPhase/:
+ *   get:
+ *     summary: Return all exam scheduled details in one ExamSlot
+ *     tags: [ExamRooms]
+ *     parameters:
+ *        - in: query
+ *          name: examSlotId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The ExamSlot client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamRooms'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
 router.post('/', async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
-    const userId = parseInt(req.body.userId);
+    const userId = parseInt(req.body.userId);//bắt qua token
 
     try {
         const user = await User.findOne({
@@ -331,10 +437,6 @@ router.post('/', async (req, res) => {
                 id: userId
             }
         })
-        if (!user) {
-            res.json(MessageResponse("Not found user ID"));
-            return;
-        }
         const subInSlot = await SubInSlot.findOne({
             where: {
                 id: sSId
@@ -473,7 +575,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-// PASS //auto này cũng require role staff để cái middle ware reqRole đây
+//require role staff để cái middle ware reqRole đây
 router.post('/auto', async (req, res) => {
     //lấy id thông qua token
     // const staffId = parseInt(res.locals.userData.id) || 1;
@@ -519,7 +621,7 @@ router.put('/lecturer', async (req, res) => {
 // PASS , requireRole('lecturer')
 router.put('/delLecturer', async (req, res) => {
     //hủy đăng kí của 1 lecturer
-    const lecturerId = req.body.userId;
+    const lecturerId = parseInt(req.body.userId);
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
@@ -538,12 +640,13 @@ router.put('/delLecturer', async (req, res) => {
 //thêm lecturer cho role staff
 //require role staff
 router.put('/addExaminer', async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = parseInt(res.locals.userData.id);//lấy từ token
+    const staffId = 1
     //thêm lecturer của staff
-    const { id, userId } = req.body;
+    const { examRoomId, userId } = req.body;
     //id ở đây là examRoom id
     try {
-        const result = await addExaminerForStaff(staffId, id, userId);
+        const result = await addExaminerForStaff(staffId, examRoomId, userId);
         res.json(MessageResponse(result));
         return;
     } catch (error) {
@@ -553,17 +656,16 @@ router.put('/addExaminer', async (req, res) => {
 })
 
 // update roomId to 1 examRoom
-//update cái này thêm cập nhật room qua room log time
 //role staff , requireRole("staff")
 router.put('/room', async (req, res) => {
     // const staffId = parseInt(res.locals.userData.id);
     const staffId = 1;
 
     //thêm phòng của staff
-    const id = parseInt(req.body.id)
+    const examRoomId = parseInt(req.body.examRoomId)
     const roomId = parseInt(req.body.roomId)
     try {
-        const result = await addRoomByStaff(staffId, id, roomId);
+        const result = await addRoomByStaff(staffId, examRoomId, roomId);
         res.json(MessageResponse(result));
         return;
     } catch (error) {
@@ -580,9 +682,9 @@ router.put('/delRoom', async (req, res) => {
 
     //staff nhìn vô bảng examRoom thấy lỗi chỗ nào bấm
     //client bắt r trả id dòng đó về và update roomId dòng đó thành null
-    const id = parseInt(req.body.id)
+    const examRoomId = parseInt(req.body.examRoomId)
     try {
-        const result = await delRoomByStaff(staffId, id);
+        const result = await delRoomByStaff(staffId, examRoomId);
         res.json(MessageResponse(result));
         return;
     } catch (error) {
@@ -671,7 +773,6 @@ router.get('/', async (req, res) => {
 
 //tất cả lecturer rảnh tại cùng 1 giờ 1 ngày chưa có trong examRoom
 //role staff
-//PASS
 router.get('/allExaminerInSlot', async (req, res) => {
     // const staffId = parseInt(res.locals.userData.id);
     const staffId = 1;

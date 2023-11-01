@@ -15,6 +15,7 @@ const router = express.Router()
  *       required:
  *          - subId
  *          - numOfStu
+ *          - ePId
  *       properties:
  *          id:
  *              type: integer
@@ -25,14 +26,18 @@ const router = express.Router()
  *          numOfStu:
  *              type: integer
  *              description: number of student in 1 Subject test
- *          semesterId: 
+ *          ePId: 
  *              type: integer
- *              description: reference to Semester id
+ *              description: reference to ExamPhase id
+ *          status:
+ *              type: integer
+ *              description: 0 is mark as deleted, 1 is display, default = 1
  *       example:
  *           id: 1
  *           subId: 1
  *           numOfStu: 120
- *           semesterId: 1
+ *           ePId: 1
+ *           status: 1
  */
 
 /**
@@ -52,7 +57,7 @@ const router = express.Router()
  *        - in: query
  *          name: ePId
  *          schema:
- *            type: string
+ *            type: integer
  *          required: true
  *          description: The ExamPhase ID client want to get.
  *     responses:
@@ -103,7 +108,7 @@ router.get('/', async (req, res) => {
             }]
         });
 
-        result.forEach(course => {
+        for (const course of result) {
             if (course.dataValues.status == 1) {
                 const subject = course.subject;
                 const sub = {
@@ -112,7 +117,7 @@ router.get('/', async (req, res) => {
                     numOfStu: course.dataValues.numOfStu,
                     ePId: course.dataValues.ePId,
                     status: 1
-                }
+                };
                 listCourse.push(sub);
             } else {
                 const subject = course.subject;
@@ -122,10 +127,10 @@ router.get('/', async (req, res) => {
                     numOfStu: course.dataValues.numOfStu,
                     ePId: course.dataValues.ePId,
                     status: 0
-                }
+                };
                 listCourse.push(sub);
             }
-        });
+        }
         if (listCourse.length == 0) {
             res.json(NotFoundResponse);
         } else {
@@ -139,15 +144,15 @@ router.get('/', async (req, res) => {
 })// Get all course by detail: courseId, subCode, numOfStu, semesterId
 
 
-router.post('/assign', async (req, res) => {
-    try {
-        assignCourse()
-        res.json(MessageResponse("Assign Slot Successfully!"))
-    } catch (Error) {
-        console.log(Error);
-        res.json(ErrorResponse(500, Error.message))
-    }
-})
+// router.post('/assign', async (req, res) => {
+//     try {
+//         assignCourse()
+//         res.json(MessageResponse("Assign Slot Successfully!"))
+//     } catch (Error) {
+//         console.log(Error);
+//         res.json(ErrorResponse(500, Error.message))
+//     }
+// })
 
 //requireRole("staff"),
 router.delete('/', async (req, res) => {

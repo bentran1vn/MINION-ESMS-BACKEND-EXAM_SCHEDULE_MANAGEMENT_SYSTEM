@@ -33,15 +33,11 @@ const router = express.Router()
  *          day:
  *              type: DATEONLY
  *              description: The exam day
- *          des: 
- *              type: int
- *              description: 0 - Nomal test or 1 - Coursera test
  *       example:
  *           id: 1
  *           ePId: 1
  *           timeSlotId: 1
  *           day: 2023-04-13
- *           des: 0
  */
 
 /**
@@ -168,7 +164,6 @@ router.post('/', async (req, res) => {
     const timeSlotId = parseInt(req.body.timeSlotId);
     const day = req.body.day;
 
-
     try {
         const examPhase = await ExamPhase.findOne({
             where: {
@@ -244,7 +239,7 @@ router.get('/', async (req, res) => {
 })// Lấy tất cả exam slot theo exam phase
 
 router.get('/:id', async (req, res) => {
-    const phaseId = req.params.id
+    const phaseId = parseInt(req.params.id)
     try {
         const slotList = await findAllExamSlotByPhase(phaseId)
         //.then(value => slotList = value)
