@@ -70,22 +70,22 @@ const router = express.Router()
  *             properties:
  *               season:
  *                 type: String
- *                 example: SPRING, SUMMER, FALL
+ *                 example: SPRING2023, SUMMER2023, FALL2023.
  *               start:
  *                 type: String
- *                 example: 2023-04-13
+ *                 example: 2023-04-13.
  *               end:
  *                 type: String
- *                 example: 2023-08-13
+ *                 example: 2023-08-13.
  *           required:
  *             - season
  *             - start
  *             - end
  *     responses:
  *       '200':
- *         description: Create new semester successfully!
+ *         description: Create new semester successfully !
  *       '500':
- *         description: Can not create new Semester!
+ *         description: Can not create new semester !
  */
 
 //Swagger Get
@@ -99,22 +99,48 @@ const router = express.Router()
  *       - in: query
  *         name: type
  *         schema:
- *           type: String
+ *           type: string
  *         required: true
- *         example: season, year, status.
- *         description: The type of list you want to get.   
+ *         example: season, year, status
+ *         description: The type of list Client want to get.   
  *       - in: query
  *         name: value
  *         schema:
- *           type: String
+ *           type: string
  *         required: true
- *         example: FALL, 2023, 1.
- *         description: The condition of list you want to get.             
+ *         example: FALL, 2023, 1
+ *         description: The condition of list Client want to get.   
+ *       - in: query
+ *         name: pageNo
+ *         schema:
+ *           type: integer
+ *         example: 1, 2
+ *         description: The page number in paging Client want to get. 
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         example: 5, 10
+ *         description: The limit of list in paging Client want to get.           
  *     responses:
  *       '200':
- *         description: Create new semester successfully!
+ *         description: List all semester successfully !
  *       '500':
- *         description: Can not create new Semester!
+ *         description: Can not list all semester !
+ */
+
+//Swagger Get
+/**
+ * @swagger
+ * /semesters/season:
+ *   get:
+ *     summary: Return all data of semester.
+ *     tags: [Semesters]        
+ *     responses:
+ *       '200':
+ *         description: List all semester successfully !
+ *       '500':
+ *         description: Can not list all semester !
  */
 
 //Swagger Delete
@@ -133,9 +159,9 @@ const router = express.Router()
  *         description: The id semester Client want to delete.             
  *     responses:
  *       '200':
- *         description: Create new semester successfully!
+ *         description: Delete semester successfully !
  *       '500':
- *         description: Can not create new Semester!
+ *         description: Can not delete semester !
  */
 
 router.post('/', async (req, res) => {
@@ -210,19 +236,19 @@ router.get('/season', async (req, res) => {
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
         semester.forEach(async (item) => {
-            if(timeFormatted >= item.dataValues.start && timeFormatted <= item.dataValues.end){
+            if (timeFormatted >= item.dataValues.start && timeFormatted <= item.dataValues.end) {
                 const c = {
                     start: item.dataValues.start,
                     end: item.dataValues.end,
-                    season: `${season.toUpperCase()}_${year}`,
+                    season: `${item.dataValues.season.toUpperCase()}_${item.dataValues.year}`,
                     cur: 1,//ongoing
                 }
                 final.push(c);
-            }else{
+            } else {
                 const c = {
                     start: item.dataValues.start,
                     end: item.dataValues.end,
-                    season: `${season.toUpperCase()}_${year}`,
+                    season: `${item.dataValues.season.toUpperCase()}_${item.dataValues.year}`,
                     cur: 0,//close
                 }
                 final.push(c);
@@ -234,7 +260,7 @@ router.get('/season', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Trả về all semester 
 
 router.delete('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)

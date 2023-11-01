@@ -8,6 +8,7 @@ import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -17,22 +18,33 @@ const router = express.Router()
  *       required:
  *          - startTime
  *          - endTime
+ *          - semId
+ *          - des
  *       properties:
  *          id:
  *              type: integer
- *              description: Auto generate id
+ *              description: Auto generate id.
  *          startTime:
  *              type: TIME
- *              description: The start time of 1 slot
+ *              description: The start time of time slot.
  *          endTime:
  *              type: TIME
- *              description: The end time of 1 slot
+ *              description: The end time of time slot.
+ *          semId:
+ *              type: integer
+ *              description: The semester id time slot belong.
+ *          des:
+ *              type: TIME
+ *              description: The convention 0 is normal, 1 is coursera.
  *       example:
  *           id: 1
  *           startTime: 07:30:00
  *           endTime: 09:00:00
+ *           semId: 1
+ *           des: 0
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
@@ -40,6 +52,7 @@ const router = express.Router()
  *    description: The TimeSlots managing API
  */
 
+//Swagger Post
 /**
  * @swagger
  * /timeSlots/:
@@ -56,19 +69,27 @@ const router = express.Router()
  *               startTime:
  *                 type: TIME
  *                 example: 07:30:00
+ *                 description: The start time of time slot Client want to create.
  *               endTime:
  *                 type: TIME
  *                 example: 09:00:00
+ *                 description: The end time of time slot Client want to create.
+ *               season: 
+ *                 type: string
+ *                 example: FALL_2023
+ *                 description: The season of time slot Client want to create.
  *           required:
  *             - startTime
  *             - endTime
+ *             - season
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create Time Slot Successfully !
  *       '500':
  *         description: Internal Server Error !
  */
 
+//Swagger Get
 /**
  * @swagger
  * /timeSlots/semId:
@@ -95,6 +116,27 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+//Swagger Get
+/**
+ * @swagger
+ * /timeSlots/des:
+ *   get:
+ *     summary: Return all TimeSlots according to examphase's des, This appears when create examSlot
+ *     tags: [TimeSlots]         
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/TimeSlots'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
+//Swagger Delete
 /**
  * @swagger
  * /timeSlots/:
@@ -118,6 +160,7 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
+//Swagger Put
 /**
  * @swagger
  * /timeSlots/:
@@ -134,12 +177,15 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1, 2, 3, 4
+ *                 description: The Id of time slot Client want to update.  
  *               startTime:
  *                 type: TIME
  *                 example: 07:30:30
+ *                 description: The start time of time slot Client want to update.  
  *               endTime:
  *                 type: TIME
  *                 example: 09:00:00
+ *                 description: The end time of time slot Client want to update.  
  *           required:
  *              - id
  *     responses:
@@ -189,10 +235,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-//api trả timeslot theo des của exphase
-//cái này hiện lúc mà staff tạo examSlot
 router.get('/des', async (req, res) => {
-
     try {
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10);
@@ -234,13 +277,10 @@ router.get('/des', async (req, res) => {
         res.json(InternalErrResponse());
         return;
     }
-})
+})//api trả timeslot theo des của exphase
+  //cái này hiện lúc mà staff tạo examSlot
 
-
-router.get('/semId', async (req, res) => {
-    //get All timeSlot nếu không nhập gì
-    //get 1 theo id nếu có
-    //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime  
+router.get('/semId', async (req, res) => {   
     try {
         const semId = parseInt(req.query.semId);
 
@@ -261,13 +301,12 @@ router.get('/semId', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})//get All timeSlot nếu không nhập gì
+  //get 1 theo id nếu có
+  //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime  
 
-//, requireRole("admin")
-router.delete('/', async (req, res) => {
-    //delete timeSlot
-    //nếu id có thì xóa 1 không thì xóa hết
-    //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
+//requireRole("admin")
+router.delete('/', async (req, res) => {   
     const id = parseInt(req.body.id);
     try {
         if (id !== undefined && id !== null) {
@@ -295,10 +334,11 @@ router.delete('/', async (req, res) => {
         console.log(error)
         res.json(InternalErrResponse())
     }
-})
+})//delete timeSlot
+  //nếu id có thì xóa 1 không thì xóa hết
+  //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
 
-router.put('/', async (req, res) => {
-    //update time slot theo id
+router.put('/', async (req, res) => { 
     const id = parseInt(req.body.id)
     const timeSlotData = req.body;
 
@@ -318,6 +358,7 @@ router.put('/', async (req, res) => {
         console.log(err);
         res.json(InternalErrResponse())
     }
-})
+})//update time slot theo id
+
 export default router
 //add xong

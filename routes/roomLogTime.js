@@ -8,6 +8,7 @@ import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
 
+//Swagger Model
 /**
  * @swagger
  * components:
@@ -38,12 +39,15 @@ const router = express.Router()
  *           timeSlotId: 1
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
  *    name: RoomLogTimes
  *    description: The RoomLogTimes managing API
  */
+
+//Swagger Post
 /**
  * @swagger
  * /roomLogTimes/:
@@ -62,7 +66,7 @@ const router = express.Router()
  *                 example: 1, 2, 3
  *               day:
  *                 type: DATEONLY
- *                 example: 2023-04-23, 2029-02-29
+ *                 example: 2023-04-23, 2029-02-28
  *               timeSlotId:
  *                 type: integer
  *                 example: 1, 2, 3
@@ -76,6 +80,7 @@ const router = express.Router()
  *       '500':
  *         description: Internal Server Error !
  */
+
 router.post('/', async (req, res) => {
     const { roomId, day, timeSlotId } = req.body;
 

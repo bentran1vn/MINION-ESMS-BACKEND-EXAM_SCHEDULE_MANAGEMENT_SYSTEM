@@ -8,16 +8,15 @@ import { requireRole } from "../middlewares/auth.js";
 import { fieldValidator } from "../middlewares/fieldValidator.middleware.js";
 import { searchValidation } from "../validation/userValidation.js";
 
+const router = express.Router()
+
+//Swagger Model
 /**
  * @swagger
  * components:
  *   schemas:
  *    Users:
  *       type: object
- *       required:
- *          - email
- *          - name
- *          - role
  *       properties:
  *          id:
  *              type: integer
@@ -34,6 +33,10 @@ import { searchValidation } from "../validation/userValidation.js";
  *          status: 
  *              type: integer
  *              description: 1 là hiện ra; 0 là ko hiện ra
+ *       required:
+ *          - email
+ *          - name
+ *          - role
  *       example:
  *           id: 1
  *           email: tan182205@gmail.com
@@ -42,6 +45,7 @@ import { searchValidation } from "../validation/userValidation.js";
  *           status: 1
  */
 
+//Swagger Tag
 /**
  * @swagger
  * tags:
@@ -49,11 +53,12 @@ import { searchValidation } from "../validation/userValidation.js";
  *    description: The users managing API
  */
 
+//Swagger Get
 /**
  * @swagger
  * /users/ :
  *   get :
- *     summary : Return the list of all the users with paging .
+ *     summary : Return the list of all the users with paging (status = 1).
  *     tags: [Users]
  *     parameters:
  *        - in: query
@@ -78,6 +83,7 @@ import { searchValidation } from "../validation/userValidation.js";
  *                 $ref: '#/components/schemas/Users'
  */
 
+//Swagger Get
 /**
  * @swagger
  * /users/{searchValue} :
@@ -113,48 +119,7 @@ import { searchValidation } from "../validation/userValidation.js";
  *                 $ref: '#/components/schemas/Users'
  */
 
-/**
- * @swagger
- * /users/logout:
- *   get:
- *     summary: Logout.
- *     tags: [Users]
- *     responses:
- *       '200':
- *         description: OK !
- */
-
-/**
- * @swagger
- * /users:
- *   post:
- *     summary: Create a new user.
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 example: tan1822@gmail.com
- *               name:
- *                 type: string
- *                 example: ahihi
- *               role:
- *                 type: string
- *                 example: ahihi
- *           required:
- *             - email
- *             - name
- *             - role
- *     responses:
- *       '200':
- *         description: Create Successfully!
- */
-
+//Swagger Delete
 /**
  * @swagger
  * /users:
@@ -178,8 +143,7 @@ import { searchValidation } from "../validation/userValidation.js";
  *         description: Delete Successfully!
  */
 
-const router = express.Router()
-//, requireRole('admin')
+//requireRole('admin')
 router.get('/', async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
@@ -206,31 +170,31 @@ router.get('/', async (req, res) => {
 })// Get all User (status = 1)
 
 //requireRole('admin')
-router.post('/', async (req, res) => {
-    try {
-        const userData = req.body
+// router.post('/', async (req, res) => {
+//     try {
+//         const userData = req.body
 
-        const user1 = await User.findOne({
-            where: {
-                email: userData.email
-            }
-        })
-        if (!user1) {
-            await User.create({
-                email: userData.email,
-                name: userData.name,
-                role: userData.role,
-                status: 0
-            })
-            res.json(MessageResponse("Create Successfully !"))
-        } else {
-            res.json(MessageResponse('Duplicated email!'))
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse())
-    }
-})
+//         const user1 = await User.findOne({
+//             where: {
+//                 email: userData.email
+//             }
+//         })
+//         if (!user1) {
+//             await User.create({
+//                 email: userData.email,
+//                 name: userData.name,
+//                 role: userData.role,
+//                 status: 0
+//             })
+//             res.json(MessageResponse("Create Successfully !"))
+//         } else {
+//             res.json(MessageResponse('Duplicated email!'))
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.json(InternalErrResponse())
+//     }
+// })
 
 router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) => {
     const string = req.params.searchValue
@@ -259,7 +223,8 @@ router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) =
         res.json(InternalErrResponse())
     }
 })// Get User or Users by name 
-//, requireRole('admin')
+
+//requireRole('admin')
 router.delete('/', async (req, res) => {
     const email = req.body.email
     try {
@@ -278,7 +243,7 @@ router.delete('/', async (req, res) => {
         console.log(error)
         res.json(MessageResponse('Error found'))
     }
-})// Delete User by email (status = 0)
+})// Delete User by email (change status = 1 to 0)
 
 function sendToken(res, user) {
     const payload = {
@@ -293,6 +258,6 @@ function sendToken(res, user) {
     res.json(DataResponse({
         token: token
     }))
-}
+}// Send token
 
 export default router
