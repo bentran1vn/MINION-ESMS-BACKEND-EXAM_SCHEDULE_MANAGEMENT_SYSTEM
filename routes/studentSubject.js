@@ -215,4 +215,9 @@ router.get('/', async (req, res) => {
     }
 })
 
+router.put('/', async (req, res) => {
+    const ss = await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
+    res.json(MessageResponse('Update success'))
+})
+
 export default router
