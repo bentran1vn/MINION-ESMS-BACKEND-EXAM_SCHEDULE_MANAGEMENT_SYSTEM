@@ -76,7 +76,7 @@ const router = express.Router()
  *           type: integer
  *         required: true
  *         description: The User id Client want to get / get by token.
- *      - in: query
+ *       - in: query
  *         name: examphaseId
  *         schema:
  *           type: integer

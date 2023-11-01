@@ -16,7 +16,7 @@ import Semester from '../models/Semester.js'
 import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
-import {getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister} from '../services/examRoomService.js'
+import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister } from '../services/examRoomService.js'
 
 
 const router = express.Router()
@@ -128,7 +128,7 @@ const router = express.Router()
  *               day:
  *                 type: DATEONLY
  *                 example: 2023-04-13
- *               exPhaseId
+ *               exPhaseId:
  *                 type: integer
  *                 example: 1, 2, 3, 4
  *           required:
@@ -783,10 +783,10 @@ router.get('/allExaminerInSlot', async (req, res) => {
 
     try {
         const result = await getAllAvailableExaminerInSlot(staffId, startTime, endTime, day);
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        }else{
+        } else {
             res.json(MessageResponse(result));
             return;
         }
@@ -812,7 +812,7 @@ router.get('/getCourseOneSlot', async (req, res) => {
 router.get('/getRoomOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
-        const result  =  await getAllRoomOneSlot(exSlotID);
+        const result = await getAllRoomOneSlot(exSlotID);
         res.json(DataResponse(result));
         return;
     } catch (error) {
@@ -835,11 +835,11 @@ router.get('/getExaminerOneSlot', async (req, res) => {
 //ngày, giờ, môn, phòng, ai coi, status đc sửa không
 router.get('/getExamRoomDetailByPhase', async (req, res) => {
     const examSlotId = parseInt(req.query.examSlotId);
-    try{
+    try {
         const result = await getDetailScheduleOneExamSlot(examSlotId);
         res.json(DataResponse(result));
         return;
-    }catch(err){
+    } catch (err) {
         res.json(InternalErrResponse());
         console.log(err);
     }
