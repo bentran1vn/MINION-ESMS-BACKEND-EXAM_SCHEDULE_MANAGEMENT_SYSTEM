@@ -141,7 +141,7 @@ router.get('/', async (req, res) => {
 
 router.post('/assign', async (req, res) => {
     try {
-        assignCourse(courseId, date, slot, examPhaseId)
+        assignCourse()
         res.json(MessageResponse("Assign Slot Successfully!"))
     } catch (Error) {
         console.log(Error);
