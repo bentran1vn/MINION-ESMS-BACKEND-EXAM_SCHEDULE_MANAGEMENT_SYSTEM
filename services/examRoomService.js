@@ -11,6 +11,7 @@ import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import Semester from '../models/Semester.js'
 import User from '../models/User.js'
+import StudentExam from '../models/StudentExam.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 
@@ -973,7 +974,6 @@ export async function getAllAvailableExaminerInSlot(staffId, startTime, endTime,
         return freeLecList;
     }
 }
-
 export async function getAllCourseOneSlot(exSlotID) {
     let coursesWithSlot = [];
 
@@ -999,7 +999,55 @@ export async function getAllCourseOneSlot(exSlotID) {
             courId: course.id,
             subName: subject.name,
             subCode: subject.code,
+            
+        };
+        coursesWithSlot.push(cour);
+    }
+    return coursesWithSlot;
+}
 
+export async function getAllCourseAndNumOfStudentOneSlot(exSlotID) {
+    let coursesWithSlot = [];
+
+    const subWithSlot = await SubInSlot.findAll({
+        where: {
+            exSlId: exSlotID
+        }
+    })
+    for (const item of subWithSlot) {
+        const course = await Course.findOne({
+            where: {
+                id: item.dataValues.courId
+            }
+        });
+
+        const subject = await Subject.findOne({
+            where: {
+                id: course.subId
+            }
+        });
+
+        const exRoom = await ExamRoom.findAll({
+            where: {
+                sSid: item.dataValues.id
+            }
+        })
+
+        let count = 0;
+
+        for (const ex of exRoom) {
+            const stuExams = await StudentExam.findAll({
+                where: {
+                    eRId: ex.dataValues.id
+                }
+            });
+            count += stuExams.length;
+        }
+        const cour = {
+            courId: course.id,
+            subName: subject.name,
+            subCode: subject.code,
+            numOfStu: count,
         };
         coursesWithSlot.push(cour);
     }
@@ -1064,7 +1112,7 @@ export async function getAllExaminerOneSlot(exSlotID) {
         const exRoom = await ExamRoom.findAll({
             where: {
                 sSId: item.dataValues.id,
-                examinerId: {[Op.ne]: null}
+                examinerId: { [Op.ne]: null }
             }
         });
 
