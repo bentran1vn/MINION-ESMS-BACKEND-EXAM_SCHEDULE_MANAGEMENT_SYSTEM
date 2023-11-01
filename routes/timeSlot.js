@@ -122,7 +122,14 @@ const router = express.Router()
  * /timeSlots/des:
  *   get:
  *     summary: Return all TimeSlots according to examphase's des, This appears when create examSlot
- *     tags: [TimeSlots]         
+ *     tags: [TimeSlots]   
+ *     parameters:
+ *       - in: query
+ *         name: examphaseId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The time slot of 1 ExamPhase Client want to get.       
  *     responses:
  *       '200':
  *         description: OK !
@@ -236,6 +243,7 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/des', async (req, res) => {
+    const examphaseId = parseInt(req.query.examphaseId);
     try {
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10);
@@ -251,12 +259,7 @@ router.get('/des', async (req, res) => {
         })
         const curExamPhase = await ExamPhase.findOne({
             where: {
-                startDay: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                endDay: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
+                id: examphaseId
             }
         })
         if (!curSemester || !curExamPhase) {
