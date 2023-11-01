@@ -303,11 +303,9 @@ export async function getAllScheduledOneExaminer(id) {
                 include: [
                     {
                         model: Course,
-                        where: { status: 1 },
                         include: [
                             {
                                 model: Subject,
-                                where: { status: 1 },
                                 attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
                             },
                         ],
@@ -325,7 +323,6 @@ export async function getAllScheduledOneExaminer(id) {
             },
             {
                 model: Room,
-                where: { status: 1 },
                 attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
             },
         ],
