@@ -6,7 +6,7 @@ import User from '../models/User.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
-import { getScheduleByPhase, getAllSchedule, getScheduledOneExaminer } from '../services/examinerService.js'
+import { getScheduleByPhase, getAllSchedule, getScheduledOneExaminerByPhase, getAllScheduledOneExaminer } from '../services/examinerService.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import ExamPhase from '../models/ExamPhase.js'
 
@@ -228,11 +228,11 @@ router.post('/', async (req, res) => {
 })
 
 //PASS
-router.get('/scheduled', async (req, res) => {
+router.get('/scheduledByPhase', async (req, res) => {
     const id = parseInt(req.query.examinerId);
-
+    const examphaseId = parseInt(req.query.examphaseId);
     try {
-        const finalList = await getScheduledOneExaminer(id);
+        const finalList = await getScheduledOneExaminerByPhase(id, examphaseId);
 
         if (Array.isArray(finalList) && finalList.length == 0) {
             res.json(MessageResponse("You have no schedule"));
@@ -250,6 +250,28 @@ router.get('/scheduled', async (req, res) => {
     }
 })
 
+//PASS
+router.get('/allScheduled', async (req, res) => {
+    const id = parseInt(req.query.examinerId);
+    
+    try {
+        const finalList = await getAllScheduledOneExaminer(id);
+
+        if (Array.isArray(finalList) && finalList.length == 0) {
+            res.json(MessageResponse("You have no schedule"));
+            return;
+        } else if (Array.isArray(finalList) && finalList.length != 0) {
+            res.json(DataResponse(finalList));
+            return;
+        } else if (!Array.isArray(finalList)) {
+            res.json(MessageResponse(finalList));
+            return;
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})
 //tất cả những slot còn trống trong 1 ngày 1 giờ
 //PASS
 //nếu user chưa đi canh thi thì sẽ k có examinerId

@@ -127,8 +127,293 @@ export async function getScheduleByPhase(userId, examPhaseId, semId) {
         }
     }
     return result;
+}//lịch có thể đăng kí theo phase
+
+//lấy hết lịch đã đk của 1 thg theo phase
+export async function getScheduledOneExaminerByPhase(id, examphaseId) {
+    let message = "";
+    const time = new Date() //ngày hiện tại
+    var timeFormatted = time.toISOString().slice(0, 10)
+    const curPhase = await ExamPhase.findOne({
+        where: {
+            startDay: {
+                [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+            },
+            endDay: {
+                [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+            },
+        }
+    })
+    const result = await ExamRoom.findAll({
+        where: { examinerId: id },
+        include: [
+            {
+                model: SubInSlot,
+                include: [
+                    {
+                        model: Course,
+                        where: { status: 1 },
+                        include: [
+                            {
+                                model: Subject,
+                                where: { status: 1 },
+                                attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
+                            },
+                        ],
+                    },
+                    {
+                        model: ExamSlot,
+                        include: [
+                            {
+                                model: TimeSlot,
+                                attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                model: Room,
+                where: { status: 1 },
+                attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
+            },
+        ],
+    })
+
+    let listSchedule = [];
+    let finalList = [];
+    if (result.length === 0) {
+        // res.json(MessageResponse("Your schedule is empty !"))
+        return message = "Your schedule is empty !";
+    } else {
+        for (const schedule of result) {
+            const room = schedule.room;
+            const subject = schedule.subInSlot.course.subject;
+            const examSlot = schedule.subInSlot.examSlot;
+            const timeSlot = schedule.subInSlot.examSlot.timeSlot;
+            const sche = {
+                subCode: subject.code,
+                subName: subject.name,
+                startTime: timeSlot.startTime,
+                endTime: timeSlot.endTime,
+                day: examSlot.day,
+                roomCode: room.roomNum,
+                roomLocation: room.location
+            };
+            listSchedule.push(sche);
+        }
+
+        for (const sche of listSchedule) {
+            if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "on-going",
+                };
+                finalList.push(f);
+            } else if (!curPhase && (timeFormatted <= sche.day)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "future",
+                };
+                finalList.push(f);
+            } else if (!curPhase && (timeFormatted > sche.day)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "passed",
+                };
+                finalList.push(f);
+            }
+        }
+    }
+    const getPhase = await ExamPhase.findOne({
+        where:{
+            id: examphaseId
+        }
+    })
+    let returnList = [];
+    for(const item of finalList){
+        if(item.day >= getPhase.startDay && item.day <= getPhase.endDay && getPhase.status == 1){
+            const s = {
+                day: item.day,
+                startTime: item.day,
+                endTime: item.day,
+                phase: item.phase,
+                register: true,
+            }
+            returnList.push(s);
+        }else if(item.day >= getPhase.startDay && item.day <= getPhase.endDay && getPhase.status == 0){
+            const s = {
+                day: item.day,
+                startTime: item.day,
+                endTime: item.day,
+                phase: item.phase,
+                register: true,
+            }
+            returnList.push(s);
+        }
+    }
+    return returnList;
 }
 
+//lấy hết lịch đã dk của 1 thg nhưng k theo bất kì gì hết
+export async function getAllScheduledOneExaminer(id) {
+    let message = "";
+    const time = new Date() //ngày hiện tại
+    var timeFormatted = time.toISOString().slice(0, 10)
+    const curPhase = await ExamPhase.findOne({
+        where: {
+            startDay: {
+                [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+            },
+            endDay: {
+                [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+            },
+        }
+    })
+    const result = await ExamRoom.findAll({
+        where: { examinerId: id },
+        include: [
+            {
+                model: SubInSlot,
+                include: [
+                    {
+                        model: Course,
+                        where: { status: 1 },
+                        include: [
+                            {
+                                model: Subject,
+                                where: { status: 1 },
+                                attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
+                            },
+                        ],
+                    },
+                    {
+                        model: ExamSlot,
+                        include: [
+                            {
+                                model: TimeSlot,
+                                attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                model: Room,
+                where: { status: 1 },
+                attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
+            },
+        ],
+    })
+
+    let listSchedule = [];
+    let finalList = [];
+    if (result.length === 0) {
+        // res.json(MessageResponse("Your schedule is empty !"))
+        return message = "Your schedule is empty !";
+    } else {
+        for (const schedule of result) {
+            const room = schedule.room;
+            const subject = schedule.subInSlot.course.subject;
+            const examSlot = schedule.subInSlot.examSlot;
+            const timeSlot = schedule.subInSlot.examSlot.timeSlot;
+            const sche = {
+                subCode: subject.code,
+                subName: subject.name,
+                startTime: timeSlot.startTime,
+                endTime: timeSlot.endTime,
+                day: examSlot.day,
+                roomCode: room.roomNum,
+                roomLocation: room.location
+            };
+            listSchedule.push(sche);
+        }
+
+        for (const sche of listSchedule) {
+            if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "on-going",
+                };
+                finalList.push(f);
+            } else if (!curPhase && (timeFormatted <= sche.day)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "future",
+                };
+                finalList.push(f);
+            } else if (!curPhase && (timeFormatted > sche.day)) {
+                const f = {
+                    subCode: sche.subCode,
+                    subName: sche.subName,
+                    startTime: sche.startTime,
+                    endTime: sche.endTime,
+                    day: sche.day,
+                    roomCode: sche.roomCode, // corrected roomCode
+                    roomLocation: sche.roomLocation, // corrected roomLocation
+                    phase: "passed",
+                };
+                finalList.push(f);
+            }
+        }
+    }
+    let returnList = [];
+    for(const item of finalList){
+        if(item.phase == "passed" || item.phase == "ongoing"){
+            const s = {
+                subCode: item.subCode,
+                subName: item.subName,
+                startTime: `${item.day} ${item.startTime}`,
+                endTime: `${item.day} ${item.endTime}`,
+                roomCode: item.roomCode,
+                roomLocation: item.roomLocation,
+                phase: item.phase
+            }
+            returnList.push(s)
+        }else if(item.phase == "future"){
+            const s = {
+                startTime: `${item.day} ${item.startTime}`,
+                endTime: `${item.day} ${item.endTime}`,
+                phase: item.phase,
+                roomLocation: item.roomLocation,
+            }
+            returnList.push(s)
+        }
+    }
+    return returnList;
+}
+
+//chưa biết dùng đâu
 export async function getAllSchedule(examinerId) {
     let message = "";
     const time = new Date() //ngày hiện tại
@@ -300,121 +585,3 @@ export async function getAllSchedule(examinerId) {
     }
     return result;
 }
-
-export async function getScheduledOneExaminer(id) {
-    let message = "";
-    const time = new Date() //ngày hiện tại
-    var timeFormatted = time.toISOString().slice(0, 10)
-    const curPhase = await ExamPhase.findOne({
-        where: {
-            startDay: {
-                [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-            },
-            endDay: {
-                [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-            },
-        }
-    })
-    const result = await ExamRoom.findAll({
-        where: { examinerId: id },
-        include: [
-            {
-                model: SubInSlot,
-                include: [
-                    {
-                        model: Course,
-                        where: { status: 1 },
-                        include: [
-                            {
-                                model: Subject,
-                                where: { status: 1 },
-                                attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
-                            },
-                        ],
-                    },
-                    {
-                        model: ExamSlot,
-                        include: [
-                            {
-                                model: TimeSlot,
-                                attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                model: Room,
-                where: { status: 1 },
-                attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
-            },
-        ],
-    })
-    let listSchedule = [];
-    let finalList = [];
-    if (result.length === 0) {
-        // res.json(MessageResponse("Your schedule is empty !"))
-        return message = "Your schedule is empty !";
-    } else {
-        for (const schedule of result) {
-            const room = schedule.room;
-            const subject = schedule.subInSlot.course.subject;
-            const examSlot = schedule.subInSlot.examSlot;
-            const timeSlot = schedule.subInSlot.examSlot.timeSlot;
-            const sche = {
-                subCode: subject.code,
-                subName: subject.name,
-                startTime: timeSlot.startTime,
-                endTime: timeSlot.endTime,
-                day: examSlot.day,
-                roomCode: room.roomNum,
-                roomLocation: room.location
-            };
-            listSchedule.push(sche);
-        }
-
-        for (const sche of listSchedule) {
-            if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "on-going",
-                };
-                finalList.push(f);
-            } else if (!curPhase && (timeFormatted <= sche.day)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "future",
-                };
-                finalList.push(f);
-            } else if (!curPhase && (timeFormatted > sche.day)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "passed",
-                };
-                finalList.push(f);
-            }
-        }
-
-    }
-    return finalList;
-}//lấy hết lịch đã đk của 1 thg theo phase
-//lấy hết lịch đã dk của 1 thg nhưng k theo bất kì gì hết
-
