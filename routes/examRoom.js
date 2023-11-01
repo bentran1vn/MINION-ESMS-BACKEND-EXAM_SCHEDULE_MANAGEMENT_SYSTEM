@@ -16,7 +16,7 @@ import Semester from '../models/Semester.js'
 import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
-import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister } from '../services/examRoomService.js'
+import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot } from '../services/examRoomService.js'
 
 
 const router = express.Router()
@@ -801,6 +801,19 @@ router.get('/getCourseOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllCourseOneSlot(exSlotID);
+        res.json(DataResponse(result));
+        return;
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+//tất cả course trong 1 examSlot và số học sinh thi môn đó trong examRoom
+router.get('/getCourseAndNumOfStuOneSlot', async (req, res) => {
+    const exSlotID = parseInt(req.query.exSlotID);
+    try {
+        const result = await getAllCourseAndNumOfStudentOneSlot(exSlotID);
         res.json(DataResponse(result));
         return;
     } catch (error) {
