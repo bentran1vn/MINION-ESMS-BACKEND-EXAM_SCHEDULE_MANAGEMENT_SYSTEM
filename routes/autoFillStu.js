@@ -4,8 +4,11 @@ import Subject from '../models/Subject.js'
 import StudentSubject from '../models/StudentSubject.js'
 import SubInSlot from '../models/SubInSlot.js'
 import Course from '../models/Course.js'
+import express from 'express'
 
-export async function autoFillStu() {
+const router = express.Router()
+
+router.get('/', async (req, res) => {
     try {
         console.log(`Start arranging rooms`);
         const subIdInCourse = await Course.findAll({ where: { status: 1 } })// Lấy tất cả subject id trong course cần thi
@@ -79,4 +82,6 @@ export async function autoFillStu() {
         console.log(error);
         res.json(MessageResponse('Error found in Auto fill student completed'))
     }
-}
+})
+
+export default router

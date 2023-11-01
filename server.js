@@ -31,6 +31,7 @@ import autoCreateExamRoomsRouter from './routes/autoCreateExamRooms.js'
 import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
 import studentSubjectRouter from './routes/studentSubject.js'
 import autoCreateCourseRouter from './routes/autoCreateCourse.js'
+import autoFillStuRouter from './routes/autoFillStu.js'
 
 import examinerRouter from './routes/examiner.js'
 import examinerLogTimeRouter from './routes/examinerLogTime.js'
@@ -82,6 +83,7 @@ server.use('/auth', authenticateRouter)
 server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
 server.use('/studentSubjects', studentSubjectRouter)
 server.use('/autoCreateCourses', autoCreateCourseRouter)
+server.use('/autoFillStus', autoFillStuRouter)
 
 const options = {
     definition: {

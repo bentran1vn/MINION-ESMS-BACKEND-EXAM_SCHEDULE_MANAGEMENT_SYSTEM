@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
         let slotList = await TimeSlot.findAll(
             {
                 where: {
-                    semId:{
+                    semId: {
                         [Op.eq]: examPhase.semId
                     },
                     des: {
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
         //Lấy ra đúng loại Slot Time
         if (slotList === null || slotList.length == 0) {
             throw new Error("Can not create exam rooms! Examphase problem!")
-        }    
+        }
 
         let course = await Course.findAll(
             {
@@ -212,10 +212,10 @@ router.get('/', async (req, res) => {
             }
         }
         console.log("Filling Student Into Exam Room !");
-        // await autoFillStu()
+        await autoFillStu()
         console.log("Building System Successfully !");
         res.json(MessageResponse("Create ExamRooms Successfully !"))
-    } catch(err){
+    } catch (err) {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
