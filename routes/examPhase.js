@@ -301,19 +301,6 @@ router.get('/semId', async (req, res) => {
                 semId: semesterId
             }
         })
-        examPhase.forEach(async (item) => {
-            const start = new Date(item.dataValues.startDay)
-            const cur = new Date(timeFormatted);
-            const timeDifference = Math.abs(start.getTime() - cur.getTime());
-            const threeDay = Math.ceil(timeDifference / (1000 * 3600 * 24));
-            if((item.dataValues.startDay > timeFormatted && threeDay <= 3) || item.dataValues.startDay <= timeFormatted){
-                await ExamPhase.update({status: 0}, {
-                    where: {
-                        id: item.dataValues.id
-                    }
-                })
-            }
-        });
         if(examPhase.length != 0){
             res.json(DataResponse(examPhase));
             return;
