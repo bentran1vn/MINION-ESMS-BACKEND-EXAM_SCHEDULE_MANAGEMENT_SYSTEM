@@ -16,7 +16,7 @@ import Semester from '../models/Semester.js'
 import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
-import {addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister} from '../services/examRoomService.js'
+import {getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister} from '../services/examRoomService.js'
 
 
 const router = express.Router()
@@ -723,7 +723,7 @@ router.get('/getRoomOneSlot', async (req, res) => {
 router.get('/getExaminerOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
-        const result  =  await getAllExaminerOneSlot(exSlotID);
+        const result = await getAllExaminerOneSlot(exSlotID);
         res.json(DataResponse(result));
         return;
     } catch (error) {
@@ -731,5 +731,17 @@ router.get('/getExaminerOneSlot', async (req, res) => {
         console.log(error);
     }
 });
+//ngày, giờ, môn, phòng, ai coi, status đc sửa không
+router.get('/getExamRoomDetailByPhase', async (req, res) => {
+    const examSlotId = parseInt(req.query.examSlotId);
+    try{
+        const result = await getDetailScheduleOneExamSlot(examSlotId);
+        res.json(DataResponse(result));
+        return;
+    }catch(err){
+        res.json(InternalErrResponse());
+        console.log(err);
+    }
+})
 
 export default router
