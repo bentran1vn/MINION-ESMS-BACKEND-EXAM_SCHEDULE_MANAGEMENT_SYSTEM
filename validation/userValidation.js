@@ -4,6 +4,7 @@ export const searchValidation = [
     param('searchValue')
         .notEmpty()
         .isString()
+        .not().equals(':searchValue')
         .trim(),
 ]
 

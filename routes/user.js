@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import bcrypt from 'bcrypt'
-import jwt  from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { Op } from "sequelize";
 import { DataResponse, ErrorResponse, InternalErrResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
@@ -232,9 +232,8 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/:searchValue', fieldValidator(searchValidation) ,async (req, res) => {
+router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) => {
     const string = req.params.searchValue
-    console.log(string);
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
