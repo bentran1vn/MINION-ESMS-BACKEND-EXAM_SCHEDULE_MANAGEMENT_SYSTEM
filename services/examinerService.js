@@ -253,8 +253,8 @@ export async function getScheduledOneExaminerByPhase(id, examphaseId) {
         if(item.day >= getPhase.startDay && item.day <= getPhase.endDay && getPhase.status == 1){
             const s = {
                 day: item.day,
-                startTime: item.day,
-                endTime: item.day,
+                startTime: item.startTime,
+                endTime: item.endTime,
                 phase: item.phase,
                 register: true,
             }
@@ -262,8 +262,8 @@ export async function getScheduledOneExaminerByPhase(id, examphaseId) {
         }else if(item.day >= getPhase.startDay && item.day <= getPhase.endDay && getPhase.status == 0){
             const s = {
                 day: item.day,
-                startTime: item.day,
-                endTime: item.day,
+                startTime: item.startTime,
+                endTime: item.endTime,
                 phase: item.phase,
                 register: true,
             }
