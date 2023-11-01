@@ -19,6 +19,7 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *          - startDay
  *          - endDay
  *          - status
+ *          - des
  *       properties:
  *          id:
  *              type: integer
@@ -37,7 +38,10 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *              description: Describe the exam end day
  *          status: 
  *              type: BOOLEAN
- *              description: 0 is pending, 1 is finish
+ *              description: 0 is finish, 1 is pending
+ *          des: 
+ *              type: integer
+ *              description: 0 is normal, 1 is coursera
  *       example:
  *           id: 1
  *           semId: 1
@@ -45,13 +49,14 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *           startDay: 2023-10-10
  *           endDay: 2023-10-15
  *           status: 0
+ *           des: 0
  */
 
 /**
  * @swagger
  * tags:
  *    name: ExamPhases
- *    description: The examPhases managing API
+ *    description: The ExamPhases managing API
  */
 
 /**
@@ -69,17 +74,21 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *             properties:
  *               ePName:
  *                 type: string
- *                 example: Đợt 1
+ *                 example: FALL_2023, SUMMER_2023
  *               startDay:
  *                 type: DATEONLY
  *                 example: 2023-10-10
  *               endDay:
  *                 type: DATEONLY
  *                 example: 2023-10-15
+ *               des: 
+ *                 type: integer
+ *                 example: 0 is normal, 1 is coursera
  *           required:
  *             - ePName
  *             - startDay
  *             - endDay
+ *             - des
  *     responses:
  *       '200':
  *         description: Create Successfully!
@@ -98,15 +107,15 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *           schema:
  *             type: object
  *             properties:
- *               id:
- *                 type: int
+ *               examPhaseId:
+ *                 type: integer
  *                 example: 1
  *               semId:
- *                 type: int
+ *                 type: integer
  *                 example: 1
  *               ePName:
  *                 type: string
- *                 example: Đợt 1
+ *                 example: FALL_2023
  *               startDay:
  *                 type: DATEONLY
  *                 example: 2023-10-10
@@ -114,14 +123,14 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
  *                 type: DATEONLY
  *                 example: 2023-10-15
  *           required:
- *             - id
+ *             - examPhaseId
  *             - semId
  *             - ePName
  *             - startDay
  *             - endDay
  *     responses:
  *       '200':
- *         description: Create Successfully!
+ *         description: ExamPhase Update !
  */
 
 /**
@@ -149,10 +158,17 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
 
 /**
  * @swagger
- * /examPhases/ :
+ * /examPhases/semId :
  *   get :
- *     summary : Return detail of all Exam Phase has been scheduled.
+ *     summary : Return all ExamPhase by Semester Id
  *     tags: [ExamPhases]
+ *     parameters:
+ *        - in: query
+ *          name: semesterId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The Semester Id client want to get
  *     responses :
  *       200 :
  *         description: OK !

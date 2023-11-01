@@ -1062,7 +1062,8 @@ export async function getAllExaminerOneSlot(exSlotID) {
     for (const item of subWithSlot) {
         const exRoom = await ExamRoom.findAll({
             where: {
-                sSId: item.dataValues.id
+                sSId: item.dataValues.id,
+                examinerId: {[Op.ne]: null}
             }
         });
 
