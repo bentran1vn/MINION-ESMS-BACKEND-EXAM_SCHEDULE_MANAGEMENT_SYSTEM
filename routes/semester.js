@@ -144,11 +144,11 @@ router.post('/', async (req, res) => {
     const start = req.body.start;
     const end = req.body.end;
 
-    console.log(season, year);
-    if (!validateYearAndSeason(year, season)) {
-        res.json(MessageResponse("The year and season must be equal to the current time"));
-        return;
-    }//cái này là business rule
+    // console.log(season, year);
+    // if (!validateYearAndSeason(year, season)) {
+    //     res.json(MessageResponse("The year and season must be equal to the current time"));
+    //     return;
+    // }//cái này là business rule
 
     const startDate = new Date(start);
     const endDate = new Date(end);
