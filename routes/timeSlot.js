@@ -129,7 +129,13 @@ const router = express.Router()
  *         schema:
  *           type: integer
  *         required: true
- *         description: The time slot of 1 ExamPhase Client want to get.       
+ *         description: The time slot of 1 ExamPhase Client want to get.     
+ *       - in: query
+ *         name: semesterId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The time slot of 1 Semester Client want to get.   
  *     responses:
  *       '200':
  *         description: OK !
@@ -244,17 +250,11 @@ router.post('/', async (req, res) => {
 
 router.get('/des', async (req, res) => {
     const examphaseId = parseInt(req.query.examphaseId);
+    const semesterId = parseInt(req.query.semesterId);
     try {
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10);
         const curSemester = await Semester.findOne({
             where: {
-                start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
+                id: semesterId
             }
         })
         const curExamPhase = await ExamPhase.findOne({
@@ -268,7 +268,7 @@ router.get('/des', async (req, res) => {
         }
         const slot = await TimeSlot.findAll({
             where: {
-                semId: parseInt(curSemester.id),
+                semId: semesterId,
                 des: parseInt(curExamPhase.des)
             }
         })
