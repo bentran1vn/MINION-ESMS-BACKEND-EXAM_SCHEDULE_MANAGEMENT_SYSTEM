@@ -144,15 +144,19 @@ router.get('/', async (req, res) => {
 })// Get all course by detail: courseId, subCode, numOfStu, semesterId
 
 
-// router.post('/assign', async (req, res) => {
-//     try {
-//         assignCourse()
-//         res.json(MessageResponse("Assign Slot Successfully!"))
-//     } catch (Error) {
-//         console.log(Error);
-//         res.json(ErrorResponse(500, Error.message))
-//     }
-// })
+router.post('/assign', async (req, res) => {
+    const courId = req.body.courseId
+    const date = req.body.day
+    const slot = req.body.slot
+    const examPhaseId = req.body.examPhaseId
+    try {
+        assignCourse(courId, date, slot, examPhaseId)
+        res.json(MessageResponse("Assign Slot Successfully!"))
+    } catch (Error) {
+        console.log(Error);
+        res.json(ErrorResponse(500, Error.message))
+    }
+})
 
 //requireRole("staff"),
 router.delete('/', async (req, res) => {

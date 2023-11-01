@@ -6,12 +6,7 @@ import ExamRoom from '../models/ExamRoom.js'
 import Course from '../models/Course.js'
 
 
-export async function assignCourse() {
-    const courseId = parseInt(req.body.courseId)
-    const date = req.body.date
-    const slot = parseInt(req.body.slot)
-    const examPhaseId = parseInt(req.body.examPhaseId)
-
+export async function assignCourse(courseId, date, slot, examPhaseId) {
     const examPhase = await ExamPhase.findOne({
         where: {
             id: examPhaseId
@@ -89,5 +84,47 @@ export async function assignCourse() {
         }
     } else {
         throw new Error("The number of exam rooms is sufficient!")
+    }
+}
+
+export async function assignCourse(courId, examSlotId, numStu){
+
+    const numOfStu = await Course.findOne({
+        where: {
+            id: courId
+        },
+        attributes: ['numOfStu']
+    })
+
+    const roomRequire = Math.ceil(numOfStu.dataValues.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    console.log(roomRequire);
+
+    const numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    console.log(numRoom);
+
+    if(numRoom > roomRequire) throw new Error("Number Of Student is invalid !")
+
+    const subInSlot = await SubInSlot.findOne({
+        where : {
+            courId: courId,
+            exSlId: examSlotId
+        }
+    })
+    if(subInSlot){
+        const courInSlot = await SubInSlot.create({
+            courId: courId,
+            exSlId: examSlotId
+        })
+        if(!courInSlot) {
+            throw new Error("Problem with Create SubInSlot !")
+        } else {
+            for (let i = 0; i < numRoom; i++) {
+                await ExamRoom.create({
+                    sSId: courInSlot.id
+                });
+            }
+        }
+    } else {
+        throw new Error("Already Exist !")
     }
 }

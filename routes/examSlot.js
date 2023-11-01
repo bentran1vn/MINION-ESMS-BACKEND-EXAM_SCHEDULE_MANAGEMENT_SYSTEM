@@ -5,6 +5,9 @@ import ExamPhase from '../models/ExamPhase.js'
 import TimeSlot from '../models/TimeSlot.js'
 import ExamSlot from '../models/ExamSlot.js'
 import { findAllExamSlotByPhase } from '../services/examSlotService.js'
+import Semester from '../models/Semester.js'
+import { Op } from 'sequelize'
+import { createNewExamSlot, findAllExamSlotByPhase } from '../services/examSlotService.js'
 
 
 const router = express.Router()
@@ -164,32 +167,11 @@ router.post('/', async (req, res) => {
     const day = req.body.day;
 
     try {
-        const examPhase = await ExamPhase.findOne({
-            where: {
-                id: ePId
-            }
-        })
-        const timeSlot = await TimeSlot.findOne({
-            where: {
-                id: timeSlotId
-            }
-        })
-        if (!examPhase || !timeSlot) {
-            res.json(NotFoundResponse());
-            return;
-        } else {
-            const examSlot = await ExamSlot.create({
-                ePId: ePId,
-                timeSlotId: timeSlotId,
-                day: day
-            })
-            console.log(examSlot);
-            res.json(MessageResponse("Create Success !"))
-        }
-
+        await createNewExamSlot(ePId, timeSlotId, day)
+        res.json(MessageResponse("Create Exam Slot Successfully !"))
     } catch (err) {
         console.log(err)
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, err.message));
     }
 })
 
