@@ -26,7 +26,7 @@ export async function getScheduleByPhase(userId, examPhaseId) {
     if(!exPhase){
         return message="Error";
     }
-
+    
     const semester = await Semester.findOne({
         where: {
             start: { [Op.lte]: exPhase.startDay },
@@ -42,6 +42,7 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             semesterId: semester.id
         }
     })
+    
     if(!exMiner){
         return message="Error";
     }
@@ -50,29 +51,23 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             ePId: examPhaseId
         }
     })
-    
     for (const item of examSlot) {
         const timeSlot = await TimeSlot.findOne({
             where: {
                 id: parseInt(item.dataValues.timeSlotId)
             }
         });
-
         const subSlot = await SubInSlot.findAll({
             where: {
                 exSlId: parseInt(item.dataValues.id)
             }
         });
-
         for (const sub of subSlot) {
             const exRoom = await ExamRoom.findAll({
                 where: {
                     sSId: sub.dataValues.id
                 }
             });
-            if(exRoom.length == 0){
-                return message = "Current phase has no schedule";
-            }
 
             for (const ex of exRoom) {
                 const examinerLog = await ExaminerLogTime.findOne({
@@ -106,6 +101,7 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             }
         }
     }
+    
 
     let result = [];
     const tempArray = [...scheduleWithPhase]; // Tạo một bản sao của mảng gốc

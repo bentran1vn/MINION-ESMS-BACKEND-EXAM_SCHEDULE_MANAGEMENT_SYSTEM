@@ -424,7 +424,7 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
     let message = "";
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
-
+    
     const exPhase = await ExamPhase.findOne({
         where: {
             id: incomingPhase
@@ -464,6 +464,7 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
             semesterId: parseInt(semester.id)
         }
     })
+    
     if (examiner && examiner.dataValues.status == 1) {
         const row = await Examiner.update({ status: 0 }, {
             where: {
@@ -485,9 +486,10 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
     const lecToExaminer = await Examiner.findOne({
         where: {
             userId: lecturerId,
-            semester: parseInt(semester.id)
+            semesterId: parseInt(semester.id)
         }
     })
+
     const timeSlot = await TimeSlot.findOne({
         where: { startTime: startTime, endTime: endTime }
     })
@@ -503,7 +505,9 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
     let subInSlot2 = [];
     for (const item of subjectInSlot) {
         const examSlot = await ExamSlot.findOne({
-            id: item.dataValues.exSlId
+            where: {
+                id: item.dataValues.exSlId
+            }
         });
         if (examSlot.day > timeFormatted) { // thay đổi thành exPh
             subInSlot2.push(item);
@@ -620,16 +624,18 @@ export async function lecUnRegister(lecturerId, startTime, endTime, day) {
     let subjectInSlot = await SubInSlot.findAll({
         where: { exSlId: examSlot.id },
     });
-
+    
     let subInSlot2 = [];
-    subjectInSlot.forEach(async (item) => {
+    for(const item of subjectInSlot){
         const examSlot = await ExamSlot.findOne({
-            id: item.dataValues.exSlId
+            where:{
+                id: item.dataValues.exSlId
+            }
         })
         if (examSlot.day > timeFormatted) {
             subInSlot2.push(item);
         }
-    });
+    }
 
     if (subInSlot2.length == 0) {
         // res.json(MessageResponse(`Current semester doesn't have any exam room for this ${startTime} - ${endTime}`));
