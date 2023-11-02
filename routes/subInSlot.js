@@ -166,11 +166,11 @@ router.delete('/', async (req, res) => {
 router.post('/', async (req, res) => {
     //, requireRole('staff')
     // courId, examSlotId, numStu
-    const courId = req.body.courId
+    const courseId = req.body.courId
     const examSlotId = req.body.examSlotId
     const numStu = req.body.numStu
     try{
-        await assignCourse(courId, examSlotId, numStu)
+        await assignCourse(courseId, examSlotId, numStu)
         res.json("Create Exam Room Successfully !")
     } catch(error){
         console.log(error);

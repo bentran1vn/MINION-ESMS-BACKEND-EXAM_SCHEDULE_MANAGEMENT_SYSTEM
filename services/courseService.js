@@ -183,6 +183,8 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     break;
                 }
             }
+            check = false;
+            throw new Error("Problem with assign Course! No Room Available!");
         } while (check)
     }
 }
