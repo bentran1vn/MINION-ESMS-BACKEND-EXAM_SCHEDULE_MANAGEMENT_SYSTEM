@@ -177,17 +177,18 @@ router.post('/', async (req, res) => {
     //     return;
     // }//cái này là business rule
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const absoluteDifference = Math.abs(endDate.getDate() - startDate.getDate());
+    // Cái này để validation data giữa hay ngày start và end day
+    // const startDate = new Date(start);
+    // const endDate = new Date(end);
+    // const absoluteDifference = Math.abs(endDate.getDate() - startDate.getDate());
 
-    // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
-    const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
+    // // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
+    // const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
 
-    if ((startDate >= endDate) || (monthsDiff < 3)) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
-        res.json(ErrorResponse(400, "Start day must be earlier than end day atleast 3 month"));
-        return;
-    }
+    // if ((startDate >= endDate) || (monthsDiff < 3)) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
+    //     res.json(ErrorResponse(400, "Start day must be earlier than end day atleast 3 month"));
+    //     return;
+    // }
 
     try {
         const existingSemesters = await Semester.findOne({
