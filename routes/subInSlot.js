@@ -164,6 +164,8 @@ router.delete('/', async (req, res) => {
   //id của subinslotid
 
 router.post('/', async (req, res) => {
+    //, requireRole('staff')
+    // courId, examSlotId, numStu
     const courId = req.body.courId
     const examSlotId = req.body.examSlotId
     const numStu = req.body.numStu
