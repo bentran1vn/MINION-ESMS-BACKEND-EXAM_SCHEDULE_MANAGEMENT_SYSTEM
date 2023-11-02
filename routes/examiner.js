@@ -273,7 +273,7 @@ router.get('/allScheduled', async (req, res) => {
             res.json(DataResponse(finalList));
             return;
         } else if (!Array.isArray(finalList)) {
-            res.json(MessageResponse(finalList));
+            res.json(NotFoundResponse());
             return;
         }
     } catch (error) {
@@ -293,7 +293,7 @@ router.get('/examPhaseId', async (req, res) => {
             res.json(DataResponse(result));
             return;
         } else if (!Array.isArray(finalList)){
-            res.json(MessageResponse(result));
+            res.json(NotFoundResponse());
             return;
         }
     } catch (error) {
@@ -376,8 +376,14 @@ router.get('/getExaminerByPhase', async (req, res) => {
                 
                 examinerLists.push(ex);
             }
-            res.json(DataResponse(examinerLists))
-            return;
+            if(examinerLists.length == 0){
+                res.json(NotFoundResponse());
+                return;
+            }
+            else{
+                res.json(DataResponse(examinerLists))
+                return;
+            }
         }
     }catch(err){
         res.json(InternalErrResponse());
