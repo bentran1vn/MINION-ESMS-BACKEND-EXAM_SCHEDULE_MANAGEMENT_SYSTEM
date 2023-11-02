@@ -145,6 +145,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
     let message = "";
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
+    // var timeFormatted = "2023-11-15"
     const curPhase = await ExamPhase.findOne({
         where: {
             startDay: {
