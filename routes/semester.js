@@ -263,6 +263,7 @@ router.get('/season', async (req, res) => {
     }
 })// Trả về all semester 
 
+//create timeslot when create semester
 router.post('/whenCreateSemester', async (req, res) => {
     const year = parseInt(req.body.season.split('_')[1]);
     const season = req.body.season.split('_')[0];
