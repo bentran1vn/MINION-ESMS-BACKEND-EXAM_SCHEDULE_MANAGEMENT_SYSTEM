@@ -8,6 +8,7 @@ import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import { createNewExamSlot, findAllExamSlotByPhase } from '../services/examSlotService.js'
 
+
 const router = express.Router()
 
 /**
@@ -220,7 +221,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const phaseId = parseInt(req.params.id)
     try {
-        const slotList = await findAllExamSlotByPhase(phaseId)
+        const slotList = await findAllExamSlotByPhase(phaseId);
         //.then(value => slotList = value)
         if (slotList) {
             res.json(DataResponse(slotList))
@@ -230,5 +231,4 @@ router.get('/:id', async (req, res) => {
         res.json(ErrorResponse(500, err.message))
     }
 })
-
 export default router
