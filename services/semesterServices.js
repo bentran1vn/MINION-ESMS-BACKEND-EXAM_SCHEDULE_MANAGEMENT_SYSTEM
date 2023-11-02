@@ -31,25 +31,25 @@ export async function deleteSemesterById(semId) {
 }
 
 export async function findAllSemester(value, filterBy, pageNo, limit) {
-    let whereClause = null
+    let whereClause
     let semesterList
-    if (filterBy === "year") {
-        whereClause = { year: parseInt(value) }
-    } else if (filterBy === "season") {
-        whereClause = { season: value }
-    } else if (filterBy === "status") {
-        whereClause = { status: parseInt(value) }
-    } else {
-        semesterList = await Semester.findAll({
-            limit: limit || 1,
-            offset: (pageNo - 1) * limit
-        });
-        return semesterList;
-    }
+    // if (filterBy === "year") {
+    //     whereClause = { year: parseInt(value) }
+    // } else if (filterBy === "season") {
+    //     whereClause = { season: value }
+    // } else if (filterBy === "status") {
+    //     whereClause = { status: parseInt(value) }
+    // } else {
+    //     semesterList = await Semester.findAll({
+    //         limit: limit || 1,
+    //         offset: (pageNo - 1) * limit
+    //     });
+    //     return semesterList;
+    // }
     semesterList = await Semester.findAll({
-        where: whereClause,
-        limit: limit || 1,
-        offset: (pageNo - 1) * limit
+        // where: whereClause,
+        // limit: limit || 1,
+        // offset: (pageNo - 1) * limit
     });
 
     if (semesterList == null || semesterList.length === 0) {
