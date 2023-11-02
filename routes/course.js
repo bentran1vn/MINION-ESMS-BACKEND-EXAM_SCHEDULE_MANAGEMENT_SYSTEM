@@ -3,6 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
+import { courseCron } from '../services/cronJobService.js'
 
 const router = express.Router()
 
@@ -190,6 +191,19 @@ router.delete('/', async (req, res) => {
     } catch (error) {
         console.log(error)
         res.json(InternalErrResponse())
+    }
+})
+
+router.get('/test', async (req, res) => {
+    try {
+        let result 
+        await courseCron().then(data => {
+            result = data
+        })
+        res.json(DataResponse(result))
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

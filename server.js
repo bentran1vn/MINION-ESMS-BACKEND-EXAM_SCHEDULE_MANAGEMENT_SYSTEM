@@ -8,6 +8,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy, Strategy } from 'passport-google-oauth2'
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc"
+import { startCronJob } from './utility/cronJob.js'
 
 // ===== Import routes ========
 import './database/database.js'
@@ -84,6 +85,7 @@ server.use('/studentSubjects', studentSubjectRouter)
 server.use('/autoCreateCourses', autoCreateCourseRouter)
 server.use('/autoFillStus', autoFillStuRouter)
 
+// ===== Swagger =====
 const options = {
     definition: {
         openapi: "3.0.0",
@@ -104,6 +106,10 @@ const options = {
 const specs = swaggerJsDoc(options)
 server.use("/", swaggerUI.serve, swaggerUI.setup(specs))
 
+// ===== Cron Job =====
+startCronJob()
+
+// ===== Start server =====
 server.listen(PORT, () => {
     console.log(`Server is listening at PORT=${PORT}`)
 })
