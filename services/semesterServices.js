@@ -31,7 +31,7 @@ export async function deleteSemesterById(semId) {
 }
 
 export async function findAllSemester(value, filterBy, pageNo, limit) {
-    // let whereClause
+    let whereClause
     let semesterList
     // if (filterBy === "year") {
     //     whereClause = { year: parseInt(value) }

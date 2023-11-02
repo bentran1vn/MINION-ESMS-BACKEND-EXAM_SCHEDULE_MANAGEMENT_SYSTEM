@@ -100,13 +100,13 @@ export async function courseCron() {
 export async function examPhaseCron() {
     let examPhaseList = await ExamPhase.findAll({
         where: {
-            status: 1
+            status: true
         }
     })
     for (const item of examPhaseList) {
         let courseList = await Course.findAll({
             where: {
-                examPhaseId: item.id,
+                ePId: item.dataValues.id,
                 status: 1
             }
         })
