@@ -260,14 +260,15 @@ router.post('/', async (req, res) => {
 //lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {
     const id = parseInt(req.query.userId);//cái này sau bắt bằng token
-    const examiner = await Examiner.findOne({
+    const examiner = await Examiner.findAll({
         where: {
             userId: id,
         }
     })
-    const examinerId = examiner.id
+    let ex = examiner.map(i => i.dataValues)
+    let exId = ex.map(exI => exI.id);
     try {
-        const finalList = await getAllScheduledOneExaminer(examinerId);
+        const finalList = await getAllScheduledOneExaminer(exId);
 
         if (Array.isArray(finalList)) {
             res.json(DataResponse(finalList));
@@ -292,7 +293,7 @@ router.get('/examPhaseId', async (req, res) => {
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        } else if (!Array.isArray(finalList)){
+        } else if (!Array.isArray(result)){
             res.json(NotFoundResponse());
             return;
         }
@@ -403,7 +404,10 @@ router.get('/scheduledByPhase', async (req, res) => {
                 id: examphaseId
             }
         })
-        
+        if(!exPhase){
+            res.json(NotFoundResponse());
+            return;
+        }
         const semester = await Semester.findOne({
             where:{
                 start: {[Op.lte]: exPhase.startDay},

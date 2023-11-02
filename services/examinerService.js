@@ -14,6 +14,7 @@ import { Op } from 'sequelize'
 
 
 export async function getScheduleByPhase(userId, examPhaseId) {
+    let message = "";
     //day - startTime - endTime - Room
     let scheduleWithPhase = [];
 
@@ -22,6 +23,9 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             id: examPhaseId
         }
     })
+    if(!exPhase){
+        return message="Error";
+    }
 
     const semester = await Semester.findOne({
         where: {
@@ -29,14 +33,18 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             end: { [Op.gte]: exPhase.endDay }
         }
     })
-
+    if(!semester){
+        return message="Error";
+    }
     const exMiner = await Examiner.findOne({
         where: {
             userId: userId,
             semesterId: semester.id
         }
     })
-
+    if(!exMiner){
+        return message="Error";
+    }
     const examSlot = await ExamSlot.findAll({
         where: {
             ePId: examPhaseId
@@ -158,6 +166,9 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
     })
 
     const examphase = await ExamPhase.findOne({ where: { id: examphaseId } });
+    if(!examphase){
+        return message = "Error";
+    }
     const exslot = await ExamSlot.findAll({
         where: {
             [Op.and]: [
@@ -166,7 +177,9 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
             ]
         }
     });
-    
+    if(exslot.length == 0){
+        return message = "Error";
+    }
     for (const exsl of exslot) {
         const timeslot = await TimeSlot.findOne({
             where: {
@@ -297,10 +310,148 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
 }
 
 //lấy hết lịch đã dk của 1 thg nhưng k theo bất kì gì hết
-export async function getAllScheduledOneExaminer(id) {
+// export async function getAllScheduledOneExaminer(id) {
+//     let message = "";
+//     const time = new Date() //ngày hiện tại
+//     var timeFormatted = time.toISOString().slice(0, 10)
+//     const curPhase = await ExamPhase.findOne({
+//         where: {
+//             startDay: {
+//                 [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+//             },
+//             endDay: {
+//                 [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+//             },
+//         }
+//     })
+//     const result = await ExamRoom.findAll({
+//         where: { examinerId: id },
+//         include: [
+//             {
+//                 model: SubInSlot,
+//                 include: [
+//                     {
+//                         model: Course,
+//                         include: [
+//                             {
+//                                 model: Subject,
+//                                 attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
+//                             },
+//                         ],
+//                     },
+//                     {
+//                         model: ExamSlot,
+//                         include: [
+//                             {
+//                                 model: TimeSlot,
+//                                 attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
+//                             },
+//                         ],
+//                     },
+//                 ],
+//             },
+//             {
+//                 model: Room,
+//                 attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
+//             },
+//         ],
+//     })
+
+//     let listSchedule = [];
+//     let finalList = [];
+//     if (result.length === 0) {
+//         // res.json(MessageResponse("Your schedule is empty !"))
+//         return message = "Your schedule is empty !";
+//     } else {
+//         for (const schedule of result) {
+//             const room = schedule.room;
+//             const subject = schedule.subInSlot.course.subject;
+//             const examSlot = schedule.subInSlot.examSlot;
+//             const timeSlot = schedule.subInSlot.examSlot.timeSlot;
+//             const sche = {
+//                 subCode: subject.code,
+//                 subName: subject.name,
+//                 startTime: timeSlot.startTime,
+//                 endTime: timeSlot.endTime,
+//                 day: examSlot.day,
+//                 roomCode: room.roomNum,
+//                 roomLocation: room.location
+//             };
+//             listSchedule.push(sche);
+//         }
+
+//         for (const sche of listSchedule) {
+//             if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
+//                 const f = {
+//                     subCode: sche.subCode,
+//                     subName: sche.subName,
+//                     startTime: sche.startTime,
+//                     endTime: sche.endTime,
+//                     day: sche.day,
+//                     roomCode: sche.roomCode, // corrected roomCode
+//                     roomLocation: sche.roomLocation, // corrected roomLocation
+//                     phase: "on-going",
+//                 };
+//                 finalList.push(f);
+//             } else if (!curPhase && (timeFormatted <= sche.day)) {
+//                 const f = {
+//                     subCode: sche.subCode,
+//                     subName: sche.subName,
+//                     startTime: sche.startTime,
+//                     endTime: sche.endTime,
+//                     day: sche.day,
+//                     roomCode: sche.roomCode, // corrected roomCode
+//                     roomLocation: sche.roomLocation, // corrected roomLocation
+//                     phase: "future",
+//                 };
+//                 finalList.push(f);
+//             } else if (!curPhase && (timeFormatted > sche.day)) {
+//                 const f = {
+//                     subCode: sche.subCode,
+//                     subName: sche.subName,
+//                     startTime: sche.startTime,
+//                     endTime: sche.endTime,
+//                     day: sche.day,
+//                     roomCode: sche.roomCode, // corrected roomCode
+//                     roomLocation: sche.roomLocation, // corrected roomLocation
+//                     phase: "passed",
+//                 };
+//                 finalList.push(f);
+//             }
+//         }
+//     }
+//     let returnList = [];
+//     for (const item of finalList) {
+//         if (item.phase == "passed" || item.phase == "ongoing") {
+//             const s = {
+//                 subCode: item.subCode,
+//                 subName: item.subName,
+//                 startTime: `${item.day} ${item.startTime}`,
+//                 endTime: `${item.day} ${item.endTime}`,
+//                 roomCode: item.roomCode,
+//                 roomLocation: item.roomLocation,
+//                 phase: item.phase
+//             }
+//             returnList.push(s)
+//         } else if (item.phase == "future") {
+//             const s = {
+//                 startTime: `${item.day} ${item.startTime}`,
+//                 endTime: `${item.day} ${item.endTime}`,
+//                 phase: item.phase,
+//                 roomLocation: item.roomLocation,
+//             }
+//             returnList.push(s)
+//         }
+//     }
+//     return returnList;
+// }
+
+export async function getAllScheduledOneExaminer(examinerId) {
+    let sheduledList = [];
     let message = "";
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
+    // var timeFormatted = "2023-11-15"
     const curPhase = await ExamPhase.findOne({
         where: {
             startDay: {
@@ -311,102 +462,101 @@ export async function getAllScheduledOneExaminer(id) {
             },
         }
     })
-    const result = await ExamRoom.findAll({
-        where: { examinerId: id },
-        include: [
-            {
-                model: SubInSlot,
-                include: [
-                    {
-                        model: Course,
-                        include: [
-                            {
-                                model: Subject,
-                                attributes: ['code', 'name'], // Chọn các trường bạn muốn lấy từ bảng Subject
-                            },
-                        ],
-                    },
-                    {
-                        model: ExamSlot,
-                        include: [
-                            {
-                                model: TimeSlot,
-                                attributes: ['startTime', 'endTime'], // Chọn các trường bạn muốn lấy từ bảng TimeSlot
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                model: Room,
-                attributes: ['roomNum', 'location'], // Chọn các trường bạn muốn lấy từ bảng Room
-            },
-        ],
-    })
 
-    let listSchedule = [];
-    let finalList = [];
-    if (result.length === 0) {
-        // res.json(MessageResponse("Your schedule is empty !"))
-        return message = "Your schedule is empty !";
-    } else {
-        for (const schedule of result) {
-            const room = schedule.room;
-            const subject = schedule.subInSlot.course.subject;
-            const examSlot = schedule.subInSlot.examSlot;
-            const timeSlot = schedule.subInSlot.examSlot.timeSlot;
-            const sche = {
-                subCode: subject.code,
-                subName: subject.name,
-                startTime: timeSlot.startTime,
-                endTime: timeSlot.endTime,
-                day: examSlot.day,
-                roomCode: room.roomNum,
-                roomLocation: room.location
-            };
-            listSchedule.push(sche);
+    const examinerScheduled = await ExamRoom.findAll({
+        where: {
+          examinerId: {
+            [Op.or]: examinerId
+          }
         }
-
-        for (const sche of listSchedule) {
-            if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "on-going",
-                };
-                finalList.push(f);
-            } else if (!curPhase && (timeFormatted <= sche.day)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "future",
-                };
-                finalList.push(f);
-            } else if (!curPhase && (timeFormatted > sche.day)) {
-                const f = {
-                    subCode: sche.subCode,
-                    subName: sche.subName,
-                    startTime: sche.startTime,
-                    endTime: sche.endTime,
-                    day: sche.day,
-                    roomCode: sche.roomCode, // corrected roomCode
-                    roomLocation: sche.roomLocation, // corrected roomLocation
-                    phase: "passed",
-                };
-                finalList.push(f);
+      });
+    if(examinerScheduled.length == 0){
+        return message = "Error";
+    }
+    for(const ex of examinerScheduled){
+        const subSlot = await SubInSlot.findOne({
+            where: {
+                id: ex.dataValues.sSId
             }
+        })
+        const cour = await Course.findOne({
+            where:{
+                id: subSlot.courId
+            }
+        })
+        const subject = await Subject.findOne({
+            where: {
+                id: cour.subId
+            }
+        })
+        const exSlot = await ExamSlot.findOne({
+            where: {
+                id: subSlot.exSlId
+            }
+        })
+        const time = await TimeSlot.findOne({
+            where: {
+                id: exSlot.timeSlotId
+            }
+        })
+        const room = await Room.findOne({
+            where:{
+                id: ex.dataValues.roomId
+            }
+        })
+        const sche = {
+            subCode: subject.code,
+            subName: subject.name,
+            startTime: time.startTime,
+            endTime: time.endTime,
+            day: exSlot.dataValues.day,
+            roomCode: room.roomNum,
+            roomLocation: room.location
+        };
+        sheduledList.push(sche); 
+    }
+    
+    let finalList = [];
+    for (const sche of sheduledList) {
+        if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
+            const f = {
+                subCode: sche.subCode,
+                subName: sche.subName,
+                startTime: sche.startTime,
+                endTime: sche.endTime,
+                day: sche.day,
+                roomCode: sche.roomCode, // corrected roomCode
+                roomLocation: sche.roomLocation, // corrected roomLocation
+                phase: "on-going",
+            };
+            finalList.push(f);
+        } else if (!curPhase && (timeFormatted <= sche.day)) {
+            const f = {
+                subCode: sche.subCode,
+                subName: sche.subName,
+                startTime: sche.startTime,
+                endTime: sche.endTime,
+                day: sche.day,
+                roomCode: sche.roomCode, // corrected roomCode
+                roomLocation: sche.roomLocation, // corrected roomLocation
+                phase: "future",
+            };
+            finalList.push(f);
+        } else if (!curPhase && (timeFormatted > sche.day)) {
+            const f = {
+                subCode: sche.subCode,
+                subName: sche.subName,
+                startTime: sche.startTime,
+                endTime: sche.endTime,
+                day: sche.day,
+                roomCode: sche.roomCode, // corrected roomCode
+                roomLocation: sche.roomLocation, // corrected roomLocation
+                phase: "passed",
+            };
+            finalList.push(f);
         }
     }
+
     let returnList = [];
     for (const item of finalList) {
         if (item.phase == "passed" || item.phase == "ongoing") {
@@ -417,20 +567,23 @@ export async function getAllScheduledOneExaminer(id) {
                 endTime: `${item.day} ${item.endTime}`,
                 roomCode: item.roomCode,
                 roomLocation: item.roomLocation,
-                phase: item.phase
+                phase: item.phase,
+                
             }
-            returnList.push(s)
+            returnList.push(s);
         } else if (item.phase == "future") {
             const s = {
+                subCode: "N/A",
+                subName: "N/A",
                 startTime: `${item.day} ${item.startTime}`,
                 endTime: `${item.day} ${item.endTime}`,
-                phase: item.phase,
+                roomCode: "N/A",
                 roomLocation: item.roomLocation,
+                phase: item.phase,
             }
-            returnList.push(s)
+            returnList.push(s);
         }
     }
     return returnList;
+
 }
-
-
