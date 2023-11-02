@@ -32,7 +32,6 @@ import overwriteResponseJSON from './middlewares/overwriteResponseJSON.js'
 import studentSubjectRouter from './routes/studentSubject.js'
 import autoCreateCourseRouter from './routes/autoCreateCourse.js'
 import autoFillStuRouter from './routes/autoFillStu.js'
-
 import examinerRouter from './routes/examiner.js'
 import examinerLogTimeRouter from './routes/examinerLogTime.js'
 

@@ -1,15 +1,14 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Subject from '../models/Subject.js'
-import Student from '../models/Student.js'
 import StudentSubject from '../models/StudentSubject.js'
-import StaffLogChange from '../models/StaffLogChange.js'
-import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import Course from '../models/Course.js'
-import ExamPhase from '../models/ExamPhase.js'
+import excel from 'exceljs';
+import multer from 'multer';
 
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const router = express.Router()
 
 //Swagger Model
@@ -186,5 +185,45 @@ router.put('/', async (req, res) => {
     await ExamPhase.update({ status: 0 }, { where: { status: 1 } })
     res.json(MessageResponse('Update success'))
 })// Update lại student subject từ status: 1 về 0
+
+router.post('/excel', upload.single('excelFile'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json("No file uploaded.");
+        }
+        const workbook = new excel.Workbook();
+        workbook.xlsx.load(req.file.buffer).then(() => {
+            const worksheet = workbook.getWorksheet(1);
+
+            // Lặp qua từng dòng trong tệp Excel và thêm vào cơ sở dữ liệu
+            let currentRow = 1; // Đánh dấu hàng hiện tại
+
+            // Lặp qua từng dòng trong tệp Excel và thêm vào cơ sở dữ liệu, bắt đầu từ hàng thứ 2
+            worksheet.eachRow(async(row, rowNumber) => {
+                if (currentRow === 1) {
+                    // Bỏ qua tiêu đề (hàng đầu tiên)
+                    currentRow++;
+                    return;
+                }
+                const data = {
+                    subjectId: parseInt(row.getCell(1).value),
+                    stuId: parseInt(row.getCell(2).value),
+                    ePName: row.getCell(3).value,
+                    startDay: row.getCell(4).value,
+                    endDay: row.getCell(5).value,
+                    status: parseInt(row.getCell(6).value),
+                };
+                await StudentSubject.create(data);
+                currentRow++;
+            });
+            
+        });
+        res.json(MessageResponse("Import student subject list success"));
+        return;
+    } catch(err){
+        res.json("error");
+        console.log(err);
+    }
+})
 
 export default router
