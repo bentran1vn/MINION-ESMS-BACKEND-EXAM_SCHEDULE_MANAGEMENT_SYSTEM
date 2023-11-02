@@ -99,7 +99,7 @@ router.get('/versionTwo', async (req, res) => {
 
         const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
             where: {
-                subjectId: subIdInCourse[i].subId,
+                subjectId: subIdInCourse.subId,
                 status: 1
             },
         })
