@@ -181,16 +181,22 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                         typeChange: 12,
                     })
                     if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
-                    
+
+                    if (numStu > 15) {
+                        numStu -= 15
+                        await handleFillStu(courseId, 15, examRoom.id)
+                    } else {
+                        await handleFillStu(courseId, numStu, examRoom.id)
+                    }
                     findRoom = true;
                     check = false;
                     break;
                 }
             }
-            if(!findRoom){
+            if (!findRoom) {
                 throw new Error("Problem with assign Course! No Room Available!");
             }
         } while (check)
     }
-    await handleFillStu(courseId, numStu, subInSlot.id)
+
 }
