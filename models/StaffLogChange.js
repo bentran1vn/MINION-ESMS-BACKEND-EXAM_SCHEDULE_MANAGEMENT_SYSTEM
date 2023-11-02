@@ -43,6 +43,7 @@ const StaffLogChange = sequelize.define(tableName, {
         // 9 chỉnh sửa status CTV
         // 10 thay đổi 1 row trong table Examiner (ghi nhận rowId)
         // 11 thay đổi nhiều row trong table Examiner
+        // 12 tạo mới 1 ExamRoom
     },
     ...SQLModel
 });
