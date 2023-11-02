@@ -254,7 +254,7 @@ router.post('/', async (req, res) => {
         console.log(err)
         res.json(InternalErrResponse());
     }
-})
+})//chưa làm được 
 
 
 //lấy tất cả lịch đã đăng kí của 1 examiner 
@@ -392,7 +392,6 @@ router.get('/getExaminerByPhase', async (req, res) => {
     }
     //trả ra email name, role, status
 })
-
 
 //lấy lịch đã đăng kí của 1 examiner theo phase
 router.get('/scheduledByPhase', async (req, res) => {
