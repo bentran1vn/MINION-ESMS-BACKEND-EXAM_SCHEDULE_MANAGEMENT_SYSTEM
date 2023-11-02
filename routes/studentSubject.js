@@ -6,6 +6,7 @@ import { Op } from 'sequelize'
 import excel from 'exceljs';
 import multer from 'multer';
 
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router()
@@ -180,6 +181,8 @@ router.get('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
     await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
+    await Course.update({ status: 0 }, { where: { status: 1 } })
+    await ExamPhase.update({ status: 0 }, { where: { status: 1 } })
     res.json(MessageResponse('Update success'))
 })// Update lại student subject từ status: 1 về 0
 

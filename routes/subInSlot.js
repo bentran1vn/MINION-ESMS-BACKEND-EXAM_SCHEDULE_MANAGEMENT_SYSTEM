@@ -1,11 +1,12 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import ExamSlot from '../models/ExamSlot.js'
 import Course from '../models/Course.js'
 import SubInSlot from '../models/SubInSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import { Op } from 'sequelize'
+import { assignCourse } from '../services/courseService.js'
 
 const router = express.Router()
 
@@ -163,7 +164,18 @@ router.delete('/', async (req, res) => {
   //id của subinslotid
 
 router.post('/', async (req, res) => {
-    
+    //, requireRole('staff')
+    // courId, examSlotId, numStu
+    const courId = req.body.courId
+    const examSlotId = req.body.examSlotId
+    const numStu = req.body.numStu
+    try{
+        await assignCourse(courId, examSlotId, numStu)
+        res.json("Create Exam Room Successfully !")
+    } catch(error){
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
 })
 
 export default router
