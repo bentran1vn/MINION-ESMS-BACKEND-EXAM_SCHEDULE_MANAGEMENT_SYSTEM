@@ -580,9 +580,9 @@ router.post('/auto', async (req, res) => {
     //lấy id thông qua token
     // const staffId = parseInt(res.locals.userData.id) || 1;
     const staffId = 1;
-
+    const examphaseId = req.body.examphaseId;
     try {
-        const message = await autoFillLecturerToExamRoom(staffId);
+        const message = await autoFillLecturerToExamRoom(staffId, examphaseId);
         res.json(MessageResponse(message));
     } catch (error) {
         res.json(InternalErrResponse());
@@ -643,7 +643,8 @@ router.put('/addExaminer', async (req, res) => {
     // const staffId = parseInt(res.locals.userData.id);//lấy từ token
     const staffId = 1
     //thêm lecturer của staff
-    const { examRoomId, userId } = req.body;
+    const examRoomId = parseInt(req.body.examRoomId)
+    const userId = parseInt(req.body.userId)
     //id ở đây là examRoom id
     try {
         const result = await addExaminerForStaff(staffId, examRoomId, userId);
@@ -801,8 +802,13 @@ router.get('/getCourseOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllCourseOneSlot(exSlotID);
-        res.json(DataResponse(result));
-        return;
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+            return;
+        } else {
+            res.json(NotFoundResponse());
+            return;
+        }
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -814,32 +820,49 @@ router.get('/getCourseAndNumOfStuOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllCourseAndNumOfStudentOneSlot(exSlotID);
-        res.json(DataResponse(result));
-        return;
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+            return;
+        } else {
+            res.json(NotFoundResponse());
+            return;
+        }
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
     }
 })
 
+//tất cả room đc xếp trong exslot này
 router.get('/getRoomOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllRoomOneSlot(exSlotID);
-        res.json(DataResponse(result));
-        return;
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+            return;
+        } else {
+            res.json(NotFoundResponse());
+            return;
+        }
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
     }
 })
 
+//tất cả examiner đc xếp trong exslot này
 router.get('/getExaminerOneSlot', async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllExaminerOneSlot(exSlotID);
-        res.json(DataResponse(result));
-        return;
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+            return;
+        } else {
+            res.json(NotFoundResponse());
+            return;
+        }
     } catch (error) {
         res.json(InternalErrResponse());
         console.log(error);
@@ -850,8 +873,13 @@ router.get('/getExamRoomDetailByPhase', async (req, res) => {
     const examSlotId = parseInt(req.query.examSlotId);
     try {
         const result = await getDetailScheduleOneExamSlot(examSlotId);
-        res.json(DataResponse(result));
-        return;
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+            return;
+        } else {
+            res.json(NotFoundResponse());
+            return;
+        }
     } catch (err) {
         res.json(InternalErrResponse());
         console.log(err);
