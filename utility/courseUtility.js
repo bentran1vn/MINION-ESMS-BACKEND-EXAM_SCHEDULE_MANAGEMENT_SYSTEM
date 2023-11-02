@@ -13,6 +13,7 @@ export async function autoCreateCourse() {
         }
     })
     const ePName = stuSub[0].ePName
+    
     const examPhase = await ExamPhase.findOne({
         where: {
             ePName: ePName
@@ -49,7 +50,6 @@ export async function autoCreateCourse() {
         }
         return true
     }
-
 
 }
 

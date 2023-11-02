@@ -4,6 +4,7 @@ import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import ExamPhase from '../models/ExamPhase.js'
+import { autoCreateCourse } from '../utility/courseUtility.js'
 
 const router = express.Router()
 
@@ -99,47 +100,51 @@ router.get('/', async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     let listCourse = [];
     try {
-        const result = await Course.findAll({
-            where: {
-                ePId
-            },
-            include: [{
-                model: Subject,
-                attributes: ['code']
-            }]
-        });
-        const examPhase = await ExamPhase.findOne({
-            where:{
-                id: ePId
+        let check;
+        await autoCreateCourse().then(value => check = value);
+        if (check) {
+            const result = await Course.findAll({
+                where: {
+                    ePId
+                },
+                include: [{
+                    model: Subject,
+                    attributes: ['code']
+                }]
+            });
+            const examPhase = await ExamPhase.findOne({
+                where: {
+                    id: ePId
+                }
+            })
+            for (const course of result) {
+                if (course.dataValues.status == 1) {
+                    const subject = course.subject;
+                    const sub = {
+                        courseId: course.dataValues.id,
+                        subCode: subject.code,
+                        numOfStu: course.dataValues.numOfStu,
+                        ePName: examPhase.ePName,
+                        status: 1
+                    };
+                    listCourse.push(sub);
+                } else {
+                    const subject = course.subject;
+                    const sub = {
+                        courseId: course.dataValues.id,
+                        subCode: subject.code,
+                        numOfStu: course.dataValues.numOfStu,
+                        ePName: examPhase.ePName,
+                        status: 0
+                    };
+                    listCourse.push(sub);
+                }
             }
-        })
-        for (const course of result) {
-            if (course.dataValues.status == 1) {
-                const subject = course.subject;
-                const sub = {
-                    courseId: course.dataValues.id,
-                    subCode: subject.code,
-                    numOfStu: course.dataValues.numOfStu,
-                    ePName: examPhase.ePName,
-                    status: 1
-                };
-                listCourse.push(sub);
+            if (listCourse.length == 0) {
+                res.json(NotFoundResponse);
             } else {
-                const subject = course.subject;
-                const sub = {
-                    courseId: course.dataValues.id,
-                    subCode: subject.code,
-                    numOfStu: course.dataValues.numOfStu,
-                    ePName: examPhase.ePName,
-                    status: 0
-                };
-                listCourse.push(sub);
+                res.json(DataResponse(listCourse));
             }
-        }
-        if (listCourse.length == 0) {
-            res.json(NotFoundResponse);
-        } else {
-            res.json(DataResponse(listCourse));
         }
     } catch (error) {
         console.error(error);
