@@ -3,6 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -107,7 +108,11 @@ router.get('/', async (req, res) => {
                 attributes: ['code']
             }]
         });
-
+        const examPhase = await ExamPhase.findOne({
+            where:{
+                id: ePId
+            }
+        })
         for (const course of result) {
             if (course.dataValues.status == 1) {
                 const subject = course.subject;
@@ -115,7 +120,7 @@ router.get('/', async (req, res) => {
                     courseId: course.dataValues.id,
                     subCode: subject.code,
                     numOfStu: course.dataValues.numOfStu,
-                    ePId: course.dataValues.ePId,
+                    ePName: examPhase.ePName,
                     status: 1
                 };
                 listCourse.push(sub);
@@ -125,7 +130,7 @@ router.get('/', async (req, res) => {
                     courseId: course.dataValues.id,
                     subCode: subject.code,
                     numOfStu: course.dataValues.numOfStu,
-                    ePId: course.dataValues.ePId,
+                    ePName: examPhase.ePName,
                     status: 0
                 };
                 listCourse.push(sub);
