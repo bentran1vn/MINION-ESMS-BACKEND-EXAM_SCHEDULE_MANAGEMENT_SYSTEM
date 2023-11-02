@@ -1,5 +1,5 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import ExamRoom from '../models/ExamRoom.js'
 import Student from '../models/Student.js'
@@ -11,6 +11,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import StudentSubject from '../models/StudentSubject.js'
 import Subject from '../models/Subject.js'
 import ExamSlot from '../models/ExamSlot.js'
+import { col } from 'sequelize'
 
 const router = express.Router()
 
@@ -106,93 +107,99 @@ router.post('/', async (req, res) => {
 })// Auto fill student to exam room (đã có trong autoFillStu)
 
 router.get('/', async (req, res) => {
-    const numOfStuNotShe = []
-    function insertNumOfStuNotShe(courID, subCode, numOfStu) {
-        const detail = {
-            courId: courID, subCode: subCode, numOfStu: numOfStu
+    try {
+        const numOfStuNotShe = []
+        function insertNumOfStuNotShe(courID, subCode, numOfStu) {
+            const detail = {
+                courId: courID, subCode: subCode, numOfStu: numOfStu
+            }
+            numOfStuNotShe.push(detail)
         }
-        numOfStuNotShe.push(detail)
-    }
 
-    const ePId = parseInt(req.query.ePId)
-    const course = await Course.findAll({
-        where: {
-            ePId: ePId
-        }
-    });
-    for (let i = 0; i < course.length; i++) {
-        const subject = await Subject.findOne({
+        const ePId = parseInt(req.query.ePId)
+        const course = await Course.findAll({
             where: {
-                id: course[i].subId
+                ePId: ePId,
+                status: 1
             }
         });
-        insertNumOfStuNotShe(course[i].id, subject.code, course[i].numOfStu)
-    }
-
-    const coursesWithSlot = [];
-    const exSlot = await ExamSlot.findAll({
-        where: {
-            ePId: ePId
-        }
-    })
-    for (let j = 0; j < exSlot.length; j++) {
-        const subWithSlot = await SubInSlot.findAll({
-            where: {
-                exSlId: exSlot[j].id
-            }
-        })
-        for (const item of subWithSlot) {
-            const course = await Course.findOne({
-                where: {
-                    id: item.dataValues.courId
-                }
-            });
-
+        for (let i = 0; i < course.length; i++) {
             const subject = await Subject.findOne({
                 where: {
-                    id: course.subId
+                    id: course[i].subId
                 }
             });
+            insertNumOfStuNotShe(course[i].id, subject.code, course[i].numOfStu)
+        }
 
-            const exRoom = await ExamRoom.findAll({
+        const coursesWithSlot = [];
+        const exSlot = await ExamSlot.findAll({
+            where: {
+                ePId: ePId
+            }
+        })
+        for (let j = 0; j < exSlot.length; j++) {
+            const subWithSlot = await SubInSlot.findAll({
                 where: {
-                    sSid: item.dataValues.id
+                    exSlId: exSlot[j].id
                 }
             })
-
-            let count = 0;
-
-            for (const ex of exRoom) {
-                const stuExams = await StudentExam.findAll({
+            for (const item of subWithSlot) {
+                const course = await Course.findOne({
                     where: {
-                        eRId: ex.dataValues.id
+                        id: item.dataValues.courId
                     }
                 });
-                count += stuExams.length;
+
+                const subject = await Subject.findOne({
+                    where: {
+                        id: course.subId
+                    }
+                });
+
+                const exRoom = await ExamRoom.findAll({
+                    where: {
+                        sSid: item.dataValues.id
+                    }
+                })
+
+                let count = 0;
+
+                for (const ex of exRoom) {
+                    const stuExams = await StudentExam.findAll({
+                        where: {
+                            eRId: ex.dataValues.id
+                        }
+                    });
+                    count += stuExams.length;
+                }
+                const cour = {
+                    courId: course.id,
+                    subCode: subject.code,
+                    numOfStu: count,
+                };
+                coursesWithSlot.push(cour);
             }
-            const cour = {
-                courId: course.id,
-                subCode: subject.code,
-                numOfStu: count,
-            };
-            coursesWithSlot.push(cour);
         }
-    }
-    for (let m = 0; m < numOfStuNotShe.length; m++) {
-        for (let n = 0; n < coursesWithSlot.length; n++) {
-            if (numOfStuNotShe[m].courId == coursesWithSlot[n].courId && numOfStuNotShe[m].numOfStu > coursesWithSlot[n].numOfStu) {
-                numOfStuNotShe[m].numOfStu = numOfStuNotShe[m].numOfStu - coursesWithSlot[n].numOfStu
-            }
-            else if (numOfStuNotShe[m].courId == coursesWithSlot[n].courId && numOfStuNotShe[m].numOfStu == coursesWithSlot[n].numOfStu) {
-                numOfStuNotShe[m].numOfStu = 0
+        for (let m = 0; m < numOfStuNotShe.length; m++) {
+            for (let n = 0; n < coursesWithSlot.length; n++) {
+                if (numOfStuNotShe[m].courId == coursesWithSlot[n].courId && numOfStuNotShe[m].numOfStu > coursesWithSlot[n].numOfStu) {
+                    numOfStuNotShe[m].numOfStu = numOfStuNotShe[m].numOfStu - coursesWithSlot[n].numOfStu
+                }
+                else if (numOfStuNotShe[m].courId == coursesWithSlot[n].courId && numOfStuNotShe[m].numOfStu == coursesWithSlot[n].numOfStu) {
+                    numOfStuNotShe[m].numOfStu = 0
+                }
             }
         }
-    }
-    let newArray = numOfStuNotShe.filter(item => item.numOfStu != 0)
-    if (newArray.length != 0) {
-        res.json(DataResponse(newArray))
-    } else {
-        res.json(MessageResponse('All courses and students are scheduled'))
+        let newArray = numOfStuNotShe.filter(item => item.numOfStu != 0)
+        if (newArray.length != 0) {
+            res.json(DataResponse(newArray))
+        } else {
+            res.json(MessageResponse('All courses and students are scheduled'))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

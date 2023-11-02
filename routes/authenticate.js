@@ -32,6 +32,7 @@ router.get('/google/callback', passport.authenticate('google', {
                     email: user.email,
                     name: user.name,
                     role: user.role,
+                    image_url : profile.get('picture')
                 }
                 const token = jwt.sign(payload, process.env.SECRET, {
                     expiresIn: '3h'

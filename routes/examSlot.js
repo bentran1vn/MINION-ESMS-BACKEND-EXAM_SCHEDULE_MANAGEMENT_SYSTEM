@@ -170,7 +170,7 @@ router.post('/', async (req, res) => {
         res.json(MessageResponse("Create Exam Slot Successfully !"))
     } catch (err) {
         console.log(err)
-        res.json(ErrorResponse(500, err.message));
+        res.json(ErrorResponse(400, err.message));
     }
 })
 
