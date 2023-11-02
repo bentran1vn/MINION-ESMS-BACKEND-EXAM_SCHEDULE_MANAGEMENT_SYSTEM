@@ -185,7 +185,7 @@ router.post('/', async (req, res) => {
     const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
 
     if ((startDate >= endDate) || (monthsDiff < 3)) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
-        res.json(MessageResponse("Start date must be earlier than end time atleast 3 month"));
+        res.json(ErrorResponse(400, "Start day must be earlier than end day atleast 3 month"));
         return;
     }
 
@@ -291,7 +291,7 @@ router.post('/whenCreateSemester', async (req, res) => {
                 semId: oldsemId
             }
         })
-        for(const time of oldtimeslot){
+        for (const time of oldtimeslot) {
             const newtimeslot = await TimeSlot.create({
                 startTime: time.dataValues.startTime,
                 endTime: time.dataValues.endTime,
