@@ -24,7 +24,7 @@ export async function getScheduleByPhase(userId, examPhaseId) {
         }
     })
     if(!exPhase){
-        return message="Error";
+        return message="Not Found";
     }
     
     const semester = await Semester.findOne({
@@ -165,6 +165,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
     if(!examphase){
         return message = "Error";
     }
+
     const exslot = await ExamSlot.findAll({
         where: {
             [Op.and]: [
@@ -173,9 +174,11 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
             ]
         }
     });
+
     if(exslot.length == 0){
-        return message = "Error";
+        return message = "Not Found";
     }
+
     for (const exsl of exslot) {
         const timeslot = await TimeSlot.findOne({
             where: {
@@ -240,7 +243,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
                 phase: "on-going",
             };
             finalList.push(f);
-        } else if (!curPhase && (timeFormatted <= sche.day)) {
+        } else if (!curPhase && (timeFormatted < sche.day)) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
@@ -252,7 +255,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
                 phase: "future",
             };
             finalList.push(f);
-        } else if (!curPhase && (timeFormatted > sche.day)) {
+        } else if ( (!curPhase && (timeFormatted > sche.day)) || (curPhase && (curPhase.endDay < timeFormatted)) ) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
@@ -467,7 +470,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
         }
       });
     if(examinerScheduled.length == 0){
-        return message = "Error";
+        return message = "Not Found";
     }
     for(const ex of examinerScheduled){
         const subSlot = await SubInSlot.findOne({
@@ -526,7 +529,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
                 phase: "on-going",
             };
             finalList.push(f);
-        } else if (!curPhase && (timeFormatted <= sche.day)) {
+        } else if (!curPhase && (timeFormatted < sche.day)) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
@@ -538,7 +541,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
                 phase: "future",
             };
             finalList.push(f);
-        } else if (!curPhase && (timeFormatted > sche.day)) {
+        } else if ( (!curPhase && (timeFormatted > sche.day)) || (curPhase || (timeFormatted > curPhase.endDay) )) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
