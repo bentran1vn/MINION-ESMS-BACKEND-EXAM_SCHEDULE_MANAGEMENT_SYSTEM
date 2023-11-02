@@ -227,7 +227,9 @@ router.get('/', async (req, res) => {
             res.json(DataResponse(semesterList));
         }
     } catch (Error) {
-        res.json(ErrorResponse(500, Error.message));
+        // res.json(ErrorResponse(500, Error.message));
+        res.json(NotFoundResponse())
+        return;
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
