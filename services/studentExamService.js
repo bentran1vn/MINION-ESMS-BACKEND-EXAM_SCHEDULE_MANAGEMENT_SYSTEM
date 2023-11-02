@@ -111,7 +111,7 @@ export async function handleFillStu(courId, numStu, subInSLotId) {
 
     const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
         where: {
-            subjectId: subIdInCourse[i].subId,
+            subjectId: subIdInCourse.subId,
             status: 1
         },
     })
