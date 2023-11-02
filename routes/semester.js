@@ -4,6 +4,7 @@ import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import { createNewSemesterS, deleteSemesterById, findAllSemester, validateYearAndSeason } from '../services/semesterServices.js'
+import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
 
@@ -261,6 +262,52 @@ router.get('/season', async (req, res) => {
         res.json(InternalErrResponse());
     }
 })// Trả về all semester 
+
+router.post('/whenCreateSemester', async (req, res) => {
+    const year = parseInt(req.body.season.split('_')[1]);
+    const season = req.body.season.split('_')[0];
+    const start = req.body.start;
+    const end = req.body.end;
+
+    try {
+        const newSemester = await Semester.create({
+            season: season,
+            year: year,
+            start: start,
+            end: end
+        })
+        const semester = await Semester.findOne({
+            where: {
+                season: season,
+                year: year,
+                start: start,
+                end: end
+            }
+        })
+        let oldsemId = parseInt(semester.id) - 1;
+        const oldtimeslot = await TimeSlot.findAll({
+            where: {
+                semId: oldsemId
+            }
+        })
+        for(const time of oldtimeslot){
+            const newtimeslot = await TimeSlot.create({
+                startTime: time.dataValues.startTime,
+                endTime: time.dataValues.endTime,
+                semId: parseInt(semester.id),
+                des: time.dataValues.des
+            })
+        }
+        res.json(MessageResponse("Add new timeslot success"));
+        reutrn;
+
+    } catch (err) {
+        console.log(err)
+        res.json(InternalErrResponse());
+    }
+})
+
+
 
 router.delete('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
