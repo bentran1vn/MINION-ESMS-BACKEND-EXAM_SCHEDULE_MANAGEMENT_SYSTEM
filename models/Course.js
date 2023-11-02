@@ -31,8 +31,8 @@ const Course = sequelize.define(tableName, {
         allowNull: true,
         defaultValue: 1
     },
-    //1 là hiện ra
-    //0 là ko hiện ra
+    //1 là pending
+    //0 là finished
 });
 
 ExamPhase.hasMany(Course, { foreignKey: 'ePId' })

@@ -198,4 +198,17 @@ router.delete('/', async (req, res) => {
     }
 })
 
+router.get('/test', async (req, res) => {
+    try {
+        let result 
+        await courseCron().then(data => {
+            result = data
+        })
+        res.json(DataResponse(result))
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
+
 export default router
