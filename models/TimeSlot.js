@@ -28,6 +28,9 @@ const TimeSlot = sequelize.define(tableName, {
 
 });
 
+Semester.hasMany(TimeSlot, { foreignKey: 'semId' })
+TimeSlot.belongsTo(Semester, { foreignKey: 'semId' })
+
 await TimeSlot.sync().then(() => {
     console.log(`${tableName} table is ready`);
 })

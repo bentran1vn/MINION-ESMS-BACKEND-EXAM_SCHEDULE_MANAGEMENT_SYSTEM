@@ -17,7 +17,7 @@ import ExamPhase from '../models/ExamPhase.js'
 import { expandTimePhase } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
 
-export async function autoCreateExamRoom() {
+export async function autoCreateExamRoom(incomingPhase) {
     let roomList
     await findAll().then(value => roomList = value)
     if (roomList === null) {
@@ -26,6 +26,7 @@ export async function autoCreateExamRoom() {
 
     let examPhase = await ExamPhase.findOne({
         where: {
+            id: incomingPhase,
             status: true
         }
     })

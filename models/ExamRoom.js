@@ -3,6 +3,7 @@ import { DataTypes } from "sequelize";
 import Room from "./Room.js";
 import SubInSlot from "./SubInSlot.js";
 import SQLModel from "../common/SQLModel.js";
+import Examiner from "./Examiner.js";
 
 let tableName = 'examRooms'
 //nhớ sửa typechange của staff nha quân
@@ -26,6 +27,10 @@ const ExamRoom = sequelize.define(tableName, {
     examinerId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+            model: Examiner,
+            key: 'id'
+        }
     },
     ...SQLModel,
 });
@@ -36,6 +41,8 @@ ExamRoom.belongsTo(Room, { foreignKey: 'roomId' })
 SubInSlot.hasMany(ExamRoom, { foreignKey: 'sSId' })
 ExamRoom.belongsTo(SubInSlot, { foreignKey: 'sSId' })
 
+Examiner.hasMany(ExamRoom, { foreignKey: 'examinerId' })
+ExamRoom.belongsTo(Examiner, { foreignKey: 'examinerId' })
 
 await ExamRoom.sync().then(() => {
     console.log(`${tableName} table is ready`);
