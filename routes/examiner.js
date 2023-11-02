@@ -6,7 +6,7 @@ import User from '../models/User.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
-import { getScheduleByPhase, getAllSchedule, getScheduledOneExaminerByPhase, getAllScheduledOneExaminer } from '../services/examinerService.js'
+import { getScheduleByPhase, getAllScheduledOneExaminer, getScheduledOneExaminerByPhaseVer2 } from '../services/examinerService.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import ExamPhase from '../models/ExamPhase.js'
 
@@ -256,42 +256,6 @@ router.post('/', async (req, res) => {
     }
 })
 
-//lấy lịch đã đăng kí của 1 examiner theo phase
-router.get('/scheduledByPhase', async (req, res) => {
-    const id = parseInt(req.query.userId);
-    const examphaseId = parseInt(req.query.examphaseId);
-    try {
-        const exPhase = await ExamPhase.findOne({where: {id: examphaseId}})
-        const semester = await Semester.findOne({
-            where:{
-                start: {[Op.lte]: exPhase.startDay},
-                end: {[Op.gte]: exPhase.endDay}
-            }
-        })
-        const examiner = await Examiner.findOne({
-            where: {
-                userId: id,
-                semesterId: semester.id
-            }
-        })
-        const examinerId = examiner.id
-        const finalList = await getScheduledOneExaminerByPhase(examinerId, examphaseId);
-
-        if (Array.isArray(finalList) && finalList.length == 0) {
-            res.json(MessageResponse("You have no schedule"));
-            return;
-        } else if (Array.isArray(finalList) && finalList.length != 0) {
-            res.json(DataResponse(finalList));
-            return;
-        } else if (!Array.isArray(finalList)) {
-            res.json(MessageResponse(finalList));
-            return;
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse());
-    }
-})
 
 //lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {
@@ -305,10 +269,7 @@ router.get('/allScheduled', async (req, res) => {
     try {
         const finalList = await getAllScheduledOneExaminer(examinerId);
 
-        if (Array.isArray(finalList) && finalList.length == 0) {
-            res.json(MessageResponse("You have no schedule"));
-            return;
-        } else if (Array.isArray(finalList) && finalList.length != 0) {
+        if (Array.isArray(finalList)) {
             res.json(DataResponse(finalList));
             return;
         } else if (!Array.isArray(finalList)) {
@@ -318,28 +279,6 @@ router.get('/allScheduled', async (req, res) => {
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
-    }
-})
-
-//chưa biết dùng ở đâu/maybe xóa
-router.get('/availableSlot', async (req, res) => {
-
-    try {// Nhận userId xong đi check trong examiner 
-        //const examinerId = parseInt(req.query.examinerId) //cái này sẽ đổi thành lấy từ token sau
-        const examinerId = 1;
-        const result = await getAllSchedule(examinerId);
-
-        if (Array.isArray(result)) {
-            res.json(DataResponse(result));
-            return;
-        } else {
-            res.json(MessageResponse(result));
-            return;
-        }
-
-    } catch (error) {
-        res.json(InternalErrResponse());
-        console.log(error);
     }
 })
 
@@ -353,7 +292,7 @@ router.get('/examPhaseId', async (req, res) => {
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        } else {
+        } else if (!Array.isArray(finalList)){
             res.json(MessageResponse(result));
             return;
         }
@@ -407,6 +346,10 @@ router.get('/getExaminerByPhase', async (req, res) => {
                     }
                 }
             });
+            if(examiners.length == 0){
+                res.json(MessageResponse("This phase has no examiners"));
+                return;
+            }
             const uniqueExaminers = examiners.reduce((acc, current) => {
                 const x = acc.find(item => item.examinerId === current.examinerId);
                 if (!x) {
@@ -441,6 +384,47 @@ router.get('/getExaminerByPhase', async (req, res) => {
         console.log(err);
     }
     //trả ra email name, role, status
+})
+
+
+//lấy lịch đã đăng kí của 1 examiner theo phase
+router.get('/scheduledByPhase', async (req, res) => {
+    const id = parseInt(req.query.userId);
+    const examphaseId = parseInt(req.query.examphaseId);
+    try {
+        const exPhase = await ExamPhase.findOne({
+            where: {
+                id: examphaseId
+            }
+        })
+        
+        const semester = await Semester.findOne({
+            where:{
+                start: {[Op.lte]: exPhase.startDay},
+                end: {[Op.gte]: exPhase.endDay}
+            }
+        })
+        
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: id,
+                semesterId: semester.id
+            }
+        })
+        const examinerId = examiner.id
+        const finalList = await getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId);
+
+        if (Array.isArray(finalList)) {
+            res.json(DataResponse(finalList));
+            return;
+        } else if (!Array.isArray(finalList)) {
+            res.json(MessageResponse(finalList));
+            return;
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
 })
 
 export default router
