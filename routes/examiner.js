@@ -418,7 +418,7 @@ router.get('/scheduledByPhase', async (req, res) => {
             res.json(DataResponse(finalList));
             return;
         } else if (!Array.isArray(finalList)) {
-            res.json(MessageResponse(finalList));
+            res.json(NotFoundResponse());
             return;
         }
     } catch (error) {
