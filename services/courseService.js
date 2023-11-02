@@ -143,6 +143,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
         }
     }
     for (let i = 0; i < numRoom; i++) {
+        //duyệt roomList tìm phòng trống
         let check = true;
         do {
             let findRoom = false;
@@ -192,5 +193,8 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
+    //mình phải xếp 4 phfong cho môn đó
+    //xếp đc 2 phòng nhưng mà hết 2 phòng còn lại r
+    //slot đó còn đủ 2 phòng 
     await handleFillStu(courseId, numStu, subInSlot.id)
 }
