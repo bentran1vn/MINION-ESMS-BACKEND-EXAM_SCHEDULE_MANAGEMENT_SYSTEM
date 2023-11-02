@@ -7,6 +7,7 @@ import excel from 'exceljs';
 import multer from 'multer';
 import Course from '../models/Course.js'
 import ExamPhase from '../models/ExamPhase.js'
+import {autoCreateCourse} from '../utility/courseUtility.js'
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -219,6 +220,7 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
             });
 
         });
+        autoCreateCourse();
         res.json(MessageResponse("Import student subject list success"));
         return;
     } catch (err) {
