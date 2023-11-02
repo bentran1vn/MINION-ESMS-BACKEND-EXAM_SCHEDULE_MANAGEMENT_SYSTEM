@@ -85,8 +85,10 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/versionTwo', async (req, res) => {
+    // courId, examSlotId, numStu, subInSLotId, examPhaseId
     const courId = req.query.courId
     const numStu = req.query.numStu
+    const examSLotId = req.query.examSLotId
     try {
         const subIdInCourse = await Course.findOne({
             where: {
@@ -95,7 +97,7 @@ router.get('/versionTwo', async (req, res) => {
             }
         })// Lấy subject id trong course cần thi
 
-        const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
+        const ArrStudentIdInCourse = await StudentSubject.findOne({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
             where: {
                 subjectId: subIdInCourse[i].subId,
                 status: 1
@@ -108,6 +110,8 @@ router.get('/versionTwo', async (req, res) => {
                 ListStudentIdInCourse.push(e.stuId)
             });
         }
+        const ListStudentIdInCourseV2 = ListStudentIdInCourse.slice(0, numStu)
+
         const SubInSlotList = await SubInSlot.findAll({ // Lấy ra những slot trong SubInSlot bằng courId
             where: {
                 courId: subIdInCourse[i].id
