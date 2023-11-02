@@ -145,7 +145,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
             eRId: examRoom.id,
             stuId: numStuInRoom[i]
         })
-        await StudentSubject.Update({ status: 0 }, {
+        await StudentSubject.update({ status: 0 }, {
             where: {
                 id: numStuInRoom[i],
                 status: 1
