@@ -107,7 +107,7 @@ const specs = swaggerJsDoc(options)
 server.use("/", swaggerUI.serve, swaggerUI.setup(specs))
 
 // ===== Cron Job =====
-startCronJob()
+await startCronJob()
 
 // ===== Start server =====
 server.listen(PORT, () => {
