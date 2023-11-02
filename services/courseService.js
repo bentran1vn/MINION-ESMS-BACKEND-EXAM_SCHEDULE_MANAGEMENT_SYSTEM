@@ -143,6 +143,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
         }
     }
     for (let i = 0; i < numRoom; i++) {
+        //duyệt roomList tìm phòng trống
         let check = true;
         do {
             let findRoom = false;
@@ -198,5 +199,4 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
-
 }
