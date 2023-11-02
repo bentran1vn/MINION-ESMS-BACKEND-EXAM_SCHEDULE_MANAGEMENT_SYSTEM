@@ -289,6 +289,36 @@ router.post('/whenCreateSemester', async (req, res) => {
             }
         })
         let oldsemId = parseInt(semester.id) - 1;
+        let standardTimeSlot = [
+            {startTime: "07:30:00", endTime: "09:00:00", semId: `${semester.id}`, des: 0},
+            {startTime: "09:15:00", endTime: "10:45:00", semId: `${semester.id}`, des: 0},
+            {startTime: "11:00:00", endTime: "12:30:00", semId: `${semester.id}`, des: 0},
+            {startTime: "12:45:00", endTime: "14:15:00", semId: `${semester.id}`, des: 0},
+            {startTime: "14:30:00", endTime: "16:00:00", semId: `${semester.id}`, des: 0},
+            {startTime: "16:15:00", endTime: "17:45:00", semId: `${semester.id}`, des: 0},
+            {startTime: "07:30:00", endTime: "10:00:00", semId: `${semester.id}`, des: 1},
+            {startTime: "10:15:00", endTime: "12:45:00", semId: `${semester.id}`, des: 1},
+            {startTime: "13:30:00", endTime: "15:30:00", semId: `${semester.id}`, des: 1},
+            {startTime: "15:45:00", endTime: "18:15:00", semId: `${semester.id}`, des: 1}
+        ]
+        let check = 0;
+        if(oldsemId == 0){
+            for(const item of standardTimeSlot){
+                const time = await TimeSlot.create({
+                    startTime: item.startTime,
+                    endTime: item.endTime,
+                    semId: item.semId,
+                    des: item.des
+                })
+                if(time){
+                    check++;
+                }
+            }
+        }
+        if(check!=0){
+            res.json(MessageResponse("Add time slot success"));
+            return;
+        }
         const oldtimeslot = await TimeSlot.findAll({
             where: {
                 semId: oldsemId
