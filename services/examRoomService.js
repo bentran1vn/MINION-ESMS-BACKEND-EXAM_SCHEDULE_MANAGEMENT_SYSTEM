@@ -899,7 +899,13 @@ export async function addRoomByStaff(staffId, id, roomId) {
             id: parseInt(subjectInSlot.exSlId)
         }
     })
-    if (examSlot.day < semester.startDay) {
+    const phase = await ExamPhase.findOne({
+        where: {
+            startDay: {[Op.lte]: examSlot.day},
+            endDay: {[Op.gte]: examSlot.day}
+        }
+    })
+    if (phase.status == 0) {
         // res.json(MessageResponse("Can't add room to passed semester"));
         return message = "Can't add room to passed semester";
     }
@@ -1002,7 +1008,13 @@ export async function delRoomByStaff(staffId, id) {
             id: parseInt(subjectInSlot.exSlId)
         }
     })
-    if (examSlot.day < semester.startDay) {
+    const phase = await ExamPhase.findOne({
+        where: {
+            startDay: {[Op.lte]: examSlot.day},
+            endDay: {[Op.gte]: examSlot.day}
+        }
+    })
+    if (phase.status == 0) {
         // res.json(MessageResponse("Can't delete room of passed semester"));
         return message = "Can't delete room of passed semester";
     }
