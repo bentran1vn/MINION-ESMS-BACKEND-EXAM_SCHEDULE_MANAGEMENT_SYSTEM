@@ -7,6 +7,8 @@ import StudentSubject from '../models/StudentSubject.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
+import Course from '../models/Course.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -180,6 +182,8 @@ router.get('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
     await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
+    await Course.update({ status: 0 }, { where: { status: 1 } })
+    await ExamPhase.update({ status: 0 }, { where: { status: 1 } })
     res.json(MessageResponse('Update success'))
 })// Update lại student subject từ status: 1 về 0
 

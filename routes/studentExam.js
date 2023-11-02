@@ -117,7 +117,8 @@ router.get('/', async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     const course = await Course.findAll({
         where: {
-            ePId: ePId
+            ePId: ePId,
+            status: 1
         }
     });
     for (let i = 0; i < course.length; i++) {
