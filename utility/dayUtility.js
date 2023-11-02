@@ -5,7 +5,7 @@ export function validDay(startDay, endDay, day){
 
     if(start.getFullYear() == dayFomatted.getFullYear()){
         if(start.getMonth() == dayFomatted.getMonth()) {
-            if(start.getDate() < dayFomatted.getDate() && end.getDate() > dayFomatted.getDate()){
+            if(start.getDate() <= dayFomatted.getDate() && end.getDate() >= dayFomatted.getDate()){
                 return true
             } else {
                 return false

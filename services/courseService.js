@@ -7,6 +7,7 @@ import Course from '../models/Course.js'
 import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import { handleFillStu } from './studentExamService.js'
 
 
 // export async function assignCourse(courseId, date, slot, examPhaseId) {
@@ -144,7 +145,9 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     for (let i = 0; i < numRoom; i++) {
         let check = true;
         do {
+            let findRoom = false;
             for (let item of roomList) {
+                console.log(item.dataValues.roomNum);
                 let room = await RoomLogTime.findOne({
                     where: {
                         roomId: item.dataValues.id,
@@ -178,13 +181,16 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                         typeChange: 12,
                     })
                     if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
-
-                    check = false
+                    
+                    findRoom = true;
+                    check = false;
                     break;
                 }
             }
-            check = false;
-            throw new Error("Problem with assign Course! No Room Available!");
+            if(!findRoom){
+                throw new Error("Problem with assign Course! No Room Available!");
+            }
         } while (check)
     }
+    await handleFillStu(courseId, numStu, subInSlot.id)
 }

@@ -5,7 +5,8 @@ import StudentSubject from '../models/StudentSubject.js'
 import { Op } from 'sequelize'
 import excel from 'exceljs';
 import multer from 'multer';
-
+import Course from '../models/Course.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -199,7 +200,7 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
             let currentRow = 1; // Đánh dấu hàng hiện tại
 
             // Lặp qua từng dòng trong tệp Excel và thêm vào cơ sở dữ liệu, bắt đầu từ hàng thứ 2
-            worksheet.eachRow(async(row, rowNumber) => {
+            worksheet.eachRow(async (row, rowNumber) => {
                 if (currentRow === 1) {
                     // Bỏ qua tiêu đề (hàng đầu tiên)
                     currentRow++;
@@ -216,11 +217,11 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
                 await StudentSubject.create(data);
                 currentRow++;
             });
-            
+
         });
         res.json(MessageResponse("Import student subject list success"));
         return;
-    } catch(err){
+    } catch (err) {
         res.json("error");
         console.log(err);
     }
