@@ -148,24 +148,14 @@ router.get('/', async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
-
-        const totalUser = await User.findAll({
-            where: {
-                status: 1
-            }
-        })
         const users = await User.findAll({
-            where: {
-                status: 1
-            },
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        const count_User = { Total: totalUser.length, Data: users }
-        res.json(DataResponse(count_User))
+        res.json(DataResponse(users))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all User (status = 1)
 
