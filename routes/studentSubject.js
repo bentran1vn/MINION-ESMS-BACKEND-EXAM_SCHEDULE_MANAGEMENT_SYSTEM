@@ -1,5 +1,5 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import StudentSubject from '../models/StudentSubject.js'
 import { Op } from 'sequelize'
@@ -264,7 +264,7 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
         });
         res.json(MessageResponse("Import student subject list success"));
     } catch (err) {
-        res.json("error");
+        res.json(ErrorResponse());
         console.log(err);
     }
 })
