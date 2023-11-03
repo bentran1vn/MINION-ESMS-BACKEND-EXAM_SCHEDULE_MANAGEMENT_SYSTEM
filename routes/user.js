@@ -170,31 +170,30 @@ router.get('/', async (req, res) => {
 })// Get all User (status = 1)
 
 //requireRole('admin')
-// router.post('/', async (req, res) => {
-//     try {
-//         const userData = req.body
+router.post('/', async (req, res) => {
+    try {
+        const userData = req.body
 
-//         const user1 = await User.findOne({
-//             where: {
-//                 email: userData.email
-//             }
-//         })
-//         if (!user1) {
-//             await User.create({
-//                 email: userData.email,
-//                 name: userData.name,
-//                 role: userData.role,
-//                 status: 0
-//             })
-//             res.json(MessageResponse("Create Successfully !"))
-//         } else {
-//             res.json(MessageResponse('Duplicated email!'))
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         res.json(InternalErrResponse())
-//     }
-// })
+        const user1 = await User.findOne({
+            where: {
+                email: userData.email
+            }
+        })
+        if (!user1) {
+            await User.create({
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
+            })
+            res.json(MessageResponse("Create Successfully !"))
+        } else {
+            throw new Error('Email already exists !')
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
 
 router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) => {
     const string = req.params.searchValue
