@@ -189,6 +189,11 @@ router.post('/', async (req, res) => {
                     }
                 }
             )
+            if(result){
+                res.json(MessageResponse("Update Successfully !"))
+            } else {
+                throw new Error("Update Failed !")
+            }
         }
     } catch (error) {
         console.log(error);
