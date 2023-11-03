@@ -152,7 +152,8 @@ router.get('/', async (req, res) => {
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        res.json(DataResponse(users))
+        const count_User = { Total: users.length, Data: users }
+        res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
@@ -178,7 +179,16 @@ router.post('/', async (req, res) => {
             })
             res.json(MessageResponse("Create Successfully !"))
         } else {
-            throw new Error('Email already exists !')
+            const result = await User.update(
+                { status: 1 },
+                {
+                    where: {
+                        email: email,
+                        name: userData.name,
+                        status: 0
+                    }
+                }
+            )
         }
     } catch (error) {
         console.log(error);
