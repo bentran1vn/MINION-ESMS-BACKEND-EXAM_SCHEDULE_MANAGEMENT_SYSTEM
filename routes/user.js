@@ -148,53 +148,54 @@ router.get('/', async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
-
-        const totalUser = await User.findAll({
-            where: {
-                status: 1
-            }
-        })
+        const users_Total = await User.findAll()
         const users = await User.findAll({
-            where: {
-                status: 1
-            },
             limit: limit,
             offset: (pageNo - 1) * limit
         })
-        const count_User = { Total: totalUser.length, Data: users }
+        const count_User = { Total: users_Total.length, Data: users }
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all User (status = 1)
 
 //requireRole('admin')
-// router.post('/', async (req, res) => {
-//     try {
-//         const userData = req.body
+router.post('/', async (req, res) => {
+    try {
+        const userData = req.body
 
-//         const user1 = await User.findOne({
-//             where: {
-//                 email: userData.email
-//             }
-//         })
-//         if (!user1) {
-//             await User.create({
-//                 email: userData.email,
-//                 name: userData.name,
-//                 role: userData.role,
-//                 status: 0
-//             })
-//             res.json(MessageResponse("Create Successfully !"))
-//         } else {
-//             res.json(MessageResponse('Duplicated email!'))
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         res.json(InternalErrResponse())
-//     }
-// })
+        const user1 = await User.findOne({
+            where: {
+                email: userData.email,
+                status: 1
+            }
+        })
+        if (!user1) {
+            await User.create({
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
+            })
+            res.json(MessageResponse("Create Successfully !"))
+        } else {
+            const result = await User.update(
+                { status: 1 },
+                {
+                    where: {
+                        email: email,
+                        name: userData.name,
+                        status: 0
+                    }
+                }
+            )
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
 
 router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) => {
     const string = req.params.searchValue

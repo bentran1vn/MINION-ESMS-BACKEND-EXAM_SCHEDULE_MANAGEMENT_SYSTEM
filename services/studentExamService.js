@@ -101,7 +101,7 @@ export async function getNotSheduleOfStudent(ePId) {
     }
 }
 
-export async function handleFillStu(courId, numStu, subInSLotId) {
+export async function handleFillStu(courId, numOfStu, exRoomId) {
     const subIdInCourse = await Course.findOne({
         where: {
             status: 1,
@@ -126,54 +126,28 @@ export async function handleFillStu(courId, numStu, subInSLotId) {
         throw new Error('Error in ArrStudentIdInCourse')
     }
 
-    if (numStu > ListStudentIdInCourse.length) {
+    if (numOfStu > ListStudentIdInCourse.length) {
         throw new Error('The number of students needing placement must be less than or equal to the number of unplaced students')
     }
 
-    const ListStudentIdInCourseV2 = ListStudentIdInCourse.slice(0, numStu)
-    let arrListStudentId = ListStudentIdInCourseV2
-    const ListExamRoom = []  // Array tổng các Exam room cần cho course 
-
-    const examRoom = await ExamRoom.findAll({ // Lấy ra những room tương ứng với slot
+    const examRoom = await ExamRoom.findOne({ // Lấy ra những room tương ứng với slot
         where: {
-            sSId: subInSLotId
+            id: exRoomId
         }
     })
-    if (examRoom.length === 0) {
+    if (!examRoom) {
         throw new Error('Error found in examRoom')
-    } else {
-        examRoom.forEach(e => {
-            ListExamRoom.push(e) // Có room thì nhét vào Array tổng
-        });
     }
+    const numStuInRoom = ListStudentIdInCourse.slice(0, numOfStu)
 
-    const numStuInRoom = Math.floor(ListStudentIdInCourseV2.length / ListExamRoom.length) // Số học sinh có thể trong 1 lớp
-
-    for (let i = 0; i < ListExamRoom.length; i++) { // Duyệt từng room trong array tổng các Exam room
-        const listStu = ListStudentIdInCourseV2.slice(0, numStuInRoom) // Biến chứa tổng số học sinh trong 1 room (<= 15)
-        ListStudentIdInCourseV2.splice(0, numStuInRoom) // Bỏ những phần tử đã dc sử dụng trong Array tổng số student ID
-
-        for (let j = 0; j < listStu.length; j++) { // Duyệt từng student
-            const item = await StudentExam.create({ // Tạo row trong StudentExam
-                eRId: ListExamRoom[i].id,
-                stuId: listStu[j]
-            })
-        }
-    }
-    while (ListStudentIdInCourseV2.length != 0) {
-        for (let i = 0; i < ListExamRoom.length; i++) {
-            const item = await StudentExam.create({
-                eRId: ListExamRoom[i].id,
-                stuId: ListStudentIdInCourseV2[0],
-            })
-            ListStudentIdInCourseV2.splice(0, 1)
-            if (ListStudentIdInCourseV2.length == 0) break
-        }
-    }
-    for (let i = 0; i < arrListStudentId.length; i++) {
-        await StudentSubject.Update({ status: 0 }, {
+    for (let i = 0; i < numOfStu; i++) { // Duyệt từng student
+        await StudentExam.create({ // Tạo row trong StudentExam
+            eRId: examRoom.id,
+            stuId: numStuInRoom[i]
+        })
+        await StudentSubject.update({ status: 0 }, {
             where: {
-                id: arrListStudentId[i],
+                id: numStuInRoom[i],
                 status: 1
             }
         })
