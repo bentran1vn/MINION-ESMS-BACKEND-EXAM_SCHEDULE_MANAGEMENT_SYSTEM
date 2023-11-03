@@ -176,7 +176,8 @@ router.post('/', async (req, res) => {
 
         const user1 = await User.findOne({
             where: {
-                email: userData.email
+                email: userData.email,
+                status: 1
             }
         })
         if (!user1) {
