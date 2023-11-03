@@ -181,11 +181,10 @@ router.post('/', async (req, res) => {
             res.json(MessageResponse("Create Successfully !"))
         } else {
             const result = await User.update(
-                { status: 1 },
+                { status: 1,name: userData.name, },
                 {
                     where: {
                         email: email,
-                        name: userData.name,
                         status: 0
                     }
                 }
