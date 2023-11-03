@@ -3,6 +3,7 @@ import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import ExamPhase from '../models/ExamPhase.js'
 import { Op } from 'sequelize'
+import { check } from 'express-validator'
 
 
 export async function autoCreateCourse() {
@@ -12,41 +13,57 @@ export async function autoCreateCourse() {
             status: 1
         }
     })
+    if (stuSub.length == 0) {
+        return true;
+    }
     const ePName = stuSub[0].ePName
-    
     const examPhase = await ExamPhase.findOne({
         where: {
             ePName: ePName
         }
     })
+
     if (examPhase) {
-        stuSub.forEach(e => {
-            if (!arrIdSub.includes(e.subjectId)) {
-                arrIdSub.push(e.subjectId);
-            }
-        });
-
-        const subject = await Subject.findAll({
-            where: {
-                id: {
-                    [Op.or]: arrIdSub
-                }
-            }
-        })
-
-        for (let i = 0; i < subject.length; i++) {
-            const stuSub = await StudentSubject.findAll({
+        const subId = stuSub.map(st => st.dataValues)
+        
+        const subIdList = subId.map(s => s.subjectId)
+        
+        const uniqueSubIdList = [...new Set(subIdList)];
+        for (let i = 0; i < uniqueSubIdList.length; i++) {
+            const item = uniqueSubIdList[i];
+            const check = await Course.findOne({
                 where: {
-                    subjectId: subject[i].id
+                    subId: item,
+                    ePId: examPhase.id
+                }
+            });
+            if (check) {
+                // Xóa item khỏi mảng uniqueSubIdList
+                uniqueSubIdList.splice(i, 1);
+                // Giảm biến i đi 1 để không bỏ lỡ phần tử kế tiếp sau khi xóa
+                i--;
+            }
+        }
+        console.log(uniqueSubIdList);
+        let count = 0;
+        for (let i = 0; i < uniqueSubIdList.length; i++) {
+            const stuSubV2 = await StudentSubject.findAll({
+                where: {
+                    subjectId: uniqueSubIdList[i]
                 }
             })
-
-            await Course.create({
-                subId: subject[i].id,
-                numOfStu: stuSub.length,
-                ePId: examPhase.id,
-                status: 1
-            })
+            
+            if(count != uniqueSubIdList.length){
+                const a = await Course.create({
+                    subId: uniqueSubIdList[i],
+                    numOfStu: stuSubV2.length,
+                    ePId: examPhase.id,
+                    status: 1
+                })
+                if(a){
+                    count++;
+                }
+            }
         }
         return true
     }
