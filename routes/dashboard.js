@@ -292,7 +292,11 @@ router.get('/numOfCourseNotScheduled', async (req, res) => {
                 ePId: ePId
             }
         })
-        res.json(DataResponse(`${numOfCourse.length} / ${courseInEp.length}`))
+        const s = {
+            assigned: numOfCourse.length,
+            total: courseInEp.length
+        }
+        res.json(DataResponse(s))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())
