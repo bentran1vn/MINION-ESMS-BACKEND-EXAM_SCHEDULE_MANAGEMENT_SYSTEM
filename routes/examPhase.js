@@ -311,37 +311,6 @@ router.get('/semId', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
-    const detailExamPhase = []
-    function insertExamPhase(id, ss, y, pN, sd, ed) {
-        const EPDetail = {
-            id: id, season: ss, year: y, ePName: pN, sDay: sd, eDay: ed
-        }
-        detailExamPhase.push(EPDetail)
-    }
-    try {
-        const examPhases = await ExamPhase.findAll({ where: { status: 1 } })
-
-        for (let i = 0; i < examPhases.length; i++) {
-            const semester = await Semester.findOne({
-                where: {
-                    id: examPhases[i].semId
-                }
-            })
-
-            if (semester) {
-                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay)
-            }
-        }
-        res.json(DataResponse(detailExamPhase));
-        return;
-    } catch (error) {
-        console.log(error);
-        res.json(MessageResponse('Error found'))
-    }
-    
-})// Get all detail Exam Phase has been scheduled
-
 router.get('/notScheduled', async (req, res) => {
     const detailExamPhase = []
     function insertExamPhase(id, ss, y, pN, sd, ed) {
