@@ -323,6 +323,49 @@ router.delete('/', async (req, res) => {
     }
 })
 
+//lấy lịch đã đăng kí của 1 examiner theo phase
+router.get('/scheduledByPhase', async (req, res) => {
+    const id = parseInt(req.query.userId);
+    const examphaseId = parseInt(req.query.examphaseId);
+    try {
+        const exPhase = await ExamPhase.findOne({
+            where: {
+                id: examphaseId
+            }
+        })
+        if(!exPhase){
+            res.json(NotFoundResponse());
+            return;
+        }
+        const semester = await Semester.findOne({
+            where:{
+                start: {[Op.lte]: exPhase.startDay},
+                end: {[Op.gte]: exPhase.endDay}
+            }
+        })
+        
+        const examiner = await Examiner.findOne({
+            where: {
+                userId: id,
+                semesterId: semester.id
+            }
+        })
+        const examinerId = examiner.id
+        const finalList = await getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId);
+
+        if (Array.isArray(finalList)) {
+            res.json(DataResponse(finalList));
+            return;
+        } else if (!Array.isArray(finalList)) {
+            res.json(NotFoundResponse());
+            return;
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})
+
 //lấy danh sách examiner by phase của màn hình admin
 router.get('/getExaminerByPhase', async (req, res) => {
     const exPhaseId = parseInt(req.query.exPhaseId);
@@ -393,48 +436,6 @@ router.get('/getExaminerByPhase', async (req, res) => {
     //trả ra email name, role, status
 })
 
-//lấy lịch đã đăng kí của 1 examiner theo phase
-router.get('/scheduledByPhase', async (req, res) => {
-    const id = parseInt(req.query.userId);
-    const examphaseId = parseInt(req.query.examphaseId);
-    try {
-        const exPhase = await ExamPhase.findOne({
-            where: {
-                id: examphaseId
-            }
-        })
-        if(!exPhase){
-            res.json(NotFoundResponse());
-            return;
-        }
-        const semester = await Semester.findOne({
-            where:{
-                start: {[Op.lte]: exPhase.startDay},
-                end: {[Op.gte]: exPhase.endDay}
-            }
-        })
-        
-        const examiner = await Examiner.findOne({
-            where: {
-                userId: id,
-                semesterId: semester.id
-            }
-        })
-        const examinerId = examiner.id
-        const finalList = await getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId);
-
-        if (Array.isArray(finalList)) {
-            res.json(DataResponse(finalList));
-            return;
-        } else if (!Array.isArray(finalList)) {
-            res.json(NotFoundResponse());
-            return;
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(InternalErrResponse());
-    }
-})
 
 export default router
 //add được
