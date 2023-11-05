@@ -363,35 +363,37 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const room = await Room.findAll({ where: { status: 1 } })
-        let flag = { allowed: "" }
-        const roomArr = []
-        room.forEach(e => {
-            const length = e.roomNum + ""
-            if (length.length > 1) {
-                roomArr.push(e)
-            }
-        });
         const currentDay = new Date().toISOString().slice(0, 10)
         const examPhase = await ExamPhase.findOne({
             where: {
-                startDay: {
-                    [Op.gte]: currentDay
-                },
-                endDay: {
-                    [Op.lt]: currentDay
-                }
+                startDay: { [Op.lte]: currentDay },
+                endDay: { [Op.gt]: currentDay }
             }
         })
-        if (examPhase) {
-            flag.allowed = 0
-            roomArr.push(flag)
-            res.json(DataResponse(roomArr))
-        } else {
-            flag.allowed = 1
-            roomArr.push(flag)
-            res.json(DataResponse(roomArr))
+        const roomArr = []
+        function insertRoom(id, roomNum, location, status, allowed) {
+            const roomDetail = {
+                id, roomNum, location, status, allowed
+            }
+            roomArr.push(roomDetail)
         }
+        const room = await Room.findAll()
+        if (examPhase) {
+            room.forEach(e => {
+                const length = e.roomNum + ""
+                if (length.length > 1) {
+                    insertRoom(e.id, e.roomNum, e.location, e.status, 0)
+                }
+            })
+        } else {
+            room.forEach(e => {
+                const length = e.roomNum + ""
+                if (length.length > 1) {
+                    insertRoom(e.id, e.roomNum, e.location, e.status, 1)
+                }
+            })
+        }
+        res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
