@@ -1,19 +1,16 @@
 import express, { response } from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Room from '../models/Room.js'
 import Examiner from '../models/Examiner.js'
 import SubInSlot from '../models/SubInSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import ExamSlot from '../models/ExamSlot.js'
-import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
-import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
-import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot } from '../services/examRoomService.js'
+import { getNotSheduleOfCourse } from '../services/studentExamService.js'
 
 const router = express.Router()
 
@@ -244,7 +241,7 @@ router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
                 attributes: ['code']
             }]
         });
-      
+
         const examPhase = await ExamPhase.findOne({
             where: {
                 id: ePId
@@ -283,6 +280,83 @@ router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
         console.error(error);
         res.json(InternalErrResponse());
         return;
+    }
+})
+
+router.get('/numOfCourseNotScheduled', async (req, res) => {
+    try {
+        const ePId = req.query.ePId
+        const numOfCourse = await getNotSheduleOfCourse(ePId)
+        const courseInEp = await Course.findAll({
+            where: {
+                ePId: ePId
+            }
+        })
+        res.json(DataResponse(`${numOfCourse.length} / ${courseInEp.length}`))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
+    }
+})
+
+router.get('/numOfDayRegister', async (req, res) => {
+    try {
+        const numRegister = []
+        function insertnumRegister(day, num) {
+            const detail = {
+                day: day, num: num
+            }
+            numRegister.push(detail)
+        }
+
+        function generateDateRange(startDate, endDate) {
+            const dateRange = [];
+            const currentDate = new Date(startDate);
+            endDate = new Date(endDate);
+
+            while (currentDate <= endDate) {
+                dateRange.push(new Date(currentDate).toISOString().slice(0, 10));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return dateRange;
+        }
+
+        const ePId = parseInt(req.query.ePId)
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                id: ePId
+            }
+        })
+
+
+        if (!examPhase) {
+            res.json(MessageResponse('Error in find examPhase'))
+        }
+
+        let all_days = generateDateRange(examPhase.startDay, examPhase.endDay)
+
+        let count = 0
+        for (let i = 0; i < all_days.length; i++) {
+            const elt = await ExaminerLogTime.findAll({
+                where: {
+                    day: all_days[i]
+                }
+            })
+            if (elt) {
+                count += elt.length
+                insertnumRegister(all_days[i], count)
+                count = 0
+            } else {
+                insertnumRegister(all_days[i], 0)
+                count = 0
+            }
+
+        }
+        res.json(DataResponse(numRegister))
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse())
     }
 })
 
