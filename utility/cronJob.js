@@ -1,5 +1,4 @@
-import cron from "node-cron";
-import { courseCron, examPhaseCron, semesterCron } from "../services/cronJobService.js";
+import { examPhaseCron, semesterCron } from "../services/cronJobService.js";
 
 export async function startCronJob() {
     try {
