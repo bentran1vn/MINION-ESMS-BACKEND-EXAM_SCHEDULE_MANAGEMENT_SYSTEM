@@ -207,7 +207,7 @@ router.get('/topThreeExaminerDashBoard', async (req, res) => {
         }
 
         let returnL = [];
-        for(const item of keysWithTopValues){
+        for (const item of keysWithTopValues) {
             const examiner = await Examiner.findOne({
                 where: {
                     id: item.id
@@ -220,14 +220,69 @@ router.get('/topThreeExaminerDashBoard', async (req, res) => {
             }
             returnL.push(s);
         }
-        if(returnL.length != 0){
+        if (returnL.length != 0) {
             res.json(DataResponse(returnL));
-        }else{
+        } else {
             res.json(NotFoundResponse());
         }
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
+    }
+})
+
+router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    let listCourse = [];
+    try {
+        const result = await Course.findAll({
+            where: {
+                ePId
+            },
+            include: [{
+                model: Subject,
+                attributes: ['code']
+            }]
+        });
+      
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                id: ePId
+            }
+        })
+        if (!examPhase) {
+            res.json(NotFoundResponse());
+            return;
+        }
+        for (const course of result) {
+            if (course.dataValues.status == 1) {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu
+                };
+                listCourse.push(sub);
+            } else {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu
+                };
+                listCourse.push(sub);
+            }
+        }
+        if (listCourse.length == 0) {
+            res.json(NotFoundResponse());
+        } else {
+            res.json(DataResponse(listCourse));
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.json(InternalErrResponse());
+        return;
     }
 })
 
