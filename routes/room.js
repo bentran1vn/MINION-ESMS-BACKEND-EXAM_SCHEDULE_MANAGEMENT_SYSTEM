@@ -3,7 +3,8 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
 import RoomLogTime from '../models/RoomLogTime.js'
-import { Op } from 'sequelize'
+import { DATEONLY, Op } from 'sequelize'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -288,13 +289,27 @@ router.post('/', async (req, res) => {
     const data = req.body
 
     try {
-        const room = await Room.create({
-            roomNum: parseInt(data.roomNum),
-            location: data.location,
-            note: 0
+        const findRoom = Room.findOne({
+            where: {
+                roomNum: parseInt(data.roomNum),
+                location: data.location,
+                status: 0
+            }
         })
+        if (findRoom) {
+            Room.update({ status: 1 }, {
+                where: {
+                    id: findRoom.id
+                }
+            })
+        } else {
+            await Room.create({
+                roomNum: parseInt(data.roomNum),
+                location: data.location,
+                note: 0
+            })
+        }
         res.json(MessageResponse("Create Success !"))
-
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -349,6 +364,7 @@ router.put('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const room = await Room.findAll({ where: { status: 1 } })
+        let flag = { allowed: "" }
         const roomArr = []
         room.forEach(e => {
             const length = e.roomNum + ""
@@ -356,7 +372,26 @@ router.get('/', async (req, res) => {
                 roomArr.push(e)
             }
         });
-        res.json(DataResponse(roomArr))
+        const currentDay = new Date().toISOString().slice(0, 10)
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.gte]: currentDay
+                },
+                endDay: {
+                    [Op.lt]: currentDay
+                }
+            }
+        })
+        if (examPhase) {
+            flag.allowed = 0
+            roomArr.push(flag)
+            res.json(DataResponse(roomArr))
+        } else {
+            flag.allowed = 1
+            roomArr.push(flag)
+            res.json(DataResponse(roomArr))
+        }
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
