@@ -42,7 +42,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
 
     const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
     const numRoom = 0
-    
+
     if(numOdd >= 10){
         numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     } else {
@@ -108,6 +108,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     })
                     if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
+                    //add Student vào ExamRoom
                     if (numStu >= 15) {
                         numStu -= 15
                         await handleFillStu(courseId, 15, examRoom.id)
@@ -117,6 +118,9 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     findRoom = true;
                     check = false;
                     break;
+
+                    //cập nhập status Course
+                    await changeCourseStatus(examPhase.dataValues.id, courseId)
                 }
             }
             if (!findRoom) {
@@ -124,9 +128,10 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
+    if(numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
 }
 
-export async function changeCourseStatus(phaseId, courId) {
+async function changeCourseStatus(phaseId, courId) {
     const courList = await Course.findAll({
         where: {
             status: 1,
