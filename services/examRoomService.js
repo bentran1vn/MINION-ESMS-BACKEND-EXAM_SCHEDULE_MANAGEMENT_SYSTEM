@@ -1353,13 +1353,16 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             id: examSlotId
         }
     })
+    if(!exSlot){
+        return message = "Exam slot doesn't exist";
+    }
     const semester = await Semester.findOne({
         where: {
             start: {
-                [Op.lte]: exSlot.startDay, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                [Op.lte]: exSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
             },
             end: {
-                [Op.gte]: exSlot.endtDay, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                [Op.gte]: exSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
             },
         }
     })
@@ -1369,6 +1372,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             endDay: { [Op.gte]: exSlot.day }
         }
     })
+    
     const subWithSlot = await SubInSlot.findAll({
         where: {
             exSlId: examSlotId,
@@ -1380,7 +1384,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             semId: parseInt(semester.id)
         }
     })
-
+    
     for (const item of subWithSlot) {
         const course = await Course.findOne({
             where: {
@@ -1411,25 +1415,32 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
                 }
             })
 
-            if (exPhase.status == 1 && examiner) {
+            const numOfStuEachExRoom = await StudentExam.findAll({
+                where: {
+                    eRId: ex.dataValues.id
+                }
+            })
+            if (exPhase.status == 1) {
                 const a = {
                     subCode: subject.code,
                     day: exSlot.day,
                     startTime: time.startTime,
                     endTime: time.endTime,
                     roomNum: room.roomNum,
-                    examiner: examiner.exName,
+                    examiner: examiner == null ? "N/A" : examiner.exName,
+                    numOfStu: numOfStuEachExRoom.length,
                     status: 1//được sửa
                 }
                 returnList.push(a);
-            } else if (exPhase.status == 0 && examiner) {
+            } else if (exPhase.status == 0) {
                 const a = {
                     subCode: subject.code,
                     day: exSlot.day,
                     startTime: time.startTime,
                     endTime: time.endTime,
                     roomNum: room.roomNum,
-                    examiner: examiner.exName,
+                    examiner: examiner == null ? "N/A" : examiner.exName,
+                    numOfStu: numOfStuEachExRoom.length,
                     status: 0//không được sửa
                 }
                 returnList.push(a);

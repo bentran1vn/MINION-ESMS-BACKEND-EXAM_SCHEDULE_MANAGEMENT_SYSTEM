@@ -35,6 +35,7 @@ import autoCreateCourseRouter from './routes/autoCreateCourse.js'
 import autoFillStuRouter from './routes/autoFillStu.js'
 import examinerRouter from './routes/examiner.js'
 import examinerLogTimeRouter from './routes/examinerLogTime.js'
+import dashboardRouter from './routes/dashboard.js'
 
 // ===== Config =====
 const server = express()
@@ -84,6 +85,7 @@ server.use('/autoCreateExamRooms', autoCreateExamRoomsRouter)
 server.use('/studentSubjects', studentSubjectRouter)
 server.use('/autoCreateCourses', autoCreateCourseRouter)
 server.use('/autoFillStus', autoFillStuRouter)
+server.use('/dashboard', dashboardRouter);
 
 // ===== Swagger =====
 const options = {
