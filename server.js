@@ -9,6 +9,7 @@ import { Strategy as GoogleStrategy, Strategy } from 'passport-google-oauth2'
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc"
 import { startCronJob } from './utility/cronJob.js'
+// import { startCronJob } from './test/cronNodeTest.js'
 
 // ===== Import routes ========
 import './database/database.js'
