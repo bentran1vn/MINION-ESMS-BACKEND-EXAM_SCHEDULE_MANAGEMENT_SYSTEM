@@ -150,7 +150,7 @@ router.get('/', async (req, res) => {
         const limit = parseInt(req.query.limit) || 20
         const users_Total = await User.findAll()
         const users = await User.findAll({
-            role: {[Op.ne]: "admin"},
+            role: {[Op.notLike]: "admin"},
             limit: limit,
             offset: (pageNo - 1) * limit
         })

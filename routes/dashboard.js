@@ -11,6 +11,7 @@ import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { getNotSheduleOfCourse } from '../services/studentExamService.js'
+import Semester from '../models/Semester.js'
 
 const router = express.Router()
 
@@ -363,5 +364,193 @@ router.get('/numOfDayRegister', async (req, res) => {
         res.json(InternalErrResponse())
     }
 })
+
+//------------------------------------dash của lecturer
+router.get('/totalRegistionOfLec', async (req, res) => {
+    // const userId = parseInt(req.locals.userData.id);//nhận từ token
+    const userId = 256;
+    try{
+        let count = 0;
+        const examiner = await Examiner.findAll({
+            where: {
+                userId: userId
+            }
+        })
+        for(const exId of examiner){
+            const examRoom = await ExamRoom.findAll({
+                where:{
+                    examinerId: exId.dataValues.id
+                }
+            })
+            count += examRoom.length;
+        }
+        res.json(DataResponse(count));
+    }catch(error){
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
+    // const userId = parseInt(req.locals.userData.id);//nhận từ token
+    const userId = 256;
+    const phaseId = parseInt(req.query.phaseId);
+    try{
+        let count = 0;
+        const phase = await ExamPhase.findOne({
+            where: {
+                id: phaseId
+            }
+        })
+        const semester = await Semester.findOne({
+            where:{
+                start: {[Op.lte]: phase.startDay},
+                end: {[Op.gte]: phase.endDay}
+            }
+        })
+        const examiner = await Examiner.findOne({
+            where:{
+                userId: userId,
+                semesterId: semester.id
+            }
+        })
+        const exslot = await ExamSlot.findAll({
+            where:{
+                ePId: phaseId
+            }
+        })
+        for(const exSl of exslot){
+            const subSlot = await SubInSlot.findAll({
+                where: {
+                    exSlId: exSl.dataValues.id
+                }
+            })
+            for(const sub of subSlot){
+                const examRoom = await ExamRoom.findAll({
+                    where: {
+                        sSId: sub.dataValues.id,
+                        examinerId: examiner.id
+                    }
+                })
+                count += examRoom.length
+            }
+        }
+        res.json(DataResponse(count));
+    }catch(error){
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+//3. số slot chưa đi coi của phase này
+router.get('/futureSlotOfLecOnePhase', async (req, res) => {
+    // const userId = parseInt(req.locals.userData.id);//nhận từ token
+    const userId = 256;
+    const phaseId = parseInt(req.query.phaseId);
+    try{
+        let count = 0;
+        const phase = await ExamPhase.findOne({
+            where: {
+                id: phaseId
+            }
+        })
+        const semester = await Semester.findOne({
+            where:{
+                start: {[Op.lte]: phase.startDay},
+                end: {[Op.gte]: phase.endDay}
+            }
+        })
+        const examiner = await Examiner.findOne({
+            where:{
+                userId: userId,
+                semesterId: semester.id
+            }
+        })
+        const exslot = await ExamSlot.findAll({
+            where:{
+                ePId: phaseId
+            }
+        })
+        const time = new Date() //ngày hiện tại
+        var timeFormatted = time.toISOString().slice(0, 10)
+
+        for(const exSl of exslot){
+            if(exSl.dataValues.day > timeFormatted){
+                const subSlot = await SubInSlot.findAll({
+                    where: {
+                        exSlId: exSl.dataValues.id
+                    }
+                })
+                for(const sub of subSlot){
+                    const examRoom = await ExamRoom.findAll({
+                        where: {
+                            sSId: sub.dataValues.id,
+                            examinerId: examiner.id
+                        }
+                    })
+                    count += examRoom.length
+                }
+            }     
+        }
+        res.json(DataResponse(count));
+    }catch(error){
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+router.get('/totalRegistionEachPhase', async (req, res) => {
+    const userId = 256;
+    try{
+        const examiner = await Examiner.findAll({
+            where:{
+                userId: userId
+            }
+        })
+
+        let room = [];
+        for(const ex of examiner){
+            const exroom = await ExamRoom.findAll({
+                where:{
+                    examinerId: ex.dataValues.id
+                }
+            })
+            const a = exroom.map(e => e.dataValues);
+            room = [...room, ...a]; 
+        }
+        //mảng room đã chứa tất cả slot đã đk từ trước tới giờ
+        const examphase = await ExamPhase.findAll();
+        let sloteachphase = [];
+        for(const phase of examphase){
+            let slotperphase = 0;       
+            for(const ex of room){
+                const sub = await SubInSlot.findOne({
+                    where: {
+                        id: ex.sSId
+                    }
+                })
+                const exslot = await ExamSlot.findOne({
+                    where: {
+                        id: sub.exSlId
+                    }
+                })
+                if(exslot.day >= phase.dataValues.startDay && exslot.day <= phase.dataValues.endDay){
+                    slotperphase++;
+                }
+            }
+            const s = {
+                phaseId: phase.dataValues.id,
+                phaseName: phase.dataValues.ePName,
+                slot: slotperphase
+            } 
+            sloteachphase.push(s);
+        }
+        res.json(DataResponse(sloteachphase));
+    }catch(error){
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})
+
 
 export default router
