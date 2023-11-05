@@ -150,7 +150,9 @@ router.get('/', async (req, res) => {
         const limit = parseInt(req.query.limit) || 20
         const users_Total = await User.findAll()
         const users = await User.findAll({
-            role: {[Op.notLike]: "admin"},
+            where: {
+                role: { [Op.notLike]: '%admin' }
+            },
             limit: limit,
             offset: (pageNo - 1) * limit
         })
@@ -167,22 +169,15 @@ router.post('/', async (req, res) => {
     try {
         const userData = req.body
 
-        const user1 = await User.findOne({
+        const user = await User.findOne({
             where: {
                 email: userData.email,
-                status: 1
+                status: 0
             }
         })
-        if (!user1) {
-            await User.create({
-                email: userData.email,
-                name: userData.name,
-                role: userData.role,
-            })
-            res.json(MessageResponse("Create Successfully !"))
-        } else {
-            const result = await User.update(
-                { status: 1, name: userData.name},
+        if (user) {
+            await User.update(
+                { status: 1, name: userData.name },
                 {
                     where: {
                         email: userData.email,
@@ -190,11 +185,14 @@ router.post('/', async (req, res) => {
                     }
                 }
             )
-            if(result){
-                res.json(MessageResponse("Update Successfully !"))
-            } else {
-                throw new Error("Update Failed !")
-            }
+            res.json(MessageResponse("Create Successfully !"))
+        } else {
+            await User.create({
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
+            })
+            res.json(MessageResponse("Create Successfully !"))
         }
     } catch (error) {
         console.log(error);

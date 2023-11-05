@@ -1,4 +1,3 @@
-import TimeSlot from '../models/TimeSlot.js'
 import ExamPhase from '../models/ExamPhase.js'
 import ExamSlot from '../models/ExamSlot.js'
 import SubInSlot from '../models/SubInSlot.js'
@@ -8,88 +7,7 @@ import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { handleFillStu } from './studentExamService.js'
-
-
-// export async function assignCourse(courseId, date, slot, examPhaseId) {
-//     const examPhase = await ExamPhase.findOne({
-//         where: {
-//             id: examPhaseId
-//         }
-//     })
-
-//     const numOfStu = await Course.findOne({
-//         where: {
-//             id: courseId
-//         },
-//         attributes: ['numOfStu']
-//     })
-
-//     const roomRequire = Math.ceil(numOfStu.dataValues.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
-//     console.log(roomRequire);
-
-
-//     const timeList = await TimeSlot.findAll(
-//         {
-//             where: {
-//                 des: examPhase.des
-//             }
-//         },
-//         {
-//             order: [
-//                 ['startTime', 'ASC']
-//             ]
-//         }
-//     )
-
-
-//     const subInSlotList = await SubInSlot.findAll(
-//         {
-//             where: {
-//                 courId: courseId
-//             },
-//             attributes: ['courId']
-
-//         }
-//     )
-
-//     if (subInSlotList.length < roomRequire) {
-//         const examSlot = await ExamSlot.findOrCreate(
-//             {
-//                 where: {
-//                     ePId: examPhase.id,
-//                     timeSlotId: timeList[slot - 1].id,
-//                     day: date
-//                 }
-//             }
-//         )
-
-//         const newSISlot = await SubInSlot.findOrCreate(
-//             {
-//                 where: {
-//                     courId: courseId,
-//                     exSlId: examSlot[0].dataValues.id
-//                 }
-//             }
-//         )
-//         const examRoomList = await ExamRoom.findAll(
-//             {
-//                 where: {
-//                     sSId: subInSlotList
-//                 }
-//             }
-//         )
-//         if (examRoomList < roomRequire) {
-//             const examRoom = await ExamRoom.create({
-//                 sSId: newSISlot[0].dataValues.id,
-//             })
-
-//         } else {
-//             throw new Error("The number of exam rooms is sufficient!")
-//         }
-//     } else {
-//         throw new Error("The number of exam rooms is sufficient!")
-//     }
-// }
+import { Op } from 'sequelize'
 
 export async function assignCourse(courseId, ExamSlotId, numStu) {
 
@@ -123,7 +41,15 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
 
     const roomRequire = Math.ceil(numOfStu.dataValues.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
 
-    const numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
+    let numRoom = 0
+
+    if(numOdd >= 10){
+        numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    } else {
+        numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    }
+    
 
     if (numRoom > roomRequire) throw new Error("Problem with assign Course! Number Of Student is invalid !")
 
@@ -183,12 +109,17 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     })
                     if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
+                    //add Student vào ExamRoom
                     if (numStu >= 15) {
                         numStu -= 15
                         await handleFillStu(courseId, 15, examRoom.id)
                     } else if (numStu >= 10) {
                         await handleFillStu(courseId, numStu, examRoom.id)
                     }
+
+                    //cập nhập status Course
+                    await changeCourseStatus(examPhase.dataValues.id, courseId)
+
                     findRoom = true;
                     check = false;
                     break;
@@ -199,4 +130,75 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
+    if(numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
 }
+
+async function changeCourseStatus(phaseId, courId) {
+    const courList = await Course.findAll({
+        where: {
+            status: 1,
+            ePId: phaseId,
+            id: courId
+        }
+    })
+    if (!courList) throw new Error('Course all finished!')
+
+    for (const item of courList) {
+
+        const numOfStu = item.numOfStu
+
+        const subInSlotList = await SubInSlot.findAll({
+            where: {
+                courId: item.id
+            }
+        })
+        if (!subInSlotList) throw new Error('SubInSlot is not exist! Create SubInSlot first!')
+
+        let subInSlotIdList = []
+
+        for (const item of subInSlotList) {
+            subInSlotIdList.push(item.id)
+        }
+
+        const examRoomList = await ExamRoom.findAll({
+            where: {
+                sSId: subInSlotIdList,
+                [Op.or]: [
+                    {
+                        roomId: {
+                            [Op.is]: null
+                        }
+                    },
+                    {
+                        examinerId: {
+                            [Op.is]: null
+                        }
+                    }
+                ]
+            }
+        })
+
+        const examRoomExist = await ExamRoom.findAll({
+            where: {
+                sSId: subInSlotIdList
+            }
+        })
+        //numOfStu
+
+        const roomRequire = Math.ceil(numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+        if (examRoomList.length == 0 && roomRequire <= examRoomExist.length) {
+            await Course.update({ status: 0 }, {
+                where: {
+                    id: item.id
+                }
+            })
+        } else if (examRoomList.length != 0) {
+            await Course.update({ status: 1 }, {
+                where: {
+                    id: item.id
+                }
+            })
+        }
+    }
+}
+

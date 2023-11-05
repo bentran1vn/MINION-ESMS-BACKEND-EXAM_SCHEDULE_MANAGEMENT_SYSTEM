@@ -314,51 +314,47 @@ router.get('/numOfDayRegister', async (req, res) => {
             numRegister.push(detail)
         }
 
-        function generateDateRange(startDate, endDate) {
-            const dateRange = [];
-            const currentDate = new Date(startDate);
-            endDate = new Date(endDate);
-
-            while (currentDate <= endDate) {
-                dateRange.push(new Date(currentDate).toISOString().slice(0, 10));
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            return dateRange;
-        }
-
         const ePId = parseInt(req.query.ePId)
         const examPhase = await ExamPhase.findOne({
             where: {
                 id: ePId
             }
         })
-
-
         if (!examPhase) {
             res.json(MessageResponse('Error in find examPhase'))
-        }
-
-        let all_days = generateDateRange(examPhase.startDay, examPhase.endDay)
-
-        let count = 0
-        for (let i = 0; i < all_days.length; i++) {
-            const elt = await ExaminerLogTime.findAll({
+        } else {
+            const exminerLogTime = await ExaminerLogTime.findAll({
                 where: {
-                    day: all_days[i]
+                    day: {
+                        [Op.and]: {
+                            [Op.gte]: examPhase.startDay,
+                            [Op.lt]: examPhase.endDay
+                        }
+                    }
                 }
             })
-            if (elt) {
-                count += elt.length
-                insertnumRegister(all_days[i], count)
-                count = 0
-            } else {
-                insertnumRegister(all_days[i], 0)
-                count = 0
+
+            let arr = []
+            for (let i = 0; i < exminerLogTime.length; i++) {
+                let timeformat = exminerLogTime[i].createdAt.toISOString().slice(0, 10)
+                if (!arr.includes(timeformat)) {
+                    arr.push(timeformat)
+                }
             }
 
+            let count = 0
+            for (let j = 0; j < arr.length; j++) {
+                for (let m = 0; m < exminerLogTime.length; m++) {
+                    let timeformat = exminerLogTime[m].createdAt.toISOString().slice(0, 10)
+                    if (timeformat == arr[j])
+                        count++
+                }
+                let timeFormat2 = new Date(arr[j]).toISOString().slice(0, 10)
+                insertnumRegister(timeFormat2, count)
+                count = 0
+            }
+            res.json(DataResponse(numRegister))
         }
-        res.json(DataResponse(numRegister))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())

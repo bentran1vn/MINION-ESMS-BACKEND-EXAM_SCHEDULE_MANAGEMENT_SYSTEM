@@ -3,7 +3,8 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
 import RoomLogTime from '../models/RoomLogTime.js'
-import { Op } from 'sequelize'
+import { DATEONLY, Op } from 'sequelize'
+import ExamPhase from '../models/ExamPhase.js'
 
 const router = express.Router()
 
@@ -288,13 +289,27 @@ router.post('/', async (req, res) => {
     const data = req.body
 
     try {
-        const room = await Room.create({
-            roomNum: parseInt(data.roomNum),
-            location: data.location,
-            note: 0
+        const findRoom = Room.findOne({
+            where: {
+                roomNum: parseInt(data.roomNum),
+                location: data.location,
+                status: 0
+            }
         })
+        if (findRoom) {
+            Room.update({ status: 1 }, {
+                where: {
+                    id: findRoom.id
+                }
+            })
+        } else {
+            await Room.create({
+                roomNum: parseInt(data.roomNum),
+                location: data.location,
+                note: 0
+            })
+        }
         res.json(MessageResponse("Create Success !"))
-
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -348,14 +363,36 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const room = await Room.findAll({ where: { status: 1 } })
-        const roomArr = []
-        room.forEach(e => {
-            const length = e.roomNum + ""
-            if (length.length > 1) {
-                roomArr.push(e)
+        const currentDay = new Date().toISOString().slice(0, 10)
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                startDay: { [Op.lte]: currentDay },
+                endDay: { [Op.gt]: currentDay }
             }
-        });
+        })
+        const roomArr = []
+        function insertRoom(id, roomNum, location, status, allowed) {
+            const roomDetail = {
+                id, roomNum, location, status, allowed
+            }
+            roomArr.push(roomDetail)
+        }
+        const room = await Room.findAll()
+        if (examPhase) {
+            room.forEach(e => {
+                const length = e.roomNum + ""
+                if (length.length > 1) {
+                    insertRoom(e.id, e.roomNum, e.location, e.status, 0)
+                }
+            })
+        } else {
+            room.forEach(e => {
+                const length = e.roomNum + ""
+                if (length.length > 1) {
+                    insertRoom(e.id, e.roomNum, e.location, e.status, 1)
+                }
+            })
+        }
         res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);

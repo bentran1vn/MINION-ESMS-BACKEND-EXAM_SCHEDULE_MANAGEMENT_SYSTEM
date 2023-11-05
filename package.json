@@ -13,6 +13,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "chai": "^4.3.10",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -28,10 +29,12 @@
     "passport-google-oauth2": "^0.2.0",
     "sequelize": "^6.33.0",
     "sequelize-cli": "^6.6.1",
+    "sinon": "^17.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
+    "mocha": "^10.2.0",
     "nodemon": "^3.0.1"
   }
 }
