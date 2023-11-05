@@ -676,30 +676,14 @@ export async function lecUnRegister(lecturerId, startTime, endTime, day) {
     }
 }
 
-export async function addExaminerForStaff(staffId, id, userId) {
+export async function addExaminerForStaff(staffId, id, examinerId) {
     let message = "";
-    if (!userId) {
-        // res.json(MessageResponse("User id is required"));
-        return message = "User id is required";
-    }
-    const statusMap = new Map([
-        ['lecturer', 0],
-        ['staff', 1],
-        ['volunteer', 2]
-    ]);
-
-    const user = await User.findOne({
-        id: parseInt(userId)
-    })
-    if (!user) {
-        return message = "This user ID doesn't exist";
-    }
     const examRoomChange = await ExamRoom.findOne({
         where: {
             id: id
         }
     })
-    if(!examRoomChange){
+    if (!examRoomChange) {
         return message = "Exam Room not found";
     }
     const subSl = await SubInSlot.findOne({
@@ -708,7 +692,7 @@ export async function addExaminerForStaff(staffId, id, userId) {
         }
     })
     const exSl = await ExamSlot.findOne({
-        where:{
+        where: {
             id: subSl.exSlId
         }
     })
@@ -728,53 +712,10 @@ export async function addExaminerForStaff(staffId, id, userId) {
     }
 
     const examiner = await Examiner.findOne({
-        userId: parseInt(userId),
-        semesterId: parseInt(semester.id)
-    })
-    if (examiner.status == 1) {
-        await Examiner.update({ status: 0 }, {
-            where: {
-                userId: parseInt(userId),
-                semesterId: parseInt(semester.id)
-            }
-        })
-        await StaffLogChange.create({
-            rowId: parseInt(examiner.id),
-            tableName: 5,
-            userId: staffId,
-            typeChange: 10
-        })
-    } else {
-        const e = await Examiner.create({
-            userId: parseInt(userId),
-            semesterId: parseInt(semester.id),
-            status: 0,
-            typeExaminer: statusMap.get(user.role)
-        })
-        await StaffLogChange.create({
-            rowId: parseInt(e.id),
-            tableName: 5,
-            userId: staffId,
-            typeChange: 10
-        })
-    }
-
-    const lecToExaminer = await Examiner.findOne({
         where: {
-            userId: parseInt(userId),
-            semesterId: parseInt(semester.id)
+            id: examinerId
         }
     })
-    const exPhase = await ExamPhase.findOne({
-        where:{
-            startDay: {[Op.lte]: exSl.day},
-            endDay: {[Op.gte]: exSl.day}
-        }
-    })
-    if (exPhase == 0) {
-        // res.json(MessageResponse("Can't change on-going or passed schedule"));
-        return message = "Can't change on-going or passed schedule";
-    }
 
     const timeSlot = await TimeSlot.findOne({
         where: {
@@ -784,49 +725,36 @@ export async function addExaminerForStaff(staffId, id, userId) {
     })
 
     if (subSl && exSl && timeSlot) {
-        const checkLecLogTime = await ExaminerLogTime.findOne({
+        const examRoom = await ExamRoom.update({
+            examinerId: parseInt(examiner.id)
+        }, {
             where: {
-                examinerId: parseInt(lecToExaminer.id),
+                id: parseInt(id)
+            }
+        })
+        if (examRoom[0] === 0) {
+            return message = 'Add Failed !';
+        } else {
+            const staffLog = await StaffLogChange.create({
+                rowId: parseInt(id),
+                staffId: staffId,
+                tableName: 0,
+                typeChange: 0
+            })
+
+            const addToLecLogTime = await ExaminerLogTime.create({
+                examinerId: parseInt(examiner.id),
                 timeSlotId: timeSlot.id,
                 day: exSl.day,
                 semId: parseInt(semester.id)
-            }
-        })
-        if (!checkLecLogTime) {
-            const examRoom = ExamRoom.update({
-                examinerId: parseInt(lecToExaminer.id)
-            }, {
-                where: {
-                    id: parseInt(id)
-                }
             })
-            if (examRoom[0] === 0) {
-                return message = 'Add Failed !';
+            if (addToLecLogTime) {
+                // res.json(MessageResponse("Add Success to exam room and update examiner log time !"));
+                return message = "Add Success to exam room and update examiner log time !";
             } else {
-                const staffLog = await StaffLogChange.create({
-                    rowId: parseInt(id),
-                    staffId: staffId,
-                    tableName: 0,
-                    typeChange: 0
-                })
-
-                const addToLecLogTime = await ExaminerLogTime.create({
-                    examinerId: parseInt(lecToExaminer.id),
-                    timeSlotId: timeSlot.id,
-                    day: exSl.day,
-                    semId: parseInt(semester.id)
-                })
-                if (addToLecLogTime) {
-                    // res.json(MessageResponse("Add Success to exam room and update examiner log time !"));
-                    return message = "Add Success to exam room and update examiner log time !";
-                } else {
-                    // res.json(MessageResponse("Error when update examiner log time"));
-                    return message = "Error when update examiner log time";
-                }
+                // res.json(MessageResponse("Error when update examiner log time"));
+                return message = "Error when update examiner log time";
             }
-        } else {
-            // res.json(MessageResponse(`Examiner ${lecToExaminer.id} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${exSlot.day}`))
-            return message = `Examiner ${lecToExaminer.id} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} ${exSl.day}`;
         }
     } else {
         // res.json(MessageResponse(`Data at exam room id ${id} maybe wrong`))
@@ -841,7 +769,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
             id: id
         }
     })
-    if(!examRoomChange){
+    if (!examRoomChange) {
         return message = "Exam Room not found";
     }
     const subSl = await SubInSlot.findOne({
@@ -850,7 +778,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
         }
     })
     const exSl = await ExamSlot.findOne({
-        where:{
+        where: {
             id: subSl.exSlId
         }
     })
@@ -948,7 +876,7 @@ export async function delRoomByStaff(staffId, id) {
             id: id
         }
     })
-    if(!examRoomChange){
+    if (!examRoomChange) {
         return message = "Exam Room not found";
     }
     const subSl = await SubInSlot.findOne({
@@ -957,7 +885,7 @@ export async function delRoomByStaff(staffId, id) {
         }
     })
     const exSl = await ExamSlot.findOne({
-        where:{
+        where: {
             id: subSl.exSlId
         }
     })
@@ -986,7 +914,7 @@ export async function delRoomByStaff(staffId, id) {
         // res.json(MessageResponse("Can't add room to passed semester"));
         return message = "Can't delete room to passed semester";
     }
-  
+
     const timeSlot = await TimeSlot.findOne({
         where: {
             id: parseInt(exSl.timeSlotId),
@@ -1037,25 +965,27 @@ export async function delRoomByStaff(staffId, id) {
     }
 }
 
-export async function getAllAvailableExaminerInSlot(staffId, startTime, endTime, day) {
+export async function getAllAvailableExaminerInSlot(staffId, examslotId) {
     let message = "";
 
+    const examslot = await ExamSlot.findOne({
+        where: {
+            id: examslotId
+        }
+    })
     const semester = await Semester.findOne({
         where: {
             start: {
-                [Op.lte]: day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                [Op.lte]: examslot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
             },
             end: {
-                [Op.gte]: day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                [Op.gte]: examslot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
             },
         }
     })
-    
     const timeSlot = await TimeSlot.findOne({
         where: {
-            startTime: startTime,
-            endTime: endTime,
-            semId: parseInt(semester.id)
+            id: examslot.timeSlotId
         }
     })
     if (!timeSlot) {
@@ -1071,7 +1001,7 @@ export async function getAllAvailableExaminerInSlot(staffId, startTime, endTime,
     const user = await User.findAll({
         where: {
             role: {
-                [Op.or]: ['lecturer', 'staff', 'volunteer']
+                [Op.or]: ['lecturer', 'staff']
             }
         }
     });
@@ -1119,39 +1049,34 @@ export async function getAllAvailableExaminerInSlot(staffId, startTime, endTime,
             semesterId: parseInt(semester.id),
         }
     });
-    const examinerList = allExaminer.map(ex => ex.dataValues);
-    const exIdList = examinerList.map(exL => exL.id);
-    
-    let i = 0;
+
     let freeLecList = [];
-    for (i; i < exIdList.length; i++) {
+    for (const ex of allExaminer) {
         const availableLecturerInSlot = await ExaminerLogTime.findOne({
             where: {
-                examinerId: exIdList[i],
+                examinerId: ex.dataValues.id,
                 timeSlotId: timeSlot.id,
-                day: day,
+                day: examslot.day,
                 semId: parseInt(semester.id)
             }
         })
         if (!availableLecturerInSlot) {
             const lc = {
-                examinerId: exIdList[i],
-                startTime: startTime,
-                endTime: endTime,
-                day: day
+                examinerId: ex.dataValues.id,
+                examinerName: ex.dataValues.exName,
             }
             freeLecList.push(lc);
         }
     }
-    
+
     if (freeLecList.length == 0) {
         // res.json(MessageResponse(`All examiners are busy at ${startTime} - ${endTime} - ${day}`));
-        return message = `All examiners are busy at ${startTime} - ${endTime} - ${day}`;
+        return message = `All examiners are busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examslot.day}`;
     } else {
         // res.json(DataResponse(freeLecList));
         return freeLecList;
     }
-}
+}//mới sửa, giờ truyền vô examslotId
 
 export async function getAllCourseOneSlot(exSlotID) {
     let message = "";
@@ -1180,11 +1105,11 @@ export async function getAllCourseOneSlot(exSlotID) {
         };
         coursesWithSlot.push(cour);
     }
-    if(coursesWithSlot.length == 0){
+    if (coursesWithSlot.length == 0) {
         return message = "Not found";
-    }else{
+    } else {
         return coursesWithSlot;
-    } 
+    }
 }
 
 export async function getAllCourseAndNumOfStudentOneSlot(exSlotID) {
@@ -1233,9 +1158,9 @@ export async function getAllCourseAndNumOfStudentOneSlot(exSlotID) {
         };
         coursesWithSlot.push(cour);
     }
-    if(coursesWithSlot.length == 0){
+    if (coursesWithSlot.length == 0) {
         return message = "Not found";
-    }else{
+    } else {
         return coursesWithSlot;
     }
 }
@@ -1281,9 +1206,9 @@ export async function getAllRoomOneSlot(exSlotID) {
     // Flattening the nested arrays to get a single array of rooms
     const flattenedRooms = roomsWithSlot.flat();
 
-    if(flattenedRooms.length == 0){
+    if (flattenedRooms.length == 0) {
         return message = "Not Found";
-    }else{
+    } else {
         return flattenedRooms;
     }
 
@@ -1337,12 +1262,12 @@ export async function getAllExaminerOneSlot(exSlotID) {
     }
 
     // res.json(DataResponse(examinersWithSlot));
-    if(examinersWithSlot.length == 0){
+    if (examinersWithSlot.length == 0) {
         return message = "Not Found";
-    }else{
+    } else {
         return examinersWithSlot;
     }
-    
+
 }
 
 export async function getDetailScheduleOneExamSlot(examSlotId) {
@@ -1353,7 +1278,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             id: examSlotId
         }
     })
-    if(!exSlot){
+    if (!exSlot) {
         return message = "Exam slot doesn't exist";
     }
     const semester = await Semester.findOne({
@@ -1372,7 +1297,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             endDay: { [Op.gte]: exSlot.day }
         }
     })
-    
+
     const subWithSlot = await SubInSlot.findAll({
         where: {
             exSlId: examSlotId,
@@ -1384,7 +1309,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             semId: parseInt(semester.id)
         }
     })
-    
+
     for (const item of subWithSlot) {
         const course = await Course.findOne({
             where: {
