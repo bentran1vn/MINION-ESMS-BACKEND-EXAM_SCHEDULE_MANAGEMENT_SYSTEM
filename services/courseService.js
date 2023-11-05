@@ -7,6 +7,7 @@ import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { handleFillStu } from './studentExamService.js'
+import { Op } from 'sequelize'
 
 export async function assignCourse(courseId, ExamSlotId, numStu) {
 
@@ -41,7 +42,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     const roomRequire = Math.ceil(numOfStu.dataValues.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
 
     const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
-    const numRoom = 0
+    let numRoom = 0
 
     if(numOdd >= 10){
         numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
