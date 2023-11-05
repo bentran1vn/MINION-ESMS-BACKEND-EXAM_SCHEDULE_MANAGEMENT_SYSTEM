@@ -115,12 +115,13 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     } else if (numStu >= 10) {
                         await handleFillStu(courseId, numStu, examRoom.id)
                     }
-                    findRoom = true;
-                    check = false;
-                    break;
 
                     //cập nhập status Course
                     await changeCourseStatus(examPhase.dataValues.id, courseId)
+
+                    findRoom = true;
+                    check = false;
+                    break;
                 }
             }
             if (!findRoom) {
