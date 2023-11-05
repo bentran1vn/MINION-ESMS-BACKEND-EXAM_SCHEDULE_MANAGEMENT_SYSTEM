@@ -40,7 +40,15 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
 
     const roomRequire = Math.ceil(numOfStu.dataValues.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
 
-    const numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
+    const numRoom = 0
+    
+    if(numOdd >= 10){
+        numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    } else {
+        numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
+    }
+    
 
     if (numRoom > roomRequire) throw new Error("Problem with assign Course! Number Of Student is invalid !")
 
@@ -118,11 +126,12 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     }
 }
 
-export async function changeCourseStatus(phaseId) {
+export async function changeCourseStatus(phaseId, courId) {
     const courList = await Course.findAll({
         where: {
             status: 1,
-            ePId: phaseId
+            ePId: phaseId,
+            id: courId
         }
     })
     if (!courList) throw new Error('Course all finished!')
@@ -185,3 +194,4 @@ export async function changeCourseStatus(phaseId) {
         }
     }
 }
+
