@@ -1415,6 +1415,11 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
                 }
             })
 
+            const numOfStuEachExRoom = await StudentExam.findAll({
+                where: {
+                    eRId: ex.dataValues.id
+                }
+            })
             if (exPhase.status == 1) {
                 const a = {
                     subCode: subject.code,
@@ -1423,6 +1428,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
                     endTime: time.endTime,
                     roomNum: room.roomNum,
                     examiner: examiner == null ? "N/A" : examiner.exName,
+                    numOfStu: numOfStuEachExRoom.length,
                     status: 1//được sửa
                 }
                 returnList.push(a);
@@ -1434,6 +1440,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
                     endTime: time.endTime,
                     roomNum: room.roomNum,
                     examiner: examiner == null ? "N/A" : examiner.exName,
+                    numOfStu: numOfStuEachExRoom.length,
                     status: 0//không được sửa
                 }
                 returnList.push(a);
