@@ -386,9 +386,8 @@ router.get('/scheduleOfStuBySemester', async (req, res) => {
                 const s = {
                     subCode: subject.code,
                     subName: subject.name,
+                    day: exslot.day,
                     roomNum: room.roomNum,
-                    startTime: `${exslot.day} ${timeSlot.startTime}`,
-                    endTime: `${exslot.day} ${timeSlot.endTime}`,
                     time: `${timeSlot.startTime}-${timeSlot.endTime}`,
                 }
                 schePerSemester.push(s);
@@ -459,6 +458,8 @@ router.get('/scheduleOfStu', async (req, res) => {
                 subName: subject.name,
                 day: exslot.day,
                 roomNum: room.roomNum,
+                startTime: `${exslot.day} ${timeSlot.startTime}`,
+                endTime: `${exslot.day} ${timeSlot.endTime}`,
                 time: `${timeSlot.startTime}-${timeSlot.endTime}`
             }
             schePerSemester.push(s);
