@@ -1,4 +1,5 @@
 import ExamPhase from '../models/ExamPhase.js'
+import Course from '../models/Course.js'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
@@ -41,12 +42,33 @@ export function checkTime(startDay, endDay) {
 
 }
 
-export async function findPhaseBySemId(id){
-    let phaseList = await ExamPhase.findAll({
-        where : {
+export async function findPhaseBySemId(id) {
+    const detailExamPhase = []
+    function insertExamPhase(id, semId, pN, sd, ed, cd) {
+        const EPDetail = {
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd
+        }
+        detailExamPhase.push(EPDetail)
+    }
+
+    const examPhases = await ExamPhase.findAll({
+        where: {
             semId: id
         }
     })
-    if(!phaseList) throw new Error("Can not find exam phases !")
-    return phaseList
+
+    for (let i = 0; i < examPhases.length; i++) {
+        const course = await Course.findAll({
+            where: {
+                ePId: examPhases[i].id
+            }
+        })
+        if (course.length != 0) {
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1)
+        } else {
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0)
+        }
+    }
+    if (!detailExamPhase) throw new Error("Can not find exam phases !")
+    return detailExamPhase
 }
