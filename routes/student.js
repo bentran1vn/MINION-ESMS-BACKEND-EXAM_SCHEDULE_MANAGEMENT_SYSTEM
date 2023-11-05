@@ -389,6 +389,7 @@ router.get('/scheduleOfStuBySemester', async (req, res) => {
                     day: exslot.day,
                     roomNum: room.roomNum,
                     time: `${timeSlot.startTime}-${timeSlot.endTime}`,
+                    location: room.location
                 }
                 schePerSemester.push(s);
             }
