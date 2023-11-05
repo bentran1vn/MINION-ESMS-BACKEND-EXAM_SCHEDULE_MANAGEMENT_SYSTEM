@@ -644,10 +644,10 @@ router.put('/addExaminer', async (req, res) => {
     const staffId = 1
     //thêm lecturer của staff
     const examRoomId = parseInt(req.body.examRoomId)
-    const userId = parseInt(req.body.userId)
+    const examinerId = parseInt(req.body.examinerId)
     //id ở đây là examRoom id
     try {
-        const result = await addExaminerForStaff(staffId, examRoomId, userId);
+        const result = await addExaminerForStaff(staffId, examRoomId, examinerId);
         res.json(MessageResponse(result));
         return;
     } catch (error) {
@@ -772,18 +772,15 @@ router.get('/', async (req, res) => {
 
 })
 
-//tất cả lecturer rảnh tại cùng 1 giờ 1 ngày chưa có trong examRoom
+//tất cả examiner rảnh tại examslot
 //role staff
 router.get('/allExaminerInSlot', async (req, res) => {
     // const staffId = parseInt(res.locals.userData.id);
     const staffId = 1;
-
-    const startTime = req.query.startTime;
-    const endTime = req.query.endTime;
-    const day = req.query.day;
+    const examslotId = parseInt(req.query.examslotId);
 
     try {
-        const result = await getAllAvailableExaminerInSlot(staffId, startTime, endTime, day);
+        const result = await getAllAvailableExaminerInSlot(staffId, examslotId);
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
