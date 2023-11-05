@@ -21,7 +21,8 @@ router.get('/google/callback', passport.authenticate('google', {
         } else {
             const user = await User.findOne({
                 where: {
-                    email: profile.email
+                    email: profile.email,
+                    status: 1
                 }
             })
             if (!user) {
@@ -32,7 +33,7 @@ router.get('/google/callback', passport.authenticate('google', {
                     email: user.email,
                     name: user.name,
                     role: user.role,
-                    image_url : profile.photo[0].value
+                    image_url : profile.photos[0].value
                 }
                 const token = jwt.sign(payload, process.env.SECRET, {
                     expiresIn: '3h'
