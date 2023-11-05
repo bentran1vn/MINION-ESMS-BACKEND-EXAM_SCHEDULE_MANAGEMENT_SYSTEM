@@ -256,6 +256,29 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
+router.post('/volunteerExaminer', async (req, res) => {
+    const exName = req.body.name
+    const exEmail = req.body.email
+    const semesterId = req.body.semesterId
+    const status = 0
+    const typeExaminer = 2
+    try{
+        const examiner = await Examiner.create({
+            exName: exName,
+            exEmail: exEmail,
+            semesterId: semesterId,
+            status: status,
+            typeExaminer: typeExaminer
+        })
+        if(examiner){
+            res.json(MessageResponse("Add volunteer success!"));
+        }
+    }catch(error){
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
 
 //lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {

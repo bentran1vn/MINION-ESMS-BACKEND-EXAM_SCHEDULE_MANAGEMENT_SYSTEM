@@ -323,6 +323,7 @@ router.get('/listScheOfStu', async (req, res) => {
     }
 })
 
+
 //get lịch thi của 1 stu theo semester
 router.get('/scheduleOfStuBySemester', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id); //token
@@ -403,9 +404,7 @@ router.get('/scheduleOfStuBySemester', async (req, res) => {
 router.get('/scheduleOfStu', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id); //token
     const userId = 6; //thg stu đầu tiên
-    
     try {
-
         const student = await Student.findOne({
             where: {
                 userId: userId

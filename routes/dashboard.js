@@ -362,6 +362,7 @@ router.get('/numOfDayRegister', async (req, res) => {
 })
 
 //------------------------------------dash của lecturer
+//tất cả slot đã đk của lec
 router.get('/totalRegistionOfLec', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -386,7 +387,7 @@ router.get('/totalRegistionOfLec', async (req, res) => {
         console.log(error);
     }
 })
-
+//tất cả slot đk 1 phase
 router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -438,7 +439,7 @@ router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
     }
 })
 
-//3. số slot chưa đi coi của phase này
+//3. số slot chưa đi coi của 1 phase 
 router.get('/futureSlotOfLecOnePhase', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -494,7 +495,7 @@ router.get('/futureSlotOfLecOnePhase', async (req, res) => {
         console.log(error);
     }
 })
-
+//tổng số lượt canh thi mỗi phase từ trc tới hiện tại
 router.get('/totalRegistionEachPhase', async (req, res) => {
     const userId = 256;
     try{
