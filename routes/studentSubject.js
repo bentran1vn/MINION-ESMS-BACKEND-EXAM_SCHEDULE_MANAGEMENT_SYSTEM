@@ -79,12 +79,12 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
                 };
                 await StudentSubject.create(data);
                 currentRow++;
-            });        
+            });
         });
         res.json(MessageResponse("Import student subject list success"));
-    } catch (err) {
-        res.json(ErrorResponse());
-        console.log(err);
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

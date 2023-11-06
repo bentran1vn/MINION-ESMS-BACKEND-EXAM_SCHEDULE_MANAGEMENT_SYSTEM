@@ -17,7 +17,7 @@ import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot } from '../services/examRoomService.js'
-import {changeCourseStatus} from '../services/courseService.js'
+import { changeCourseStatus } from '../services/courseService.js'
 
 const router = express.Router()
 
@@ -457,7 +457,7 @@ router.post('/', async (req, res) => {
                 id: examSlot.timeSlotId
             }
         })
-       
+
         const currentExamPhase = await ExamPhase.findOne({
             where: {
                 startDay: {
@@ -564,9 +564,9 @@ router.post('/', async (req, res) => {
             }
 
         }
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -580,8 +580,8 @@ router.post('/auto', async (req, res) => {
         const message = await autoFillLecturerToExamRoom(staffId, examphaseId);
         res.json(MessageResponse(message));
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 
 })
@@ -600,7 +600,7 @@ router.put('/lecturer', async (req, res) => {
     const endTime = req.body.endTime;
     const day = req.body.day;
     const incomingPhase = parseInt(req.body.exPhaseId);
-   
+
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
         const result = await lecRegister(lecturerId, startTime, endTime, day, incomingPhase)
@@ -608,7 +608,7 @@ router.put('/lecturer', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -628,7 +628,7 @@ router.put('/delLecturer', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -647,7 +647,7 @@ router.put('/addExaminer', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -666,7 +666,7 @@ router.put('/room', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -685,86 +685,90 @@ router.put('/delRoom', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
 //get examList By Staff
 router.get('/', async (req, res) => {
-    const examRoomList = await ExamRoom.findAll();
-    let examList = [];
-    let i = 1
-    for (const key in examRoomList) {
-        let item = {
-            no: "",
-            startTime: "",
-            endTime: "",
-            day: "",
-            subCode: "",
-            subName: "",
-            roomCode: "",
-            roomLocation: "",
-            lecturerCode: "",
-        }
-        if (Object.hasOwnProperty.call(examRoomList, key)) {
-            const element = examRoomList[key];
-            const room = await Room.findOne({
-                where: {
-                    id: element.roomId
-                }
-            })
-            if (room != null) {
-                item.roomCode = room.dataValues.id
-                item.roomLocation = room.location
+    try {
+        const examRoomList = await ExamRoom.findAll();
+        let examList = [];
+        let i = 1
+        for (const key in examRoomList) {
+            let item = {
+                no: "",
+                startTime: "",
+                endTime: "",
+                day: "",
+                subCode: "",
+                subName: "",
+                roomCode: "",
+                roomLocation: "",
+                lecturerCode: "",
             }
-            if (element.lecturerId) {
-                const lecturer = await Lecturer.findOne({
+            if (Object.hasOwnProperty.call(examRoomList, key)) {
+                const element = examRoomList[key];
+                const room = await Room.findOne({
                     where: {
-                        id: element.lecturerId
+                        id: element.roomId
                     }
                 })
-                item.lecturerCode = lecturer.lecId
+                if (room != null) {
+                    item.roomCode = room.dataValues.id
+                    item.roomLocation = room.location
+                }
+                if (element.lecturerId) {
+                    const lecturer = await Lecturer.findOne({
+                        where: {
+                            id: element.lecturerId
+                        }
+                    })
+                    item.lecturerCode = lecturer.lecId
+                }
+                const subInSlot = await SubInSlot.findOne({
+                    where: {
+                        id: element.sSId
+                    }
+                })
+                const course = await Course.findOne({
+                    where: {
+                        id: subInSlot.courId
+                    }
+                })
+                const subject = await Subject.findOne({
+                    where: {
+                        id: course.subId
+                    }
+                })
+                item.subCode = subject.code
+                item.subName = subject.name
+                const examSlot = await ExamSlot.findOne({
+                    where: {
+                        id: subInSlot.exSlId
+                    }
+                })
+                item.day = examSlot.day
+                const timeSlot = await TimeSlot.findOne({
+                    where: {
+                        id: examSlot.timeSlotId
+                    }
+                })
+                item.startTime = timeSlot.startTime
+                item.endTime = timeSlot.endTime
+                item.no = i++
             }
-            const subInSlot = await SubInSlot.findOne({
-                where: {
-                    id: element.sSId
-                }
-            })
-            const course = await Course.findOne({
-                where: {
-                    id: subInSlot.courId
-                }
-            })
-            const subject = await Subject.findOne({
-                where: {
-                    id: course.subId
-                }
-            })
-            item.subCode = subject.code
-            item.subName = subject.name
-            const examSlot = await ExamSlot.findOne({
-                where: {
-                    id: subInSlot.exSlId
-                }
-            })
-            item.day = examSlot.day
-            const timeSlot = await TimeSlot.findOne({
-                where: {
-                    id: examSlot.timeSlotId
-                }
-            })
-            item.startTime = timeSlot.startTime
-            item.endTime = timeSlot.endTime
-            item.no = i++
+            examList.push(item)
         }
-        examList.push(item)
+        if (examList.length === 0) {
+            res.json(InternalErrResponse())
+        } else {
+            res.json(DataResponse(examList))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
-    if (examList.length === 0) {
-        res.json(InternalErrResponse())
-    } else {
-        res.json(DataResponse(examList))
-    }
-
 })
 
 //tất cả examiner rảnh tại examslot
@@ -785,7 +789,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -802,8 +806,8 @@ router.get('/getCourseOneSlot', async (req, res) => {
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -820,8 +824,8 @@ router.get('/getCourseAndNumOfStuOneSlot', async (req, res) => {
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -838,8 +842,8 @@ router.get('/getRoomOneSlot', async (req, res) => {
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -856,8 +860,8 @@ router.get('/getExaminerOneSlot', async (req, res) => {
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 });
 //ngày, giờ, môn, phòng, ai coi, status đc sửa không
@@ -872,9 +876,9 @@ router.get('/getExamRoomDetailByPhase', async (req, res) => {
             res.json(NotFoundResponse());
             return;
         }
-    } catch (err) {
-        res.json(InternalErrResponse());
-        console.log(err);
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

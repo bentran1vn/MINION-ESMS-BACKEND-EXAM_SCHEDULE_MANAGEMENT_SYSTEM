@@ -228,7 +228,7 @@ router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) =
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get User or Users by name 
 
@@ -248,8 +248,8 @@ router.delete('/', async (req, res) => {
             res.json(MessageResponse('User deleted'))
         }
     } catch (error) {
-        console.log(error)
-        res.json(MessageResponse('Error found'))
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Delete User by email (change status = 1 to 0)
 

@@ -214,8 +214,8 @@ router.post('/', async (req, res) => {
         const result = await createTimeSlot(timeSlotDatas, semId);
         res.json(MessageResponse(result));
     } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -224,45 +224,45 @@ router.get('/des', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
         const result = await getTimeByDesOfPhase(examphaseId, semesterId)
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result));
-        }else{
-            res.json(MessageResponse(result))
-        }
-    } catch (error) {
-        res.json(InternalErrResponse());
-        return;
-    }
-})
-
-router.get('/semId', async (req, res) => {   
-    const semId = parseInt(req.query.semId);
-    try {
-        const result = await getAllTimeSlotOneSem(semId)
-        if(Array.isArray(result)){
-            res.json(DataResponse(result));
-        }else{
+        } else {
             res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
+    }
+})
+
+router.get('/semId', async (req, res) => {
+    const semId = parseInt(req.query.semId);
+    try {
+        const result = await getAllTimeSlotOneSem(semId)
+        if (Array.isArray(result)) {
+            res.json(DataResponse(result));
+        } else {
+            res.json(MessageResponse(result))
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
 //requireRole("admin")
-router.delete('/', async (req, res) => {   
+router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id);
     try {
         const result = await delTimeSlot(id);
         res.json(MessageResponse(result))
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse())
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
-router.put('/', async (req, res) => { 
+router.put('/', async (req, res) => {
     const id = parseInt(req.body.id)
     const timeSlotData = req.body;
 
@@ -270,8 +270,8 @@ router.put('/', async (req, res) => {
         const result = await updateTime(id, timeSlotData);
         res.json(MessageResponse(result))
     } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse())
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })//update time slot theo id
 

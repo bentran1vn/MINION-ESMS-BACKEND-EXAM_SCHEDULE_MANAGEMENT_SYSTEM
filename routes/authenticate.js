@@ -33,17 +33,17 @@ router.get('/google/callback', passport.authenticate('google', {
                     email: user.email,
                     name: user.name,
                     role: user.role,
-                    image_url : profile.photos[0].value
+                    image_url: profile.photos[0].value
                 }
                 const token = jwt.sign(payload, process.env.SECRET, {
                     expiresIn: '3h'
                 })
                 res.cookie('token', token)
                 // console.log(token);
-                if(user.role == 'admin') res.redirect(`${process.env.CLIENT_URL}/admin`)
-                if(user.role == 'lecturer') res.redirect(`${process.env.CLIENT_URL}/lecturer`)
-                if(user.role == 'staff') res.redirect(`${process.env.CLIENT_URL}/staff`)
-                if(user.role == 'student') res.redirect(`${process.env.CLIENT_URL}/student`)
+                if (user.role == 'admin') res.redirect(`${process.env.CLIENT_URL}/admin`)
+                if (user.role == 'lecturer') res.redirect(`${process.env.CLIENT_URL}/lecturer`)
+                if (user.role == 'staff') res.redirect(`${process.env.CLIENT_URL}/staff`)
+                if (user.role == 'student') res.redirect(`${process.env.CLIENT_URL}/student`)
             }
         }
     } catch (err) {

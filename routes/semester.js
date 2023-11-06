@@ -214,8 +214,9 @@ router.post('/', async (req, res) => {
     try {
         const semester = await createNewSemesterS(season, year, start, end)
         res.json(MessageResponse(semester))
-    } catch (err) {
-        res.json(ErrorResponse(500, Error.message));
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -232,9 +233,8 @@ router.get('/', async (req, res) => {
             res.json(DataResponse(semesterList));
         }
     } catch (Error) {
-        // res.json(ErrorResponse(500, Error.message));
-        res.json(NotFoundResponse())
-        return;
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
@@ -244,7 +244,7 @@ router.get('/season', async (req, res) => {
         res.json(DataResponse(final))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Trả về all semester 
 
@@ -259,9 +259,9 @@ router.post('/whenCreateSemester', async (req, res) => {
     try {
         const result = await autoCreateTimeSlotWhenCreateSemester(year, season, start, end)
         res.json(MessageResponse(result))
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -274,7 +274,8 @@ router.delete('/:id', async (req, res) => {
             res.json(MessageResponse('Delete successfully'))
         }
     } catch (Error) {
-        res.json(ErrorResponse(500, Error.message));
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

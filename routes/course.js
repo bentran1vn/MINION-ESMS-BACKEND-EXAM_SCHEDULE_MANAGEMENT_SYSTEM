@@ -147,9 +147,8 @@ router.get('/', async (req, res) => {
             }
         }
     } catch (error) {
-        console.error(error);
-        res.json(InternalErrResponse());
-        return;
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all course by detail: courseId, subCode, numOfStu, semesterId
 
@@ -198,8 +197,8 @@ router.delete('/', async (req, res) => {
             }
         }
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse())
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

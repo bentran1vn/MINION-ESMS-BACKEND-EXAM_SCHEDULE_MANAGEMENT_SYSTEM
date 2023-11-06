@@ -250,9 +250,9 @@ router.post('/', async (req, res) => {
                 }
             }
         }
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })//chưa làm được 
 
@@ -263,7 +263,7 @@ router.post('/volunteerExaminer', async (req, res) => {
     const semesterId = parseInt(req.body.semesterId)
     const status = 0
     const typeExaminer = 2
-    try{
+    try {
         const examiner = await Examiner.create({
             exName: exName,
             exEmail: exEmail,
@@ -271,16 +271,16 @@ router.post('/volunteerExaminer', async (req, res) => {
             status: status,
             typeExaminer: typeExaminer
         })
-        if(examiner){
+        if (examiner) {
             res.json(MessageResponse("Add volunteer success!"));
         }
-    }catch(error){
-        res.json(InternalErrResponse());
+    } catch (error) {
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 //get ra examiner role ctv theo semester
-router.get('/volunteerExaminer', async(req, res) => {
+router.get('/volunteerExaminer', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
         const examiner = await Examiner.findAll({
@@ -291,8 +291,8 @@ router.get('/volunteerExaminer', async(req, res) => {
         })
         res.json(DataResponse(examiner));
     } catch (error) {
-        res.json(InternalErrResponse());
-        return;
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -318,7 +318,7 @@ router.get('/allScheduled', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -327,18 +327,18 @@ router.get('/examPhaseId', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
         const examPhaseId = parseInt(req.query.examPhaseId)
-        
+
         const result = await getScheduleByPhase(userId, examPhaseId);
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        } else if (!Array.isArray(result)){
+        } else if (!Array.isArray(result)) {
             res.json(NotFoundResponse());
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -357,8 +357,8 @@ router.delete('/', async (req, res) => {
             return;
         }
     } catch (error) {
-        res.json(InternalErrResponse());
-        return;
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -372,17 +372,17 @@ router.get('/scheduledByPhase', async (req, res) => {
                 id: examphaseId
             }
         })
-        if(!exPhase){
+        if (!exPhase) {
             res.json(NotFoundResponse());
             return;
         }
         const semester = await Semester.findOne({
-            where:{
-                start: {[Op.lte]: exPhase.startDay},
-                end: {[Op.gte]: exPhase.endDay}
+            where: {
+                start: { [Op.lte]: exPhase.startDay },
+                end: { [Op.gte]: exPhase.endDay }
             }
         })
-        
+
         const examiner = await Examiner.findOne({
             where: {
                 userId: id,
@@ -401,14 +401,14 @@ router.get('/scheduledByPhase', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
 //lấy danh sách examiner by phase của màn hình admin
 router.get('/getExaminerByPhase', async (req, res) => {
     const exPhaseId = parseInt(req.query.exPhaseId);
-    try{
+    try {
         const statusMap = new Map([
             [0, 'lecturer'],
             [1, 'staff'],
@@ -420,7 +420,7 @@ router.get('/getExaminerByPhase', async (req, res) => {
                 id: exPhaseId
             }
         })
-        if (exPhase) {    
+        if (exPhase) {
             const examiners = await ExaminerLogTime.findAll({
                 where: {
                     day: {
@@ -429,7 +429,7 @@ router.get('/getExaminerByPhase', async (req, res) => {
                     }
                 }
             });
-            if(examiners.length == 0){
+            if (examiners.length == 0) {
                 res.json(MessageResponse("This phase has no examiners"));
                 return;
             }
@@ -449,32 +449,31 @@ router.get('/getExaminerByPhase', async (req, res) => {
                         semesterId: item.semId
                     }
                 });
-            
+
                 const ex = {
                     exEmail: examiner.exEmail,
                     exName: examiner.exName,
                     role: statusMap.get(examiner.typeExaminer),
                     status: examiner.status
                 };
-                
+
                 examinerLists.push(ex);
             }
-            if(examinerLists.length == 0){
+            if (examinerLists.length == 0) {
                 res.json(NotFoundResponse());
                 return;
             }
-            else{
+            else {
                 res.json(DataResponse(examinerLists))
                 return;
             }
         }
-    }catch(err){
-        res.json(InternalErrResponse());
-        console.log(err);
+    } catch (err) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
     //trả ra email name, role, status
 })
-
 
 export default router
 //add được

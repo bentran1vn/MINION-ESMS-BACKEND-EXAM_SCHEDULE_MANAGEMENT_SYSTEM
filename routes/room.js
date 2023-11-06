@@ -283,9 +283,9 @@ router.post('/', async (req, res) => {
     try {
         const result = await createRoom(data)
         res.json(MessageResponse(result))
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Create new room
 
@@ -296,8 +296,8 @@ router.delete('/', async (req, res) => {
         const result = await deleteRoom(roomNum);
         res.json(MessageResponse(result))
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse());
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Delete room
 
@@ -307,9 +307,9 @@ router.put('/', async (req, res) => {
     try {
         const result = await updateRoom(id, data);
         res.json(MessageResponse(result));
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Update room
 
@@ -319,7 +319,7 @@ router.get('/', async (req, res) => {
         res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all room
 
@@ -329,8 +329,8 @@ router.get('/roomInUse', async (req, res) => {
         const roomLogTime = await getRoomInUse(roomId)
         res.json(DataResponse(roomLogTime))
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse());
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get the time that the rooms was in use
 
@@ -343,7 +343,7 @@ router.get('/roomFreeSlot', async (req, res) => {
         res.json(DataResponse(roomNotUse))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all unused rooms for a day and 1 slot
 
@@ -352,14 +352,14 @@ router.get('/roomUseSlot', async (req, res) => {
     const timeSlotId = req.query.timeSlotId
     try {
         const result = await getRoomUseSlot(day, timeSlotId)
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result))
-        }else{
+        } else {
             res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all rooms used in a day and 1 slot
 
@@ -369,7 +369,7 @@ router.get('/roomDamaged', async (req, res) => {
         res.json(DataResponse(room))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all room was damaged
 
@@ -377,14 +377,14 @@ router.get('/search', async (req, res) => {
     const value = req.query.value
     try {
         const result = await searchRoom(value)
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result))
-        }else{
+        } else {
             res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get room by roomNumer or location
 

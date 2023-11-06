@@ -108,9 +108,9 @@ router.post('/', async (req, res) => {
             res.json(MessageResponse("Create Success !"))
         }
 
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

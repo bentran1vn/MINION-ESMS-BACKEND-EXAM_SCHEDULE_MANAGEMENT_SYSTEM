@@ -102,7 +102,7 @@ router.post('/', async (req, res) => {
         res.json(MessageResponse('Auto fill completed'))
     } catch (error) {
         console.log(error);
-        res.json(MessageResponse('Error found in Auto fill student completed'))
+        res.json(ErrorResponse(500, error.message))
     }
 })// Auto fill student to exam room (đã có trong autoFillStu)
 
