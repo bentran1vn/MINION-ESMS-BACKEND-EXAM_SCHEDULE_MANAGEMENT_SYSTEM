@@ -15,7 +15,12 @@ function roleLevel(role){
 
 export function requireRole(role){
     const middleware = (req, res, next) => {
-        const token = req.query.token || req.cookies.token || req.headers['authorization'] 
+        let token = "";
+        token = req.query.token || req.cookies.token || req.headers['authorization'] || req.body.token
+        if(token.includes(" ")){
+            const tokenParts = token.split(" ");
+            token = tokenParts[1];
+        }
         
         try{
             const data = jwt.verify(token, process.env.SECRET)
