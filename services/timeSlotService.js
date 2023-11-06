@@ -38,7 +38,8 @@ export async function getTimeByDesOfPhase(examphaseId, semesterId) {
     })
     const curExamPhase = await ExamPhase.findOne({
         where: {
-            id: examphaseId
+            id: examphaseId,
+            alive: 1
         }
     })
     if (!curSemester || !curExamPhase) {

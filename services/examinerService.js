@@ -20,21 +20,22 @@ export async function getScheduleByPhase(userId, examPhaseId) {
 
     const exPhase = await ExamPhase.findOne({
         where: {
-            id: examPhaseId
+            id: examPhaseId,
+            alive: 1
         }
     })
-    if(!exPhase){
-        return message="Not Found";
+    if (!exPhase) {
+        return message = "Not Found";
     }
-    
+
     const semester = await Semester.findOne({
         where: {
             start: { [Op.lte]: exPhase.startDay },
             end: { [Op.gte]: exPhase.endDay }
         }
     })
-    if(!semester){
-        return message="Error";
+    if (!semester) {
+        return message = "Error";
     }
     const exMiner = await Examiner.findOne({
         where: {
@@ -42,9 +43,9 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             semesterId: semester.id
         }
     })
-    
-    if(!exMiner){
-        return message="Error";
+
+    if (!exMiner) {
+        return message = "Error";
     }
     const examSlot = await ExamSlot.findAll({
         where: {
@@ -101,7 +102,7 @@ export async function getScheduleByPhase(userId, examPhaseId) {
             }
         }
     }
-    
+
 
     let result = [];
     const tempArray = [...scheduleWithPhase]; // Tạo một bản sao của mảng gốc
@@ -158,11 +159,20 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
             endDay: {
                 [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
             },
+            alive: 1
         }
     })
 
-    const examphase = await ExamPhase.findOne({ where: { id: examphaseId } });
-    if(!examphase){
+    const examphase = await ExamPhase.findOne(
+        {
+            where:
+            {
+                id: examphaseId,
+                alive: 1
+            }
+        }
+    );
+    if (!examphase) {
         return message = "Error";
     }
 
@@ -175,7 +185,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
         }
     });
 
-    if(exslot.length == 0){
+    if (exslot.length == 0) {
         return message = "Not Found";
     }
 
@@ -226,7 +236,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
             }
         }
     }
-    if(sheduledList.length == 0){
+    if (sheduledList.length == 0) {
         return message = `Your schedule in phase ${examphase.ePName} is empty`
     }
     let finalList = [];
@@ -255,7 +265,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
                 phase: "future",
             };
             finalList.push(f);
-        } else if ( (!curPhase && (timeFormatted > sche.day)) || (curPhase && (curPhase.endDay < timeFormatted)) ) {
+        } else if ((!curPhase && (timeFormatted > sche.day)) || (curPhase && (curPhase.endDay < timeFormatted))) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
@@ -322,27 +332,28 @@ export async function getAllScheduledOneExaminer(examinerId) {
             endDay: {
                 [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
             },
+            alive: 1
         }
     })
 
     const examinerScheduled = await ExamRoom.findAll({
         where: {
-          examinerId: {
-            [Op.or]: examinerId
-          }
+            examinerId: {
+                [Op.or]: examinerId
+            }
         }
-      });
-    if(examinerScheduled.length == 0){
+    });
+    if (examinerScheduled.length == 0) {
         return message = "Not Found";
     }
-    for(const ex of examinerScheduled){
+    for (const ex of examinerScheduled) {
         const subSlot = await SubInSlot.findOne({
             where: {
                 id: ex.dataValues.sSId
             }
         })
         const cour = await Course.findOne({
-            where:{
+            where: {
                 id: subSlot.courId
             }
         })
@@ -362,7 +373,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
             }
         })
         const room = await Room.findOne({
-            where:{
+            where: {
                 id: ex.dataValues.roomId
             }
         })
@@ -375,9 +386,9 @@ export async function getAllScheduledOneExaminer(examinerId) {
             roomCode: room.roomNum,
             roomLocation: room.location
         };
-        sheduledList.push(sche); 
+        sheduledList.push(sche);
     }
-    
+
     let finalList = [];
     for (const sche of sheduledList) {
         if (curPhase && (curPhase.startDay <= sche.day && sche.day <= curPhase.endDay)) {
@@ -404,7 +415,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
                 phase: "future",
             };
             finalList.push(f);
-        } else if ( (!curPhase && (timeFormatted > sche.day)) || (curPhase || (timeFormatted > curPhase.endDay) )) {
+        } else if ((!curPhase && (timeFormatted > sche.day)) || (curPhase || (timeFormatted > curPhase.endDay))) {
             const f = {
                 subCode: sche.subCode,
                 subName: sche.subName,
@@ -430,7 +441,7 @@ export async function getAllScheduledOneExaminer(examinerId) {
                 roomCode: item.roomCode,
                 roomLocation: item.roomLocation,
                 phase: item.phase,
-                
+
             }
             returnList.push(s);
         } else if (item.phase == "future") {

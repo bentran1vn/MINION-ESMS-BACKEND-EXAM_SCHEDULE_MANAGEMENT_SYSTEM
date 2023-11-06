@@ -6,7 +6,8 @@ import cron from "node-cron";
 export async function examPhaseCron() {
     let examPhaseList = await ExamPhase.findAll({
         where: {
-            status: true
+            status: true,
+            alive: 1
         }
     })
     for (const item of examPhaseList) {
@@ -17,7 +18,8 @@ export async function examPhaseCron() {
             async () => {
                 let result = await ExamPhase.update({ status: 0 }, {
                     where: {
-                        id: item.id
+                        id: item.id,
+                        alive: 1
                     }
                 })
                 if(result[0] == 0) throw new Error('Update ExamPhase fail !')

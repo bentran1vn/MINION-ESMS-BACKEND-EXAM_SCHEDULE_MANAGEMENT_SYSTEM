@@ -28,7 +28,8 @@ export async function autoCreateExamRoom(incomingPhase) {
     let examPhase = await ExamPhase.findOne({
         where: {
             id: incomingPhase,
-            status: true
+            status: true,
+            alive: 1
         }
     })
     if (examPhase === null || examPhase.length == 0) {
@@ -217,7 +218,8 @@ export async function autoFillLecturerToExamRoom(staffId, incomingPhase) {
 
     const exPhase = await ExamPhase.findOne({
         where: {
-            id: incomingPhase
+            id: incomingPhase,
+            alive: 1
         }
     })
     if (exPhase.status == 0) {
@@ -435,7 +437,8 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
 
     const exPhase = await ExamPhase.findOne({
         where: {
-            id: incomingPhase
+            id: incomingPhase,
+            alive: 1
         }
     })
     const startPhase = new Date(exPhase.startDay);
@@ -589,7 +592,8 @@ export async function lecUnRegister(lecturerId, startTime, endTime, day, incomin
     let message = "";
     const examPhase = await ExamPhase.findOne({
         where: {
-            id: incomingPhase
+            id: incomingPhase,
+            alive: 1
         }
     })
     if (examPhase.status == 0) {
@@ -808,6 +812,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
     const examphase = await ExamPhase.findOne({
         where: {
             id: esSl.ePId
+            alive: 1
         }
     })
     if (examphase.status == 0) {
@@ -914,6 +919,7 @@ export async function delRoomByStaff(staffId, id) {
     const examphase = await ExamPhase.findOne({
         where: {
             id: ePId
+            alive: 1
         }
     })
     if (examphase.status == 0) {
@@ -1300,7 +1306,8 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
     const exPhase = await ExamPhase.findOne({
         where: {
             startDay: { [Op.lte]: exSlot.day },
-            endDay: { [Op.gte]: exSlot.day }
+            endDay: { [Op.gte]: exSlot.day },
+            alive: 1
         }
     })
 
