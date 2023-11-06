@@ -3,71 +3,69 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
 
-//Swagger-TableInfo
 /**
  * @swagger
  * components:
  *   schemas:
- *    ExamPhases:
+ *     ExamPhases:
  *       type: object
  *       required:
- *          - semId
- *          - ePName
- *          - startDay
- *          - endDay
- *          - status
- *          - des
+ *         - semId
+ *         - ePName
+ *         - startDay
+ *         - endDay
+ *         - status
+ *         - des
  *       properties:
- *          id:
- *              type: integer
- *              description: Auto generate id
- *          semId:
- *              type: integer
- *              description: Describe semester Id, reference to table Semester
- *          ePName:
- *              type: string
- *              description: Describe the name of exam phase
- *          startDay:
- *              type: DATEONLY
- *              description: Describe the exam start day
- *          endDay:
- *              type: DATEONLY
- *              description: Describe the exam end day
- *          status: 
- *              type: BOOLEAN
- *              description: 0 is finish, 1 is pending
- *          des: 
- *              type: integer
- *              description: 0 is normal, 1 is coursera
- *          alive: 
- *              type: integer
- *              description: 0 is dead, 1 is alive
+ *         id:
+ *           type: integer
+ *           description: Auto generate id
+ *         semId:
+ *           type: integer
+ *           description: Describe semester Id, reference to table Semester
+ *         ePName:
+ *           type: string
+ *           description: Describe the name of the exam phase
+ *         startDay:
+ *           type: DATEONLY
+ *           description: Describe the exam start day
+ *         endDay:
+ *           type: DATEONLY
+ *           description: Describe the exam end day
+ *         status:
+ *           type: BOOLEAN
+ *           description: 0 is finish, 1 is pending
+ *         des:
+ *           type: integer
+ *           description: 0 is normal, 1 is coursera
+ *         alive:
+ *           type: integer
+ *           description: 0 is dead, 1 is alive
  *       example:
- *           id: 1
- *           semId: 1
- *           ePName: Đợt 1
- *           startDay: 2023-10-10
- *           endDay: 2023-10-15
- *           status: 0
- *           des: 0
- *           alive: 1
+ *         id: 1
+ *         semId: 1
+ *         ePName: Đợt 1
+ *         startDay: 2023-10-10
+ *         endDay: 2023-10-15
+ *         status: 0
+ *         des: 0
+ *         alive: 1
  */
 
-//Swagger-TableTag
 /**
  * @swagger
  * tags:
- *    name: ExamPhases
- *    description: The ExamPhases managing API
+ *   - name: ExamPhases
+ *     description: The ExamPhases managing API
  */
 
-//Swagger-Post-CreateExamPhase
 /**
  * @swagger
  * /examPhases:
  *   post:
  *     summary: Create new exam phase.
- *     tags: [ExamPhases]
+ *     tags:
+ *       - ExamPhases
  *     requestBody:
  *       required: true
  *       content:
@@ -87,27 +85,27 @@ import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '
  *               endDay:
  *                 type: DATEONLY
  *                 example: 2023-10-15
- *               des: 
+ *               des:
  *                 type: integer
  *                 example: 0 is normal, 1 is coursera
- *           required:
- *             - semId
- *             - ePName
- *             - startDay
- *             - endDay
- *             - des
+ *             required:
+ *               - semId
+ *               - ePName
+ *               - startDay
+ *               - endDay
+ *               - des
  *     responses:
  *       '200':
  *         description: Create Successfully!
  */
 
-//Swagger-Post-UpdateExamPhase
 /**
  * @swagger
  * /examPhases:
  *   put:
  *     summary: Update exam phase.
- *     tags: [ExamPhases]
+ *     tags:
+ *       - ExamPhases
  *     requestBody:
  *       required: true
  *       content:
@@ -127,27 +125,27 @@ import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '
  *               endDay:
  *                 type: DATEONLY
  *                 example: 2023-10-15
-  *              des:
+ *               des:
  *                 type: string
  *                 example: Normal
- *           required:
- *             - semId
- *             - ePName
- *             - startDay
- *             - endDay
- *             - des
+ *             required:
+ *               - semId
+ *               - ePName
+ *               - startDay
+ *               - endDay
+ *               - des
  *     responses:
  *       '200':
- *         description: ExamPhase Update !
+ *         description: ExamPhase Update!
  */
 
-//SWagger-Delete-DeleteExamPhase
 /**
  * @swagger
  * /examPhases:
  *   delete:
  *     summary: Delete exam phase.
- *     tags: [ExamPhases]
+ *     tags:
+ *       - ExamPhases
  *     requestBody:
  *       required: true
  *       content:
@@ -156,62 +154,62 @@ import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '
  *             type: object
  *             properties:
  *               id:
- *                 type: int
+ *                 type: integer
  *                 example: 1
- *           required:
- *             - id
+ *             required:
+ *               - id
  *     responses:
  *       '200':
  *         description: Delete Successfully!
  */
 
-//Swagger-Get-GetListExamPhaseBySemId
 /**
  * @swagger
- * /examPhases/semId :
- *   get :
- *     summary : Return all ExamPhase by Semester Id
- *     tags: [ExamPhases]
+ * /examPhases/semId:
+ *   get:
+ *     summary: Return all ExamPhase by Semester Id
+ *     tags:
+ *       - ExamPhases
  *     parameters:
- *        - in: query
- *          name: semesterId
- *          schema:
- *            type: integer
- *          required: true
- *          description: Return Examphase List by Semester Id
- *     responses :
- *       200 :
- *         description: OK !
- *         content: 
+ *       - in: query
+ *         name: semesterId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Return Examphase List by Semester Id
+ *     responses:
+ *       '200':
+ *         description: OK!
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
- *               items: 
+ *               items:
  *                 $ref: '#/components/schemas/ExamPhases'
  */
 
-//Swagger-Get-GetExamPhaseBySemId
 /**
  * @swagger
- * /examPhases/{id} :
- *   get :
- *     summary : Return all ExamPhase by Semester Id
- *     tags: [ExamPhases]
+ * /examPhases/{id}:
+ *   get:
+ *     summary: Return all ExamPhase by Semester Id
+ *     tags:
+ *       - ExamPhases
  *     parameters:
- *        - in: path
- *          name: id
- *          schema:
- *            type: integer
- *          required: true
- *          description: Return Examphase by Semester Id
- *     responses :
- *       200 :
- *         description: OK !
- *         content: 
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Return Examphase by Semester Id
+ *     responses:
+ *       '200':
+ *         description: OK!
+ *         content:
  *           application/json:
  *             schema:
  *               type: array
- *               items: 
+ *               items:
  *                 $ref: '#/components/schemas/ExamPhases'
  */
 
@@ -261,6 +259,7 @@ router.get('/semId', async (req, res) => {
         res.json(ErrorResponse(500, error.message))
     }
 })//get all Exam Phase by Semester Id
+
 
 router.get('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
