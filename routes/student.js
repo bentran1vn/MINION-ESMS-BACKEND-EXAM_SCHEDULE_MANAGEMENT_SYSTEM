@@ -138,9 +138,9 @@ router.get('/listOfStu', async (req, res) => {
 })
 
 //get lịch thi của 1 stu theo semester
-router.get('/scheduleOfStuBySemester', async (req, res) => {
-    // const userId = parseInt(req.locals.userData.id); //token
-    const userId = 6; //thg stu đầu tiên
+router.get('/scheduleOfStuBySemester', requireRole('student'), async (req, res) => {
+    const userId = parseInt(res.locals.userData.id); //token
+    // const userId = 6; //thg stu đầu tiên
     const semId = parseInt(req.query.semesterId);
     try {
         const schePerSemester = await getScheduleOfStuBySemester(userId, semId)
@@ -152,9 +152,9 @@ router.get('/scheduleOfStuBySemester', async (req, res) => {
 })
 
 //get lịch thi của 1 thg
-router.get('/scheduleOfStu', async (req, res) => {
-    // const userId = parseInt(req.locals.userData.id); //token
-    const userId = 6; //thg stu đầu tiên
+router.get('/scheduleOfStu', requireRole('student'), async (req, res) => {
+    const userId = parseInt(res.locals.userData.id); //token
+    // const userId = 6; //thg stu đầu tiên
     try {
         const schePerSemester = await getScheduleOfStu(userId);
         res.json(DataResponse(schePerSemester));

@@ -601,7 +601,7 @@ router.put('/lecturer', requireRole('lecturer'), async (req, res) => {
     const endTime = req.body.endTime;
     const day = req.body.day;
     const incomingPhase = parseInt(req.body.exPhaseId);
-
+    
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
         const result = await lecRegister(lecturerId, startTime, endTime, day, incomingPhase)
