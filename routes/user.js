@@ -144,7 +144,7 @@ const router = express.Router()
  */
 
 //requireRole('admin')
-router.get('/', async (req, res) => {
+router.get('/',requireRole('admin') , async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20

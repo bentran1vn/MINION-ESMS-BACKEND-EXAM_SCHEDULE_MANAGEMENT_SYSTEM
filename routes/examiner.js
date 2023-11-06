@@ -256,6 +256,45 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
+//tạo examiner role ctv
+router.post('/volunteerExaminer', async (req, res) => {
+    const exName = req.body.name
+    const exEmail = req.body.email
+    const semesterId = parseInt(req.body.semesterId)
+    const status = 0
+    const typeExaminer = 2
+    try{
+        const examiner = await Examiner.create({
+            exName: exName,
+            exEmail: exEmail,
+            semesterId: semesterId,
+            status: status,
+            typeExaminer: typeExaminer
+        })
+        if(examiner){
+            res.json(MessageResponse("Add volunteer success!"));
+        }
+    }catch(error){
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+//get ra examiner role ctv theo semester
+router.get('/volunteerExaminer', async(req, res) => {
+    const semesterId = parseInt(req.query.semesterId);
+    try {
+        const examiner = await Examiner.findAll({
+            where: {
+                semesterId: semesterId,
+                typeExaminer: 2
+            }
+        })
+        res.json(DataResponse(examiner));
+    } catch (error) {
+        res.json(InternalErrResponse());
+        return;
+    }
+})
 
 //lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {

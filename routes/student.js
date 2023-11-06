@@ -13,6 +13,7 @@ import Room from '../models/Room.js'
 import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Examiner from '../models/Examiner.js'
+import Semester from '../models/Semester.js'
 
 //Swagger Model
 /**
@@ -322,5 +323,152 @@ router.get('/listScheOfStu', async (req, res) => {
     }
 })
 
+
+//get lịch thi của 1 stu theo semester
+router.get('/scheduleOfStuBySemester', async (req, res) => {
+    // const userId = parseInt(req.locals.userData.id); //token
+    const userId = 6; //thg stu đầu tiên
+    const semId = parseInt(req.query.semesterId);
+    try {
+        const semester = await Semester.findOne({
+            where: {
+                id: semId
+            }
+        })
+        const student = await Student.findOne({
+            where: {
+                userId: userId
+            }
+        })
+        const stuEx = await StudentExam.findAll({
+            where: {
+                stuId: student.id
+            }
+        })
+        let schePerSemester = [];
+        for (const st of stuEx) {
+            const exRoom = await ExamRoom.findOne({
+                where: {
+                    id: st.dataValues.eRId
+                }
+            })
+            const subSlot = await SubInSlot.findOne({
+                where: {
+                    id: exRoom.sSId
+                }
+            })
+            const course = await Course.findOne({
+                where: {
+                    id: subSlot.courId
+                }
+            })
+            const subject = await Subject.findOne({
+                where: {
+                    id: course.subId
+                }
+            })
+            const exslot = await ExamSlot.findOne({
+                where: {
+                    id: subSlot.exSlId
+                }
+            })
+            const timeSlot = await TimeSlot.findOne({
+                where: {
+                    id: exslot.timeSlotId
+                }
+            })
+            const room = await Room.findOne({
+                where: {
+                    id: exRoom.roomId
+                }
+            })
+            if (exslot.day >= semester.start && exslot.day <= semester.end) {
+                const s = {
+                    subCode: subject.code,
+                    subName: subject.name,
+                    day: exslot.day,
+                    roomNum: room.roomNum,
+                    time: `${timeSlot.startTime.slice(0, 5)} - ${timeSlot.endTime.slice(0, 5)}`
+                }
+                schePerSemester.push(s);
+            }
+        }
+        res.json(DataResponse(schePerSemester));
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
+
+//get lịch thi của 1 thg
+router.get('/scheduleOfStu', async (req, res) => {
+    // const userId = parseInt(req.locals.userData.id); //token
+    const userId = 6; //thg stu đầu tiên
+    try {
+        const student = await Student.findOne({
+            where: {
+                userId: userId
+            }
+        })
+        const stuEx = await StudentExam.findAll({
+            where: {
+                stuId: student.id
+            }
+        })
+        let schePerSemester = [];
+        for (const st of stuEx) {
+            const exRoom = await ExamRoom.findOne({
+                where: {
+                    id: st.dataValues.eRId
+                }
+            })
+            const subSlot = await SubInSlot.findOne({
+                where: {
+                    id: exRoom.sSId
+                }
+            })
+            const course = await Course.findOne({
+                where: {
+                    id: subSlot.courId
+                }
+            })
+            const subject = await Subject.findOne({
+                where: {
+                    id: course.subId
+                }
+            })
+            const exslot = await ExamSlot.findOne({
+                where: {
+                    id: subSlot.exSlId
+                }
+            })
+            const timeSlot = await TimeSlot.findOne({
+                where: {
+                    id: exslot.timeSlotId
+                }
+            })
+            const room = await Room.findOne({
+                where: {
+                    id: exRoom.roomId
+                }
+            })
+
+            const s = {
+                subCode: subject.code,
+                subName: subject.name,
+                day: exslot.day,
+                roomNum: room.roomNum,
+                startTime: `${exslot.day} ${timeSlot.startTime}`,
+                endTime: `${exslot.day} ${timeSlot.endTime}`,
+                time: `${timeSlot.startTime}-${timeSlot.endTime}`
+            }
+            schePerSemester.push(s);
+        }
+        res.json(DataResponse(schePerSemester));
+    } catch (error) {
+        res.json(InternalErrResponse());
+        console.log(error);
+    }
+})
 export default router
 //add xong
