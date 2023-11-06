@@ -426,7 +426,8 @@ router.get('/scheduledByPhase', async (req, res) => {
     try {
         const exPhase = await ExamPhase.findOne({
             where: {
-                id: examphaseId
+                id: examphaseId,
+                alive: 1
             }
         })
         if (!exPhase) {
@@ -473,7 +474,8 @@ router.get('/getExaminerByPhase', async (req, res) => {
         let examinerLists = [];
         const exPhase = await ExamPhase.findOne({
             where: {
-                id: exPhaseId
+                id: exPhaseId,
+                alive: 1
             }
         })
         if (exPhase) {

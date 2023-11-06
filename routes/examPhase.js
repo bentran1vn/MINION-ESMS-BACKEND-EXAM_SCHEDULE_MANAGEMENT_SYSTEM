@@ -254,7 +254,8 @@ router.get('/semId', async (req, res) => {
     try {
         const phase = await ExamPhase.findAll({
             where:{
-                semId: semesterId
+                semId: semesterId,
+                alive: 1
             }
         })
         res.json(DataResponse(phase));
