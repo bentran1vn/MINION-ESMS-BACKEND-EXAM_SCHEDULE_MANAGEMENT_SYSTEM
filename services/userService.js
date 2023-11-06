@@ -1,5 +1,5 @@
 import { Op } from "sequelize"
-import User from "../models/User"
+import User from "../models/User.js"
 
 export async function getAllUser(pageNo, limit) {
     const users_Total = await User.findAll({

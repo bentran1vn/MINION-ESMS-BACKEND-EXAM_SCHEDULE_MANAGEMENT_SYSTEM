@@ -13,9 +13,12 @@ export async function examPhaseCron() {
         }
     })
     for (const item of examPhaseList) {
+        console.log(new Date(item.startDay));
         let day = modiDays(new Date(item.startDay), 3, 0)
+        console.log(day);
         let startDay = new Date(day).getDate()
         let startMonth = new Date(day).getMonth() + 1
+        console.log(startDay, startMonth);
         let jobPhase = new cron.schedule(
             `0 0 ${startDay} ${startMonth} *`,
             async () => {

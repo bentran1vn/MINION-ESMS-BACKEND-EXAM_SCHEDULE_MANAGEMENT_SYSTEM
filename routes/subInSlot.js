@@ -163,7 +163,7 @@ router.delete('/', async (req, res) => {
 //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
 //id của subinslotid
 
-router.post('/', requireRole(staff), async (req, res) => {
+router.post('/', requireRole('staff'), async (req, res) => {
     //, requireRole('staff')
     // courId, examSlotId, numStu
     const courseId = req.body.courId
