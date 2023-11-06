@@ -6,7 +6,7 @@ import Course from '../models/Course.js'
 import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
-import { handleFillStu } from './studentExamService.js'
+import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
 
 export async function assignCourse(courseId, ExamSlotId, numStu) {
@@ -44,12 +44,16 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
     let numRoom = 0
 
-    if(numOdd >= 10){
+    if (numOdd >= 10) {
         numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     } else {
         numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     }
-    
+    if (numStu < 10) {
+        await handleFillStuLittle(courseId, numStu)
+        return
+    }
+
 
     if (numRoom > roomRequire) throw new Error("Problem with assign Course! Number Of Student is invalid !")
 
@@ -111,10 +115,15 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
 
                     //add Student vào ExamRoom
                     if (numStu >= 15) {
-                        numStu -= 15
                         await handleFillStu(courseId, 15, examRoom.id)
+                        numStu -= 15
                     } else if (numStu >= 10) {
                         await handleFillStu(courseId, numStu, examRoom.id)
+                        numStu -= 10
+                    }
+                    if (numStu < 10) {
+                        await handleFillStuLittle(courseId, numStu)
+                        numStu = 0
                     }
 
                     //cập nhập status Course
@@ -130,7 +139,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
-    if(numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
+
 }
 
 async function changeCourseStatus(phaseId, courId) {

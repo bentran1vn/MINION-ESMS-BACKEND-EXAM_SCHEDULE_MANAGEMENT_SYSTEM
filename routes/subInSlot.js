@@ -160,19 +160,19 @@ router.delete('/', async (req, res) => {
         res.json(InternalErrResponse());
     }
 })//bảng subInSlot này chứa courseId
-  //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
-  //id của subinslotid
+//nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
+//id của subinslotid
 
 router.post('/', async (req, res) => {
     //, requireRole('staff')
     // courId, examSlotId, numStu
     const courseId = req.body.courId
     const examSlotId = req.body.examSlotId
-    const numStu = req.body.numStu
-    try{
+    const numStu = parseInt(req.body.numStu)
+    try {
         await assignCourse(courseId, examSlotId, numStu)
         res.json("Create Exam Room Successfully !")
-    } catch(error){
+    } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
