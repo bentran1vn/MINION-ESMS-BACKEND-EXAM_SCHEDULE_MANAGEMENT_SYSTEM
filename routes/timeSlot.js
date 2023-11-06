@@ -5,10 +5,10 @@ import TimeSlot from '../models/TimeSlot.js'
 import { Op } from 'sequelize'
 import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
+import { createTimeSlot, delTimeSlot, getAllTimeSlotOneSem, getTimeByDesOfPhase, updateTime } from '../services/timeSlotService.js'
 
 const router = express.Router()
 
-//Swagger Model
 /**
  * @swagger
  * components:
@@ -44,7 +44,7 @@ const router = express.Router()
  *           des: 0
  */
 
-//Swagger Tag
+
 /**
  * @swagger
  * tags:
@@ -52,7 +52,7 @@ const router = express.Router()
  *    description: The TimeSlots managing API
  */
 
-//Swagger Post
+
 /**
  * @swagger
  * /timeSlots/:
@@ -74,14 +74,14 @@ const router = express.Router()
  *                 type: TIME
  *                 example: 09:00:00
  *                 description: The end time of time slot Client want to create.
- *               season: 
- *                 type: string
- *                 example: FALL_2023
- *                 description: The season of time slot Client want to create.
+ *               semId: 
+ *                 type: integer
+ *                 example: 1, 2, 3, 4
+ *                 description: The semester id of time slot Client want to create.
  *           required:
  *             - startTime
  *             - endTime
- *             - season
+ *             - semId
  *     responses:
  *       '200':
  *         description: Create Time Slot Successfully !
@@ -89,7 +89,38 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Get
+/**
+ * @swagger
+ * /timeSlots/des:
+ *   get:
+ *     summary: Return all TimeSlots 1 semester by description of phase
+ *     tags: [TimeSlots]
+ *     parameters:
+ *       - in: query
+ *         name: examphaseId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The examphase ID Client want to get.         
+ *       - in: query
+ *         name: semesterId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The semester ID Client want to get.        
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/TimeSlots'
+ *       '500':
+ *         description: Internal Server Error !
+ */
+
 /**
  * @swagger
  * /timeSlots/semId:
@@ -116,45 +147,11 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Get
-/**
- * @swagger
- * /timeSlots/des:
- *   get:
- *     summary: Return all TimeSlots according to examphase's des, This appears when create examSlot
- *     tags: [TimeSlots]   
- *     parameters:
- *       - in: query
- *         name: examphaseId
- *         schema:
- *           type: integer
- *         required: true
- *         description: The time slot of 1 ExamPhase Client want to get.     
- *       - in: query
- *         name: semesterId
- *         schema:
- *           type: integer
- *         required: true
- *         description: The time slot of 1 Semester Client want to get.   
- *     responses:
- *       '200':
- *         description: OK !
- *         content: 
- *           application/json:
- *             schema:
- *               type: array
- *               items: 
- *                 $ref: '#/components/schemas/TimeSlots'
- *       '500':
- *         description: Internal Server Error !
- */
-
-//Swagger Delete
 /**
  * @swagger
  * /timeSlots/:
  *   delete:
- *     summary: Delete all TimeSlots, Delete a TimeSlot by id required Admin role
+ *     summary: Delete a TimeSlot by id required Admin role
  *     tags: [TimeSlots]
  *     requestBody:
  *       required: true
@@ -173,7 +170,7 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Put
+
 /**
  * @swagger
  * /timeSlots/:
@@ -201,6 +198,8 @@ const router = express.Router()
  *                 description: The end time of time slot Client want to update.  
  *           required:
  *              - id
+ *              - startTime
+ *              - endTime
  *     responses:
  *       '200':
  *         description: Update Success !   
@@ -210,38 +209,10 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
     const timeSlotDatas = req.body;
-
-    const { season, year } = req.body.season.split("_");
-
+    const semId = parseInt(req.body.semId);
     try {
-        let index = 0;
-        const semester = await Semester.findOne({
-            where: {
-                season: season,
-                year: year
-            }
-        })
-        if (!semester) {
-            res.json(MessageResponse("Semester doesn't exist"));
-            return;
-        }
-
-        timeSlotDatas.forEach(async (time) => {
-            const timeSlot = await TimeSlot.create({
-                startTime: time.startTime,
-                endTime: time.endTime,
-                semId: parseInt(semester.id),
-                des: parseInt(time.des),
-            })
-            if (timeSlot) {
-                index++;
-            }
-            if (index == timeSlotDatas.length) {
-                res.json(MessageResponse("Create Success !"))
-                return;
-            }
-        });
-
+        const result = await createTimeSlot(timeSlotDatas, semId);
+        res.json(MessageResponse(result));
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -252,111 +223,52 @@ router.get('/des', async (req, res) => {
     const examphaseId = parseInt(req.query.examphaseId);
     const semesterId = parseInt(req.query.semesterId);
     try {
-        const curSemester = await Semester.findOne({
-            where: {
-                id: semesterId
-            }
-        })
-        const curExamPhase = await ExamPhase.findOne({
-            where: {
-                id: examphaseId
-            }
-        })
-        if (!curSemester || !curExamPhase) {
-            res.json(MessageResponse("Not found semester or examphase"));
-            return;
-        }
-        const slot = await TimeSlot.findAll({
-            where: {
-                semId: semesterId,
-                des: parseInt(curExamPhase.des)
-            }
-        })
-        if (slot) {
-            res.json(DataResponse(slot));
-            return;
+        const result = await getTimeByDesOfPhase(examphaseId, semesterId)
+        if(Array.isArray(result)){
+            res.json(DataResponse(result));
+        }else{
+            res.json(MessageResponse(result))
         }
     } catch (error) {
         res.json(InternalErrResponse());
         return;
     }
-})//api trả timeslot theo des của exphase
-  //cái này hiện lúc mà staff tạo examSlot
+})
 
 router.get('/semId', async (req, res) => {   
+    const semId = parseInt(req.query.semId);
     try {
-        const semId = parseInt(req.query.semId);
-
-        const timeSlots = await TimeSlot.findAll({
-            where: {
-                semId: semId
-            }
-        });
-        if (!timeSlots) {
-            res.json(MessageResponse("The time slot table has no data of this semester!"));
-            return;
-        } else {
-            res.json(DataResponse(timeSlots))
-            return;
+        const result = await getAllTimeSlotOneSem(semId)
+        if(Array.isArray(result)){
+            res.json(DataResponse(result));
+        }else{
+            res.json(MessageResponse(result))
         }
-
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})//get All timeSlot nếu không nhập gì
-  //get 1 theo id nếu có
-  //trả ra 1 mảng mỗi phần tử gồm Stt / Id / STime / ETime  
+})
 
 //requireRole("admin")
 router.delete('/', async (req, res) => {   
     const id = parseInt(req.body.id);
     try {
-        if (id !== undefined && id !== null) {
-            const rowAffected = await TimeSlot.destroy({
-                where: {
-                    id: id
-                }
-            })
-            if (rowAffected === 0) {
-                res.json(NotFoundResponse());
-            } else {
-                res.json(MessageResponse('Delete Success !'));
-            }
-        } else {
-            const rowAffected = await TimeSlot.destroy({
-                where: {}
-            })
-            if (rowAffected === 0) {
-                res.json(NotFoundResponse());
-            } else {
-                res.json(MessageResponse('Delete Success !'));
-            }
-        }
+        const result = await delTimeSlot(id);
+        res.json(MessageResponse(result))
     } catch (error) {
         console.log(error)
         res.json(InternalErrResponse())
     }
-})//delete timeSlot
-  //nếu id có thì xóa 1 không thì xóa hết
-  //nhớ bắt cảnh báo xác nhận xóa hết nếu không nhập gì
+})
 
 router.put('/', async (req, res) => { 
     const id = parseInt(req.body.id)
     const timeSlotData = req.body;
 
     try {
-        const rowAffected = await TimeSlot.update(timeSlotData, {
-            where: {
-                id: id,
-            }
-        })
-        if (rowAffected[0] === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('Update Success !'))
-        }
-
+        const result = await updateTime(id, timeSlotData);
+        res.json(MessageResponse(result))
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse())

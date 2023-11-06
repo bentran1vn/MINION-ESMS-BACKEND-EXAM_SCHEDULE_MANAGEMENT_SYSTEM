@@ -6,7 +6,7 @@ import TimeSlot from '../models/TimeSlot.js'
 import ExamSlot from '../models/ExamSlot.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import { createNewExamSlot, findAllExamSlotByPhase } from '../services/examSlotService.js'
+import { createNewExamSlot, deleteExamSlot, findAllExamSlotByPhase, getAllByPhase } from '../services/examSlotService.js'
 
 
 const router = express.Router()
@@ -76,7 +76,7 @@ const router = express.Router()
  *             - day
  *     responses:
  *       '200':
- *         description: Create Success !
+ *         description: Create Exam Slot Successfully !
  *       '500':
  *         description: Internal Server Error !
  */
@@ -95,6 +95,7 @@ const router = express.Router()
  *             type: object
  *             properties:
  *               id:
+ *                 description: exam slot ID client want to delete
  *                 type: integer
  *                 example: 1, 2, 3             
  *           required:
@@ -129,9 +130,15 @@ const router = express.Router()
  *          description: The time exam phase of list exam slot you want to get.           
  *     responses:
  *       '200':
- *         description: Get all exam slot successfully!
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/ExamSlots'
  *       '500':
- *         description: Can not get all exam slot!
+ *         description: Internal server error
  */
 
 /**
@@ -155,9 +162,9 @@ const router = express.Router()
  *             schema:
  *               type: array
  *               items: 
- *                 $ref: '#/components/schemas/ExamPhases'
+ *                 $ref: '#/components/schemas/ExamSlots'
  *       500 :
- *         description: Can not get exam slot!
+ *         description: Internal server error
  */
 
 router.post('/', async (req, res) => {
@@ -178,16 +185,8 @@ router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
 
     try {
-        const result = await ExamSlot.destroy({
-            where: {
-                id: id,
-            }
-        })
-        if (result === 0) {
-            res.json(NotFoundResponse('Not found'))
-        } else {
-            res.json(MessageResponse('Delete Success !'))
-        }
+        const result = await deleteExamSlot(id);
+        res.json(MessageResponse(result))
     } catch (error) {
         console.log(error)
         res.json(InternalErrResponse())
@@ -198,20 +197,9 @@ router.get('/', async (req, res) => {
     try {
         const semId = parseInt(req.query.semID)
         const ePId = parseInt(req.query.ePId)
+        const result = await getAllByPhase(semId, ePId)
 
-        const examPhase = await ExamPhase.findOne({
-            where: {
-                id: ePId,
-                semId: semId
-            }
-        })
-
-        const exSlotFull = await ExamSlot.findAll({
-            where: {
-                ePId: examPhase.id
-            }
-        })
-        res.json(DataResponse(exSlotFull))
+        res.json(DataResponse(result))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse())

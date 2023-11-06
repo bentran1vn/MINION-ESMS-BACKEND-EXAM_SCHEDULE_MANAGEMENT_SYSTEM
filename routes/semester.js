@@ -3,12 +3,10 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import { createNewSemesterS, deleteSemesterById, findAllSemester, validateYearAndSeason } from '../services/semesterServices.js'
+import { autoCreateTimeSlotWhenCreateSemester, createNewSemesterS, deleteSemesterById, findAllSemester, getSemesterAndStatus, validateYearAndSeason } from '../services/semesterServices.js'
 import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
-
-//Swagger Model
 /**
  * @swagger
  * components:
@@ -30,25 +28,25 @@ const router = express.Router()
  *          year:
  *              type: integer
  *              description: The year of the semester
- *          startDay:
+ *          start:
  *              type: Date
  *              description: The start day of the semester
- *          endDay:
+ *          end:
  *              type: Date
  *              description: The end day of the semester
  *          status:
  *              type: integer
- *              description: The visible status
+ *              description: The visible status, 1 is visible
  *       example:
  *           id: 1
  *           season: FALL
  *           year: 2023
- *           startDay: 2023-04-13
- *           endDay: 2023-08-13
+ *           start: 2023-04-13
+ *           end: 2023-08-13
  *           status: 1   
  */
 
-//Swagger Tag
+
 /**
  * @swagger
  * tags:
@@ -56,7 +54,6 @@ const router = express.Router()
  *    description: The Semesters managing API
  */
 
-//Swagger Post
 /**
  * @swagger
  * /semesters:
@@ -70,13 +67,13 @@ const router = express.Router()
  *             type: object
  *             properties:
  *               season:
- *                 type: String
- *                 example: SPRING2023, SUMMER2023, FALL2023.
+ *                 type: STRING
+ *                 example: SPRING_2023, SUMMER_2023, FALL_2023.
  *               start:
- *                 type: String
+ *                 type: DATEONLY
  *                 example: 2023-04-13.
  *               end:
- *                 type: String
+ *                 type: DATEONLY
  *                 example: 2023-08-13.
  *           required:
  *             - season
@@ -89,7 +86,7 @@ const router = express.Router()
  *         description: Can not create new semester !
  */
 
-//Swagger Get
+
 /**
  * @swagger
  * /semesters:
@@ -125,12 +122,18 @@ const router = express.Router()
  *         description: The limit of list in paging Client want to get.           
  *     responses:
  *       '200':
- *         description: List all semester successfully !
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Semesters'
  *       '500':
- *         description: Can not list all semester !
+ *         description: Internal server error
  */
 
-//Swagger Get
+
 /**
  * @swagger
  * /semesters/season:
@@ -139,12 +142,49 @@ const router = express.Router()
  *     tags: [Semesters]        
  *     responses:
  *       '200':
- *         description: List all semester successfully !
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Semesters'
  *       '500':
- *         description: Can not list all semester !
+ *         description: Internal server error
  */
 
-//Swagger Delete
+/**
+ * @swagger
+ * /semesters/whenCreateSemester:
+ *   post:
+ *     summary: Create a new Semester with information and create time slot.
+ *     tags: [Semesters]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               season:
+ *                 type: STRING
+ *                 example: SPRING_2023, SUMMER_2023, FALL_2023.
+ *               start:
+ *                 type: DATEONLY
+ *                 example: 2023-04-13.
+ *               end:
+ *                 type: DATEONLY
+ *                 example: 2023-08-13.
+ *           required:
+ *             - season
+ *             - start
+ *             - end
+ *     responses:
+ *       '200':
+ *         description: Create new semester successfully !
+ *       '500':
+ *         description: Can not create new semester !
+ */
+
 /**
  * @swagger
  * /semesters/:id :
@@ -171,44 +211,9 @@ router.post('/', async (req, res) => {
     const start = req.body.start;
     const end = req.body.end;
 
-    // console.log(season, year);
-    // if (!validateYearAndSeason(year, season)) {
-    //     res.json(MessageResponse("The year and season must be equal to the current time"));
-    //     return;
-    // }//cái này là business rule
-
-    // Cái này để validation data giữa hay ngày start và end day
-    // const startDate = new Date(start);
-    // const endDate = new Date(end);
-    // const absoluteDifference = Math.abs(endDate.getDate() - startDate.getDate());
-
-    // // Tính số lượng tháng giữa ngày bắt đầu và ngày kết thúc
-    // const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth() + absoluteDifference / 30.44);
-
-    // if ((startDate >= endDate) || (monthsDiff < 3)) { //không được nhập start nhỏ hơn end, và end > start ít nhất 3 tháng, end - start >= 3
-    //     res.json(ErrorResponse(400, "Start day must be earlier than end day atleast 3 month"));
-    //     return;
-    // }
-
     try {
-        const existingSemesters = await Semester.findOne({
-            where: {
-                [Op.and]: {
-                    year: year,
-                    season: season
-                }
-            }
-        });
-        if (existingSemesters) {
-            res.json(MessageResponse("Collision to others semester"));
-            return;
-        } else {
-            const semester = await createNewSemesterS(season, year, start, end)
-            if (semester != null) {
-                res.json(MessageResponse("Create new semester successfully!"))
-            }
-        }
-
+        const semester = await createNewSemesterS(season, year, start, end)
+        res.json(MessageResponse(semester))
     } catch (err) {
         res.json(ErrorResponse(500, Error.message));
     }
@@ -235,36 +240,14 @@ router.get('/', async (req, res) => {
 
 router.get('/season', async (req, res) => {
     try {
-        let final = [];
-        const semester = await Semester.findAll();
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
-        semester.forEach(async (item) => {
-            if (timeFormatted >= item.dataValues.start && timeFormatted <= item.dataValues.end) {
-                const c = {
-                    start: item.dataValues.start,
-                    end: item.dataValues.end,
-                    season: `${item.dataValues.season.toUpperCase()}_${item.dataValues.year}`,
-                    cur: 1,//ongoing
-                }
-                final.push(c);
-            } else {
-                const c = {
-                    start: item.dataValues.start,
-                    end: item.dataValues.end,
-                    season: `${item.dataValues.season.toUpperCase()}_${item.dataValues.year}`,
-                    cur: 0,//close
-                }
-                final.push(c);
-            }
-        });
-        res.json(DataResponse(final));
-        return;
+        const final = await getSemesterAndStatus();
+        res.json(DataResponse(final))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
     }
 })// Trả về all semester 
+
 
 //create timeslot when create semester
 router.post('/whenCreateSemester', async (req, res) => {
@@ -274,74 +257,13 @@ router.post('/whenCreateSemester', async (req, res) => {
     const end = req.body.end;
 
     try {
-        const newSemester = await Semester.create({
-            season: season,
-            year: year,
-            start: start,
-            end: end
-        })
-        const semester = await Semester.findOne({
-            where: {
-                season: season,
-                year: year,
-                start: start,
-                end: end
-            }
-        })
-        let oldsemId = parseInt(semester.id) - 1;
-        let standardTimeSlot = [
-            {startTime: "07:30:00", endTime: "09:00:00", semId: `${semester.id}`, des: 0},
-            {startTime: "09:15:00", endTime: "10:45:00", semId: `${semester.id}`, des: 0},
-            {startTime: "11:00:00", endTime: "12:30:00", semId: `${semester.id}`, des: 0},
-            {startTime: "12:45:00", endTime: "14:15:00", semId: `${semester.id}`, des: 0},
-            {startTime: "14:30:00", endTime: "16:00:00", semId: `${semester.id}`, des: 0},
-            {startTime: "16:15:00", endTime: "17:45:00", semId: `${semester.id}`, des: 0},
-            {startTime: "07:30:00", endTime: "10:00:00", semId: `${semester.id}`, des: 1},
-            {startTime: "10:15:00", endTime: "12:45:00", semId: `${semester.id}`, des: 1},
-            {startTime: "13:30:00", endTime: "15:30:00", semId: `${semester.id}`, des: 1},
-            {startTime: "15:45:00", endTime: "18:15:00", semId: `${semester.id}`, des: 1}
-        ]
-        let check = 0;
-        if(oldsemId == 0){
-            for(const item of standardTimeSlot){
-                const time = await TimeSlot.create({
-                    startTime: item.startTime,
-                    endTime: item.endTime,
-                    semId: item.semId,
-                    des: item.des
-                })
-                if(time){
-                    check++;
-                }
-            }
-        }
-        if(check!=0){
-            res.json(MessageResponse("Add time slot success"));
-            return;
-        }
-        const oldtimeslot = await TimeSlot.findAll({
-            where: {
-                semId: oldsemId
-            }
-        })
-        for (const time of oldtimeslot) {
-            const newtimeslot = await TimeSlot.create({
-                startTime: time.dataValues.startTime,
-                endTime: time.dataValues.endTime,
-                semId: parseInt(semester.id),
-                des: time.dataValues.des
-            })
-        }
-        res.json(MessageResponse("Add new timeslot success"));
-        reutrn;
-
+        const result = await autoCreateTimeSlotWhenCreateSemester(year, season, start, end)
+        res.json(MessageResponse(result))
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
     }
 })
-
-
 
 router.delete('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)

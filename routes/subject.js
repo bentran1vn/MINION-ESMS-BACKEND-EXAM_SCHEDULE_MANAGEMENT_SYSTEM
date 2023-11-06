@@ -3,11 +3,11 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import { requireRole } from '../middlewares/auth.js'
-import { MEDIUMINT } from 'sequelize'
+import { createSubject, deleteSubject, getAvailableSubject, updateSubject } from '../services/subjectService.js'
+
 
 const router = express.Router()
 
-//Swagger Model
 /**
  * @swagger
  * components:
@@ -17,7 +17,6 @@ const router = express.Router()
  *       required:
  *          - code
  *          - name
- *          - status
  *       properties:
  *          id:
  *              type: integer
@@ -38,7 +37,7 @@ const router = express.Router()
  *           status: 1
  */
 
-//Swagger Tag
+
 /**
  * @swagger
  * tags:
@@ -46,7 +45,7 @@ const router = express.Router()
  *    description: The Subjects managing API
  */
 
-//Swagger Post
+
 /**
  * @swagger
  * /subjects/:
@@ -78,7 +77,6 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Delete
 /**
  * @swagger
  * /subjects/:
@@ -105,7 +103,6 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Put
 /**
  * @swagger
  * /subjects/:
@@ -142,7 +139,6 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Get
 /**
  * @swagger
  * /subjects/:
@@ -162,7 +158,6 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-//Swagger Get
 /**
  * @swagger
  * /subjects/all/:
@@ -186,32 +181,8 @@ router.post('/', async (req, res) => {
     const body = req.body;
 
     try {
-        const subject = await Subject.findOne({
-            where: {
-                code: body.code,
-                status: 1
-            }
-        })
-        if (subject) {
-            await Subject.update(
-                {
-                    code: body.code,
-                    name: body.name,
-                }, {
-                where: {
-                    id: subject.id
-                }
-            })
-        } else {
-            await Subject.create({
-                code: body.code,
-                name: body.name
-            })
-        }
-
-        // console.log(subject);
-        res.json(MessageResponse("Create Success !"))
-
+        const result = await createSubject(body)
+        res.json(result)
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -222,30 +193,8 @@ router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id);
 
     try {
-        const row = await Subject.update({ status: 0 }, {
-            where: {
-                id: id,
-                status: 1
-            }
-        })
-        if (row != 0) {
-            const course = await Course.update({ status: 0 }, {
-                where: {
-                    subId: id
-                }
-            })
-            if (course != 0) {
-                res.json(MessageResponse("Delete Success, Course updated !"));
-                return;
-            } else {
-                res.json(MessageResponse("Not Found Subject Id !"));
-                return;
-            }
-
-        } else {
-            res.json(MessageResponse("Not Found !"));
-            return;
-        }
+        const result = await deleteSubject(id);
+        res.json(MessageResponse(result))
     } catch (error) {
         console.log(error);
         res.json(InternalErrResponse());
@@ -256,19 +205,8 @@ router.put('/', async (req, res) => {
     const id = parseInt(req.body.id);
     const data = req.body;
     try {
-        const row = await Subject.update(data, {
-            where: {
-                id: id,
-                status: 1
-            }
-        })
-        if (row[0] == 0) {
-            res.json(MessageResponse("Not Found !"));
-            return;
-        } else {
-            res.json(MessageResponse("Update Success !"));
-            return;
-        }
+        const result = await updateSubject(id, data)
+        res.json(MessageResponse(result))
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
@@ -277,16 +215,11 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const subjects = await Subject.findAll({
-            where: {
-                status: 1
-            }
-        });
-        if (subjects.length == 0) {
-            res.json(MessageResponse("Not Found!"));
-        } else {
-            res.json(DataResponse(subjects));
-            return;
+        const result = await getAvailableSubject();
+        if(Array.isArray(result)){
+            res.json(DataResponse(result))
+        }else{
+            res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
