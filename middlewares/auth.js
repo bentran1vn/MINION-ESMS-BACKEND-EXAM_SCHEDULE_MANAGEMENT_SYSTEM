@@ -3,9 +3,10 @@ import { UnauthorizedResponse } from "../common/reponses.js";
 
 
 const roles = {
-    lecturer: 0,
-    staff: 1,
-    admin: 2
+    student: 0,
+    lecturer: 1,
+    staff: 2,
+    admin: 3
 }
 
 function roleLevel(role){
@@ -14,12 +15,12 @@ function roleLevel(role){
 
 export function requireRole(role){
     const middleware = (req, res, next) => {
-        const token = req.cookies.token || req.headers['authorization']
+        const token = req.query.token || req.cookies.token || req.headers['authorization'] 
+        
         try{
             const data = jwt.verify(token, process.env.SECRET)
             res.locals.userData = data
             if(roleLevel(data.role) >= roleLevel(role)){
-                console.log(data.role);
                 next()
             } else {
                 throw Error('Unauthorized')
