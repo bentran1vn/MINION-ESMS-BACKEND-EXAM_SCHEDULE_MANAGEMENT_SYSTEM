@@ -1,6 +1,5 @@
 import ExamPhase from '../models/ExamPhase.js'
 import Course from '../models/Course.js'
-import Semester from '../models/Semester.js'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
@@ -123,29 +122,31 @@ export async function createPhase(examPhase) {
     const startDay = examPhase.startDay;
     const endDay = examPhase.endDay;
     const des = parseInt(examPhase.des)
-    const currentYear = new Date().getFullYear();
-
-    const semester = await Semester.findOne({
-        where: {
-            [Op.and]: {
-                year: currentYear,
-                status: 1
-            }
-        }
-    })
+    const semId = parseInt(examPhase.semId)
+ 
     checkTime(startDay, endDay)
-    if (!semester) {
-        throw new Error('Create ExamPhase Fail! Semester is not exist!')
-    } else {
-        let result = await ExamPhase.create({
-            semId: semester.id,
-            ePName: ePName,
-            startDay: startDay,
-            endDay: endDay,
-            des: des
-        })
-        if(!result){
-            throw new Error('Create ExamPhase Fail!')
-        }
+
+    let result = await ExamPhase.create({
+        semId: semId,
+        ePName: ePName,
+        startDay: startDay,
+        endDay: endDay,
+        des: des
+    })
+    if(!result){
+        throw new Error('Create ExamPhase Fail!')
     }
 }
+
+export async function getExamPhaseBySemesterId(semesterId) {
+    const examPhases = await ExamPhase.findAll({
+        where: {
+            semId: semesterId,
+            alive: 1
+        }
+    })
+    if (!examPhases || examPhases.length === 0) {
+        throw new Error('Not found!')
+    }
+    return examPhases
+}   
