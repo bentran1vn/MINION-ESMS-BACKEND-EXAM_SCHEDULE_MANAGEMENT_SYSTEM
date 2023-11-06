@@ -585,16 +585,11 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
     }
 }
 
-export async function lecUnRegister(lecturerId, startTime, endTime, day) {
+export async function lecUnRegister(lecturerId, startTime, endTime, day, incomingPhase) {
     let message = "";
     const examPhase = await ExamPhase.findOne({
         where: {
-            startDay: {
-                [Op.lte]: day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-            },
-            endDay: {
-                [Op.gte]: day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-            },
+            id: incomingPhase
         }
     })
     if (examPhase.status == 0) {
@@ -749,17 +744,18 @@ export async function addExaminerForStaff(staffId, id, examinerId) {
         } else {
             const staffLog = await StaffLogChange.create({
                 rowId: parseInt(id),
-                staffId: staffId,
+                userId: staffId,
                 tableName: 0,
                 typeChange: 0
             })
-
+            
             const addToLecLogTime = await ExaminerLogTime.create({
                 examinerId: parseInt(examiner.id),
                 timeSlotId: timeSlot.id,
                 day: exSl.day,
                 semId: parseInt(semester.id)
             })
+            
             if (addToLecLogTime) {
                 // res.json(MessageResponse("Add Success to exam room and update examiner log time !"));
                 return message = "Add Success to exam room and update examiner log time !";
@@ -811,8 +807,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
 
     const examphase = await ExamPhase.findOne({
         where: {
-            startDay: { [Op.lte]: exSl.day },
-            endDay: { [Op.gte]: exSl.day }
+            id: esSl.ePId
         }
     })
     if (examphase.status == 0) {
@@ -849,7 +844,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
             } else {
                 const staffLog = await StaffLogChange.create({
                     rowId: id,
-                    staffId: staffId,
+                    userId: staffId,
                     tableName: 0,
                     typeChange: 1
                 })
@@ -918,8 +913,7 @@ export async function delRoomByStaff(staffId, id) {
 
     const examphase = await ExamPhase.findOne({
         where: {
-            startDay: { [Op.lte]: exSl.day },
-            endDay: { [Op.gte]: exSl.day }
+            id: ePId
         }
     })
     if (examphase.status == 0) {
@@ -944,7 +938,7 @@ export async function delRoomByStaff(staffId, id) {
         if (examRoom[0] != 0) {
             const staffLog = await StaffLogChange.create({
                 rowId: id,
-                staffId: staffId,
+                userId: staffId,
                 tableName: 0,
                 typeChange: 1
             })

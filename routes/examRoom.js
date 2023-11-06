@@ -620,10 +620,11 @@ router.put('/delLecturer', async (req, res) => {
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
+    const incomingPhase = parseInt(req.body.exPhaseId);
 
     // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
-        const result = await lecUnRegister(lecturerId, startTime, endTime, day);
+        const result = await lecUnRegister(lecturerId, startTime, endTime, day, incomingPhase);
         res.json(MessageResponse(result));
         return;
     } catch (error) {
@@ -647,7 +648,7 @@ router.put('/addExaminer', async (req, res) => {
         return;
     } catch (error) {
         console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        res.json(InternalErrResponse())
     }
 })
 
