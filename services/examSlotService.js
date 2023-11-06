@@ -35,6 +35,9 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
     if(!examPhase) throw new Error("Not found exam phase !");
     if(validDay(examPhase.startDay, examPhase.endDay, day)){
         if (!slot) {
+            if(day < examPhase.startDay || day > examPhase.endDay){
+                throw new Error("Exam slot can't out of exam phase")
+            }
             const examSlot = await ExamSlot.create({
                 ePId: phaseId,
                 timeSlotId: timeSlotId,
