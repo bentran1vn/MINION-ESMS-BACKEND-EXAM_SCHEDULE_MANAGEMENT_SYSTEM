@@ -14,11 +14,12 @@ function roleLevel(role){
 
 export function requireRole(role){
     const middleware = (req, res, next) => {
-        const token = req.cookies.token
+        const token = req.cookies.token || req.headers['authorization']
         try{
             const data = jwt.verify(token, process.env.SECRET)
             res.locals.userData = data
             if(roleLevel(data.role) >= roleLevel(role)){
+                console.log(data.role);
                 next()
             } else {
                 throw Error('Unauthorized')
