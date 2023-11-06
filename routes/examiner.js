@@ -317,12 +317,13 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
-router.post('/volunteerExaminer', async (req, res) => {
+router.post('/volunteerExaminer', requireRole('staff'), async (req, res) => {
     const exName = req.body.name
     const exEmail = req.body.email
     const semesterId = parseInt(req.body.semesterId)
     const status = 0
     const typeExaminer = 2
+    const staffId = parseInt(res.locals.userData.id);
     try {
         const examiner = await Examiner.create({
             exName: exName,
@@ -332,6 +333,12 @@ router.post('/volunteerExaminer', async (req, res) => {
             typeExaminer: typeExaminer
         })
         if (examiner) {
+            const stafflog = await StaffLogChange.create({
+                userId: staffId,
+                rowId: examiner.id,
+                tableName: 5,
+                typeChange: 8
+            })
             res.json(MessageResponse("Add volunteer success!"));
         }
     } catch (error) {
@@ -340,7 +347,7 @@ router.post('/volunteerExaminer', async (req, res) => {
     }
 })//tạo examiner role ctv
 
-router.get('/volunteerExaminer', async (req, res) => {
+router.get('/volunteerExaminer', requireRole('staff'), async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
         const examiner = await Examiner.findAll({
@@ -356,8 +363,8 @@ router.get('/volunteerExaminer', async (req, res) => {
     }
 })//get ra examiner role ctv theo semester
 
-router.get('/allScheduled', async (req, res) => {
-    const id = parseInt(req.query.userId);//cái này sau bắt bằng token
+router.get('/allScheduled', requireRole('lecturer'), async (req, res) => {
+    const id = parseInt(res.locals.userData.id);//cái này sau bắt bằng token
     const examiner = await Examiner.findAll({
         where: {
             userId: id,
@@ -381,9 +388,9 @@ router.get('/allScheduled', async (req, res) => {
     }
 })//lấy tất cả lịch đã đăng kí của 1 examiner 
 
-router.get('/examPhaseId', async (req, res) => {
+router.get('/examPhaseId', requireRole('lecturer'), async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
-        const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
+        const userId = parseInt(res.locals.userData.id) //cái này sẽ đổi thành lấy từ token sau
         const examPhaseId = parseInt(req.query.examPhaseId)
 
         const result = await getScheduleByPhase(userId, examPhaseId);
@@ -420,8 +427,8 @@ router.delete('/', async (req, res) => {
     }
 })//xóa examiner
 
-router.get('/scheduledByPhase', async (req, res) => {
-    const id = parseInt(req.query.userId);
+router.get('/scheduledByPhase', requireRole('lecturer'), async (req, res) => {
+    const id = parseInt(res.locals.userData.id);
     const examphaseId = parseInt(req.query.examphaseId);
     try {
         const exPhase = await ExamPhase.findOne({
@@ -462,7 +469,7 @@ router.get('/scheduledByPhase', async (req, res) => {
     }
 })//lấy lịch đã đăng kí của 1 examiner theo phase
 
-router.get('/getExaminerByPhase', async (req, res) => {
+router.get('/getExaminerByPhase', requireRole('admin'), async (req, res) => {
     const exPhaseId = parseInt(req.query.exPhaseId);
     try {
         const statusMap = new Map([
@@ -525,8 +532,8 @@ router.get('/getExaminerByPhase', async (req, res) => {
             }
         }
     } catch (err) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
     //trả ra email name, role, status
 })//lấy danh sách examiner by phase của màn hình admin
