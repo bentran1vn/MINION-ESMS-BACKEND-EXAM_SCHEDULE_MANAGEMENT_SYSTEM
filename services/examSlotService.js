@@ -27,7 +27,8 @@ export async function createNewExamSlot(phaseId, timeSlotId, day) {
     })
     const examPhase = await ExamPhase.findOne({
         where: {
-            id: phaseId
+            id: phaseId,
+            alive: 1
         }
     })
     if(validDay(examPhase.startDay, examPhase.endDay, day)){
@@ -64,7 +65,8 @@ export async function getAllByPhase(semId, ePId){
     const examPhase = await ExamPhase.findOne({
         where: {
             id: ePId,
-            semId: semId
+            semId: semId,
+            alive: 1
         }
     })
     if(!examPhase) throw new Error("Not found exam phase")

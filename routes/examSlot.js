@@ -171,7 +171,6 @@ router.post('/', async (req, res) => {
     const ePId = parseInt(req.body.ePId);
     const timeSlotId = parseInt(req.body.timeSlotId);
     const day = req.body.day;
-
     try {
         await createNewExamSlot(ePId, timeSlotId, day)
         res.json(MessageResponse("Create Exam Slot Successfully !"))
@@ -183,7 +182,6 @@ router.post('/', async (req, res) => {
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
-
     try {
         const result = await deleteExamSlot(id);
         res.json(MessageResponse(result))
@@ -194,11 +192,10 @@ router.delete('/', async (req, res) => {
 })
 
 router.get('/', async (req, res) => {
+    const semId = parseInt(req.query.semID)
+    const ePId = parseInt(req.query.ePId)
     try {
-        const semId = parseInt(req.query.semID)
-        const ePId = parseInt(req.query.ePId)
         const result = await getAllByPhase(semId, ePId)
-
         res.json(DataResponse(result))
     } catch (error) {
         console.log(error);

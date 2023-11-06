@@ -86,7 +86,8 @@ export async function getAllRoom() {
     const examPhase = await ExamPhase.findOne({
         where: {
             startDay: { [Op.lte]: currentDay },
-            endDay: { [Op.gt]: currentDay }
+            endDay: { [Op.gt]: currentDay },
+            alive: 1
         }
     })
     const roomArr = []

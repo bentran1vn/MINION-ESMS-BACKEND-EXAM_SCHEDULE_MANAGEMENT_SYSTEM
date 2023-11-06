@@ -1,5 +1,5 @@
-import express, { response } from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import express from 'express'
+import { DataResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Examiner from '../models/Examiner.js'
 import SubInSlot from '../models/SubInSlot.js'
@@ -17,7 +17,7 @@ import User from '../models/User.js'
 const router = express.Router()
 
 //------------------------------------dash của admin
-router.get('/examinerDashBoard', async (req, res) => {
+router.get('/examinerDashBoard', requireRole('admin'), async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
     try {
         const statusMap = new Map([
@@ -84,7 +84,7 @@ router.get('/examinerDashBoard', async (req, res) => {
     //trả ra email name, role, status
 })// Tổng số examiner tham gia trong phase
 
-router.get('/totalSlotDashBoard', async (req, res) => {
+router.get('/totalSlotDashBoard', requireRole('admin'), async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
     try {
         const phase = await ExamPhase.findOne({
@@ -134,7 +134,7 @@ router.get('/totalSlotDashBoard', async (req, res) => {
     }
 })// Tổng số slot trong phase
 
-router.get('/totalStaffDashBoard', async (req, res) => {
+router.get('/totalStaffDashBoard', requireRole('admin'), async (req, res) => {
     try {
         const user = await User.findAll({
             where: {
@@ -148,7 +148,7 @@ router.get('/totalStaffDashBoard', async (req, res) => {
     }
 })// Tổng số Staff
 
-router.get('/topThreeExaminerDashBoard', async (req, res) => {
+router.get('/topThreeExaminerDashBoard', requireRole('admin'), async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
     try {
         const phase = await ExamPhase.findOne({
@@ -248,7 +248,7 @@ router.get('/topThreeExaminerDashBoard', async (req, res) => {
     }
 })// Top 3 examiner canh thi
 
-router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
+router.get('/courseAndNumOfStuDashBoard', requireRole('admin'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     let listCourse = [];
     try {
@@ -303,7 +303,7 @@ router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
     }
 })// Course và số lượng hs mỗi course
 
-router.get('/numOfCourseNotScheduled', async (req, res) => {
+router.get('/numOfCourseNotScheduled', requireRole('admin'), async (req, res) => {
     try {
         const ePId = req.query.ePId
         const numOfCourse = await getNotSheduleOfCourse(ePId)
@@ -323,7 +323,7 @@ router.get('/numOfCourseNotScheduled', async (req, res) => {
     }
 })// Số lượng course chưa dc xếp lịch xong
 
-router.get('/numOfDayRegister', async (req, res) => {
+router.get('/numOfDayRegister', requireRole('admin'), async (req, res) => {
     try {
         const numRegister = []
         function insertnumRegister(day, num) {
@@ -383,7 +383,7 @@ router.get('/numOfDayRegister', async (req, res) => {
 
 
 //------------------------------------dash của lecturer
-router.get('/totalRegistionOfLec', async (req, res) => {
+router.get('/totalRegistionOfLec', requireRole('lecturer'), async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
     try {
@@ -408,7 +408,7 @@ router.get('/totalRegistionOfLec', async (req, res) => {
     }
 })// Tất cả slot đã đk của lec
 
-router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
+router.get('/totalRegistionOfLecOnePhase', requireRole('lecturer'), async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
     const phaseId = parseInt(req.query.phaseId);
@@ -461,7 +461,7 @@ router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
 })// Tất cả slot đk 1 phase
 
 
-router.get('/futureSlotOfLecOnePhase', async (req, res) => {
+router.get('/futureSlotOfLecOnePhase',requireRole('lecturer'), async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
     const phaseId = parseInt(req.query.phaseId);
@@ -518,7 +518,7 @@ router.get('/futureSlotOfLecOnePhase', async (req, res) => {
     }
 })// Số slot chưa đi coi của 1 phase 
 
-router.get('/totalRegistionEachPhase', async (req, res) => {
+router.get('/totalRegistionEachPhase', requireRole('lecturer'), async (req, res) => {
     const userId = 256;
     const semesterId = parseInt(req.query.semesterId)
     try {
@@ -580,7 +580,7 @@ router.get('/totalRegistionEachPhase', async (req, res) => {
 
 
 //------------------------------------dash của staff
-router.get('/totalExamSLotByPhase', async (req, res) => {
+router.get('/totalExamSLotByPhase', requireRole('staff'), async (req, res) => {
     try {
         const ePId = parseInt(req.query.ePId)
         const examPhase = await ExamPhase.findOne({
@@ -605,7 +605,7 @@ router.get('/totalExamSLotByPhase', async (req, res) => {
     }
 })// Tổng số examSlot theo phaseId
 
-router.get('/totalExaminerByPhase', async (req, res) => {
+router.get('/totalExaminerByPhase', requireRole('staff'), async (req, res) => {
     try {
         const ePId = parseInt(req.query.ePId)
         const examPhase = await ExamPhase.findOne({
@@ -637,7 +637,7 @@ router.get('/totalExaminerByPhase', async (req, res) => {
     }
 })// Tổng số Examiner theo phaseId
 
-router.get('/totalCourseByPhase', async (req, res) => {
+router.get('/totalCourseByPhase', requireRole('staff'), async (req, res) => {
     try {
         const ePId = parseInt(req.query.ePId)
         const course = await Course.findAll({
@@ -656,7 +656,7 @@ router.get('/totalCourseByPhase', async (req, res) => {
 // Top 3 examiner canh thi - giống admin
 // Course và số lượng hs mỗi course - giống admin
 
-router.get('/totalExamroomByPhase', async (req, res) => {
+router.get('/totalExamroomByPhase', requireRole('staff'), async (req, res) => {
     try {
         const ePId = parseInt(req.query.ePId)
         let arr = []

@@ -29,7 +29,8 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
 
     const examPhase = await ExamPhase.findOne({
         where: {
-            id: examSlot.ePId
+            id: examSlot.ePId,
+            alive: 1
         }
     })
     if (!examPhase) throw new Error("Problem with assign Course! In Examphase!")
