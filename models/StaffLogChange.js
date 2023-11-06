@@ -51,7 +51,8 @@ const StaffLogChange = sequelize.define(tableName, {
         // 16 tạo mới 1 subInSlot
         // 17 tạo mới 1 User
         // 18 xóa 1 User
-        
+        // 19 tạo mới 1 ExamSlot
+
     },
     ...SQLModel
 });

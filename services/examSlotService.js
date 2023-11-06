@@ -17,7 +17,7 @@ export async function findAllExamSlotByPhase(id) {
     return slotList
 }
 
-export async function createNewExamSlot(phaseId, timeSlotId, day) {
+export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
     const slot = await ExamSlot.findOne({
         where: {
             ePId: phaseId,
@@ -39,6 +39,13 @@ export async function createNewExamSlot(phaseId, timeSlotId, day) {
                 day: day
             })
             if (!examSlot) throw new Error("Can not create exam slot !")
+            const checkLogStaff = await StaffLogChange.create({
+                rowId: examRoom.dataValues.id,
+                tableName: 3,
+                userId: staff.id,
+                typeChange: 19,
+            })
+            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
         } else {
             throw new Error("Already Exist Exam Slot !")
         }
