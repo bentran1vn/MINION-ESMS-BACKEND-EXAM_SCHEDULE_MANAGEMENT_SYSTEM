@@ -156,8 +156,8 @@ router.delete('/', async (req, res) => {
             return;
         }
     } catch (error) {
-        console.error(error);
-        res.json(InternalErrResponse());
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })//bảng subInSlot này chứa courseId
 //nhận subId => truy ra courseId => id của sub in slot cầm thg này đi xóa tất cả row cùng subinslotId sau đó quay lại xóa 
