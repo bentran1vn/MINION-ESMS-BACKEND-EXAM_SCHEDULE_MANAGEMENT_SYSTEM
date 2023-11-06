@@ -49,6 +49,10 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     } else {
         numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     }
+    if(numStu < 10 && checkRoomExist(courseId)){
+        await handleFillStuLittle(courseId, numStu)
+        return
+    }
 
 
     if (numRoom > roomRequire) throw new Error("Problem with assign Course! Number Of Student is invalid !")
