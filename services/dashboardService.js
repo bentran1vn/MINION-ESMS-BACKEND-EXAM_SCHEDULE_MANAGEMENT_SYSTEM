@@ -8,6 +8,8 @@ import ExamRoom from "../models/ExamRoom.js";
 import { getNotSheduleOfCourse } from "./studentExamService.js";
 import Semester from "../models/Semester.js";
 import User from "../models/User.js";
+import Course from "../models/Course.js";
+import Subject from "../models/Subject.js";
 
 export async function countExaminerInPhase(exPhaseId) {
     const statusMap = new Map([
@@ -116,7 +118,7 @@ export async function countStaff() {
     return staffs.length
 }
 
-export async function topThreeExaminerDashBoard() {
+export async function topThreeExaminerDashBoard(exPhaseId) {
     const phase = await ExamPhase.findOne({
         where: {
             id: exPhaseId,
@@ -133,8 +135,7 @@ export async function topThreeExaminerDashBoard() {
         }
     });
     if (exSlot.length == 0) {
-        res.json(MessageResponse("This phase doesn't have any slots"));
-        return;
+        throw new Error("This phase doesn't have any slots")
     }
     let examRoomWithExaminer = [];
     for (const slot of exSlot) {
@@ -206,6 +207,7 @@ export async function topThreeExaminerDashBoard() {
     if (returnL.length === 0) {
         throw new Error("Can not find top 3 Examiner");
     }
+    return returnL
 }
 
 export async function numberByCourse(ePId) {
@@ -270,7 +272,7 @@ export async function numOfCourseNotScheduled(ePId) {
     return s
 }
 
-export async function numOfDayRegister() {
+export async function numOfDayRegister(ePId) {
     const numRegister = []
     function insertnumRegister(day, num) {
         const detail = {
@@ -279,7 +281,6 @@ export async function numOfDayRegister() {
         numRegister.push(detail)
     }
 
-    const ePId = parseInt(req.query.ePId)
     const examPhase = await ExamPhase.findOne({
         where: {
             id: ePId,
@@ -563,7 +564,7 @@ export async function totalCourseByPhase(ePId) {
 }
 
 export async function totalExamroomByPhase(ePId) {
-    let arr = []
+    const arr = []
     function insert(day, numExamroom) {
         const a = {
             day, numExamroom
@@ -609,6 +610,6 @@ export async function totalExamroomByPhase(ePId) {
         })
         insert(day, examRoom.length)
     }
-    if (arr == 0) throw new Error("Can not find any exam room")
+    if (arr.length == 0) throw new Error("Can not find any exam room")
     return arr
 }
