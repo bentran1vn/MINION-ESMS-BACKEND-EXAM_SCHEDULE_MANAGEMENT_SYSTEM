@@ -17,7 +17,7 @@ import User from '../models/User.js'
 import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot } from '../services/examRoomService.js'
-
+import {changeCourseStatus} from '../services/courseService.js'
 
 const router = express.Router()
 
@@ -457,34 +457,29 @@ router.post('/', async (req, res) => {
                 id: examSlot.timeSlotId
             }
         })
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
+       
+        const currentExamPhase = await ExamPhase.findOne({
+            where: {
+                startDay: {
+                    [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                },
+                endDay: {
+                    [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                },
+            }
+        })
+
         const semester = await Semester.findOne({
             where: {
                 start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+                    [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
                 },
                 end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+                    [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
                 },
             }
         })
-        if (!semester) {
-            res.json(MessageResponse("Table semester has no data of current date"));
-            return;
-        }
-
-        const currentExamPhase = await ExamPhase.findOne({
-            where: {
-                start: {
-                    [Op.lt]: timeFormatted, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gt]: timeFormatted, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        if ((!currentExamPhase && examSlot.day < timeFormatted) || (currentExamPhase && (currentExamPhase.endDay >= examSlot.day))) {
+        if (currentExamPhase.status == 0) {
             res.json(MessageResponse("Can't change on-going or passed schedule"));
             return;
         }
@@ -560,7 +555,7 @@ router.post('/', async (req, res) => {
                     roomId: roomId,
                     examinerId: parseInt(examiner.id),
                 })
-                console.log(examRoom);
+                // changeCourseStatus(currentExamPhase.id, subInSlot.courId);
                 res.json(MessageResponse("Create Success !"));
                 return;
             } else {

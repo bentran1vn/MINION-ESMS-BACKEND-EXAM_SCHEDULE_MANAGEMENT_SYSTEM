@@ -16,6 +16,7 @@ import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { expandTimePhase } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
+import {changeCourseStatus} from '../services/courseService.js'
 
 export async function autoCreateExamRoom(incomingPhase) {
     let roomList
@@ -546,6 +547,17 @@ export async function lecRegister(lecturerId, startTime, endTime, day, incomingP
                 if (i == randomIndex) {
                     roomsToUpdate[i].update({ examinerId: lecToExaminer.id })
                     check++;
+                    // const subSlot = await SubInSlot.findOne({
+                    //     where: {
+                    //         id: roomsToUpdate[i].dataValues.sSId
+                    //     }
+                    // })
+                    // const course = await Course.findOne({
+                    //     where: {
+                    //         id: subSlot.courId
+                    //     }
+                    // })
+                    // changeCourseStatus(incomingPhase, course.id)
                 }
             }
             if (check != 0) {
@@ -1347,6 +1359,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
             })
             if (exPhase.status == 1) {
                 const a = {
+                    examroomId: ex.dataValues.id,
                     subCode: subject.code,
                     day: exSlot.day,
                     startTime: time.startTime,
@@ -1359,6 +1372,7 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
                 returnList.push(a);
             } else if (exPhase.status == 0) {
                 const a = {
+                    examroomId: ex.dataValues.id,
                     subCode: subject.code,
                     day: exSlot.day,
                     startTime: time.startTime,

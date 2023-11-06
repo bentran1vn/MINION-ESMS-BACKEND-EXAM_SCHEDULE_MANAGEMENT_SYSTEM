@@ -260,7 +260,7 @@ router.post('/', async (req, res) => {
 router.post('/volunteerExaminer', async (req, res) => {
     const exName = req.body.name
     const exEmail = req.body.email
-    const semesterId = req.body.semesterId
+    const semesterId = parseInt(req.body.semesterId)
     const status = 0
     const typeExaminer = 2
     try{
