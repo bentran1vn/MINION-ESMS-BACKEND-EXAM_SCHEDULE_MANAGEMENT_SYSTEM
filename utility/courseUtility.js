@@ -25,9 +25,9 @@ export async function autoCreateCourse() {
 
     if (examPhase) {
         const subId = stuSub.map(st => st.dataValues)
-        
+
         const subIdList = subId.map(s => s.subjectId)
-        
+
         const uniqueSubIdList = [...new Set(subIdList)];
         for (let i = 0; i < uniqueSubIdList.length; i++) {
             const item = uniqueSubIdList[i];
@@ -52,15 +52,15 @@ export async function autoCreateCourse() {
                     subjectId: uniqueSubIdList[i]
                 }
             })
-            
-            if(count != uniqueSubIdList.length){
+
+            if (count != uniqueSubIdList.length) {
                 const a = await Course.create({
                     subId: uniqueSubIdList[i],
                     numOfStu: stuSubV2.length,
                     ePId: examPhase.id,
                     status: 1
                 })
-                if(a){
+                if (a) {
                     count++;
                 }
             }
