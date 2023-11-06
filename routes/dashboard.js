@@ -1,7 +1,12 @@
 import express from 'express'
 import { DataResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase, topThreeExaminerDashBoard } from '../services/dashboardService.js'
+import {
+    countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase,
+    numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase,
+    totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec,
+    totalRegistionOfLecOnePhase, topThreeExaminerDashBoard, totalCourseByPhase
+} from '../services/dashboardService.js'
 
 const router = express.Router()
 
@@ -39,7 +44,7 @@ router.get('/totalStaffDashBoard', requireRole('admin'), async (req, res) => {
     }
 })// Tổng số Staff
 
-router.get('/topThreeExaminerDashBoard', requireRole('admin'), async (req, res) => {
+router.get('/topThreeExaminerDashBoard', requireRole('staff'), async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
     try {
         let topThree = await topThreeExaminerDashBoard(exPhaseId)
@@ -50,7 +55,7 @@ router.get('/topThreeExaminerDashBoard', requireRole('admin'), async (req, res) 
     }
 })// Top 3 examiner canh thi
 
-router.get('/courseAndNumOfStuDashBoard', requireRole('admin'), async (req, res) => {
+router.get('/courseAndNumOfStuDashBoard', requireRole('staff'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
         let courses = await numberByCourse(ePId)
@@ -61,9 +66,10 @@ router.get('/courseAndNumOfStuDashBoard', requireRole('admin'), async (req, res)
     }
 })// Course và số lượng hs mỗi course
 
-router.get('/numOfCourseNotScheduled', requireRole('admin'), async (req, res) => {
+router.get('/numOfCourseNotScheduled', requireRole('staff'), async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     try {
-        let total = await numOfCourseNotScheduled()
+        let total = await numOfCourseNotScheduled(ePId)
         res.json(DataResponse(total))
     } catch (error) {
         console.log(error);
@@ -72,8 +78,9 @@ router.get('/numOfCourseNotScheduled', requireRole('admin'), async (req, res) =>
 })// Số lượng course chưa dc xếp lịch xong
 
 router.get('/numOfDayRegister', requireRole('admin'), async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     try {
-        let numRegister = await numOfDayRegister()
+        let numRegister = await numOfDayRegister(ePId)
         res.json(DataResponse(numRegister))
     } catch (error) {
         console.log(error);
@@ -161,7 +168,7 @@ router.get('/totalCourseByPhase', requireRole('staff'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
         let course = await totalCourseByPhase(ePId)
-        res.json(DataResponse(course.length))
+        res.json(DataResponse(course))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
@@ -175,7 +182,7 @@ router.get('/totalCourseByPhase', requireRole('staff'), async (req, res) => {
 router.get('/totalExamroomByPhase', requireRole('staff'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
-        let arr = totalExamroomByPhase(ePId)
+        let arr = await totalExamroomByPhase(ePId)
         res.json(DataResponse(arr))
     } catch (error) {
         console.log(error);
