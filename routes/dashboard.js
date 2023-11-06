@@ -1,20 +1,7 @@
 import express from 'express'
-import { DataResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Examiner from '../models/Examiner.js'
-import SubInSlot from '../models/SubInSlot.js'
-import ExamRoom from '../models/ExamRoom.js'
-import ExamSlot from '../models/ExamSlot.js'
-import Course from '../models/Course.js'
-import Subject from '../models/Subject.js'
-import ExaminerLogTime from '../models/ExaminerLogTime.js'
-import { Op } from 'sequelize'
-import ExamPhase from '../models/ExamPhase.js'
-import { getNotSheduleOfCourse } from '../services/studentExamService.js'
-import Semester from '../models/Semester.js'
-import User from '../models/User.js'
 import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase } from '../services/dashboardService.js'
-import { json } from 'body-parser'
 
 const router = express.Router()
 
