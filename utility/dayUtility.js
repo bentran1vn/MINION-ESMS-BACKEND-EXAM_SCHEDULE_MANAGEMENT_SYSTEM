@@ -20,23 +20,29 @@ export function validDay(startDay, endDay, day) {
 
 export function modiDays(dateStr, daysToChange, type) {
     try {
-        // Parse the input date string in the format "dd/mm/yyyy"
-        const [day, month, year] = dateStr.split('/').map(Number);
-        const date = new Date(year, month - 1, day); // JavaScript months are 0-based
+        // Parse the input date string in ISO 8601 format
+        const isoDate = new Date(dateStr);
 
-        // Add the specified number of days
-        if (type == 1) {
-            date.setDate(date.getDate() + daysToChange);
+        // Extract day, month, and year from the ISO date
+        const day = isoDate.getUTCDate();
+        const month = isoDate.getUTCMonth() + 1; // Adding 1 to adjust for 0-based months
+        const year = isoDate.getUTCFullYear();
+
+        // Create a new date object using the extracted components
+        const date = new Date(Date.UTC(year, month - 1, day)); // JavaScript months are 0-based
+
+        // Add or subtract the specified number of days
+        if (type === 1) {
+            date.setUTCDate(date.getUTCDate() + daysToChange);
         } else {
-            date.setDate(date.getDate() - daysToChange);
+            date.setUTCDate(date.getUTCDate() - daysToChange);
         }
 
-
         // Format the new date as a string in the "dd/mm/yyyy" format
-        const newDay = date.getDate();
-        const newMonth = date.getMonth() + 1; // Adding 1 to adjust for 0-based months
-        const newYear = date.getFullYear();
-        const newDateStr = `${newDay}/${newMonth}/${newYear}`;
+        const newDay = date.getUTCDate();
+        const newMonth = date.getUTCMonth() + 1; // Adding 1 to adjust for 0-based months
+        const newYear = date.getUTCFullYear();
+        const newDateStr = `${newYear}/${newMonth}/${newDay}`;
 
         return newDateStr;
     } catch (error) {
