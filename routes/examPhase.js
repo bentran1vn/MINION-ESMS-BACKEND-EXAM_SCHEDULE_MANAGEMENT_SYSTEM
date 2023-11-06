@@ -1,7 +1,7 @@
 import express from 'express'
 import { DataResponse, MessageResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import { createPhase, deletePhaseBySemId, findPhaseBySemId, getExamphasesBySemId, updatePhase } from '../services/examPhaseService.js'
+import { createPhase, deletePhaseBySemId, getExamphasesBySemId, updatePhase } from '../services/examPhaseService.js'
 
 /**
  * @swagger
@@ -267,7 +267,7 @@ router.get('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
     try {
         let phaseList
-        await findPhaseBySemId(semId).then(value => phaseList = value)
+        await getExamphasesBySemId(semId).then(value => phaseList = value)
         res.json(DataResponse(phaseList))
     } catch (err) {
         console.log(err);
