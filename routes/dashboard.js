@@ -1,7 +1,7 @@
 import express from 'express'
 import { DataResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase } from '../services/dashboardService.js'
+import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase, topThreeExaminerDashBoard } from '../services/dashboardService.js'
 
 const router = express.Router()
 
