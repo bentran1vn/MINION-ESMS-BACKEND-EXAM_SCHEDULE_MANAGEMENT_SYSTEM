@@ -3,6 +3,7 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
 import ExamPhase from '../models/ExamPhase.js'
+import ExamSlot from '../models/ExamSlot.js'
 
 /**
  * @swagger
@@ -255,13 +256,46 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
+        let returnL = [];
         const phase = await ExamPhase.findAll({
             where:{
                 semId: semesterId,
                 alive: 1
             }
         })
-        res.json(DataResponse(phase));
+        for(const exphase of phase){
+            const examslot = await ExamSlot.findAll({
+                where:{
+                    ePId: exphase.dataValues.id
+                }
+            })
+            if(examslot){
+                const r = {
+                    semId: exphase.dataValues.semId,
+                    ePName: exphase.dataValues.ePName,
+                    startDay: exphase.dataValues.startDay,
+                    endDay: exphase.dataValues.endDay,
+                    status: exphase.dataValues.status,
+                    des: exphase.dataValues.des,
+                    alive: exphase.dataValues.alive,
+                    edit: 0//không được sửa
+                }
+                returnL.push(r);
+            }else{
+                const r = {
+                    semId: exphase.dataValues.semId,
+                    ePName: exphase.dataValues.ePName,
+                    startDay: exphase.dataValues.startDay,
+                    endDay: exphase.dataValues.endDay,
+                    status: exphase.dataValues.status,
+                    des: exphase.dataValues.des,
+                    alive: exphase.dataValues.alive,
+                    edit: 1//không được sửa
+                }
+                returnL.push(r);
+            }
+        }
+        res.json(DataResponse(returnL));
     } catch (error) {
         console.log(error)
         res.json(ErrorResponse(500, error.message))
