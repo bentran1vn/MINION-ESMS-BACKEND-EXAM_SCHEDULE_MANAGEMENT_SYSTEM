@@ -278,7 +278,7 @@ const router = express.Router()
  *         description: Internal Server Error!
  */
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('admin'), async (req, res) => {
     const data = req.body
     try {
         const result = await createRoom(data)
@@ -289,7 +289,7 @@ router.post('/', async (req, res) => {
     }
 })// Create new room
 
-router.delete('/', async (req, res) => {
+router.delete('/', requireRole('admin'), async (req, res) => {
     const roomNum = parseInt(req.body.roomNum);
 
     try {
@@ -301,7 +301,7 @@ router.delete('/', async (req, res) => {
     }
 })// Delete room
 
-router.put('/', async (req, res) => {
+router.put('/', requireRole('admin'), async (req, res) => {
     const id = parseInt(req.body.id);
     const data = req.body;
     try {
@@ -313,7 +313,7 @@ router.put('/', async (req, res) => {
     }
 })// Update room
 
-router.get('/', async (req, res) => {
+router.get('/', requireRole('admin'), async (req, res) => {
     try {
         const roomArr = await getAllRoom();
         res.json(DataResponse(roomArr))

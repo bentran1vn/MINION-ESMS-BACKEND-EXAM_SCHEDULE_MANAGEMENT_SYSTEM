@@ -167,7 +167,7 @@ const router = express.Router()
  *         description: Internal server error
  */
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('staff'),async (req, res) => {
     const ePId = parseInt(req.body.ePId);
     const timeSlotId = parseInt(req.body.timeSlotId);
     const day = req.body.day;
@@ -181,7 +181,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.delete('/', async (req, res) => {
+router.delete('/', requireRole('staff'), async (req, res) => {
     const id = parseInt(req.body.id)
     const staff = res.locals.userData
     try {
@@ -193,7 +193,7 @@ router.delete('/', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
+router.get('/', requireRole('staff'), async (req, res) => {
     const semId = parseInt(req.query.semID)
     const ePId = parseInt(req.query.ePId)
     try {
@@ -205,7 +205,7 @@ router.get('/', async (req, res) => {
     }
 })// Lấy tất cả exam slot theo exam phase
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireRole('staff'), async (req, res) => {
     const phaseId = parseInt(req.params.id)
     try {
         const slotList = await findAllExamSlotByPhase(phaseId);

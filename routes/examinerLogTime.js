@@ -11,8 +11,6 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
     const { examinerId, day, timeSlotId } = req.body;
-
-
     try {
         const examiner = await Examiner.findOne({
             where: {
