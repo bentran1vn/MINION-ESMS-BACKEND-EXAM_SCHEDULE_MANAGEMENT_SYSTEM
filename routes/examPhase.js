@@ -2,6 +2,7 @@ import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 /**
  * @swagger
@@ -251,9 +252,12 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
-        let examPhase
-        await findPhaseBySemId(semesterId).then(value => examPhase = value)
-        res.json(DataResponse(examPhase));
+        const phase = await ExamPhase.findAll({
+            where:{
+                semId: semesterId
+            }
+        })
+        res.json(DataResponse(phase));
     } catch (error) {
         console.log(error)
         res.json(ErrorResponse(500, error.message))
