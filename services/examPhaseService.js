@@ -45,7 +45,7 @@ export function checkTime(startDay, endDay) {
 
 export async function findPhaseBySemId(id) {
     const detailExamPhase = []
-    function insertExamPhase(id, semId, pN, sd, ed, cd, status) {
+    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des) {
         const EPDetail = {
             id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des// 1 done, 0 chưa done
         }
