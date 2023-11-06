@@ -45,3 +45,33 @@ export async function createNewExamSlot(phaseId, timeSlotId, day) {
         throw new Error("Day must in the range !")
     }
 }
+
+export async function deleteExamSlot(examslotId){
+    let message = "";
+    const result = await ExamSlot.destroy({
+        where: {
+            id: examslotId,
+        }
+    })
+    if (result === 0) {
+        throw new Error("Not found")
+    } else {
+        return message = 'Delete Success !'
+    }
+}
+
+export async function getAllByPhase(semId, ePId){
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            id: ePId,
+            semId: semId
+        }
+    })
+    if(!examPhase) throw new Error("Not found exam phase")
+    const exSlotFull = await ExamSlot.findAll({
+        where: {
+            ePId: examPhase.id
+        }
+    })
+    return exSlotFull
+}

@@ -11,7 +11,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import StudentSubject from '../models/StudentSubject.js'
 import Subject from '../models/Subject.js'
 import ExamSlot from '../models/ExamSlot.js'
-import { col } from 'sequelize'
+
 
 const router = express.Router()
 

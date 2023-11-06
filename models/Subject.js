@@ -22,8 +22,6 @@ const Subject = sequelize.define(tableName, {
     //0 là ko hiện ra  
 
 });
-// 0: là ko thi
-// giá trị fe và pe tính bằng phút
 
 await Subject.sync().then(() => {
     console.log(`${tableName} table is ready`);

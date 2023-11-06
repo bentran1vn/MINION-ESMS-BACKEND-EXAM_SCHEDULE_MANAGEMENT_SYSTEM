@@ -2,9 +2,7 @@ import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
-import RoomLogTime from '../models/RoomLogTime.js'
-import { DATEONLY, Op } from 'sequelize'
-import ExamPhase from '../models/ExamPhase.js'
+import { createRoom, deleteRoom, getAllRoom, getRoomFreeSlot, getRoomInUse, getRoomUseSlot, searchRoom, updateRoom } from '../services/roomService.js'
 
 const router = express.Router()
 
@@ -114,20 +112,15 @@ const router = express.Router()
  *               id:
  *                 type: integer
  *                 example: 1
- *               roomNum:
- *                 type: integer
- *                 example: 101
- *               location:
- *                 type: String
- *                 example: XAVALO
  *               note:
+ *                 type: STRING
+ *                 example: Burnt
+ *                 discription: The status of Room
+ *               status:
  *                 type: integer
- *                 example: 0
+ *                 discription: 0 is delete, 1 is display
  *           required:
  *             - id
- *             - roomNum
- *             - location
- *             - note
  *     responses:
  *       '200':
  *         description: Update Success! | Not Found!
@@ -194,7 +187,7 @@ const router = express.Router()
  *       - in: query
  *         name: timeSlotId
  *         schema:
- *           type: TIME
+ *           type: integer
  *         required: true
  *         description: The time id Client want to get like 1.
  *     responses:
@@ -226,7 +219,7 @@ const router = express.Router()
  *       - in: query
  *         name: timeSlotId
  *         schema:
- *           type: TIME
+ *           type: integer
  *         required: true
  *         description: The time id Client want to get like 1.
  *     responses:
@@ -287,29 +280,9 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
     const data = req.body
-
     try {
-        const findRoom = Room.findOne({
-            where: {
-                roomNum: parseInt(data.roomNum),
-                location: data.location,
-                status: 0
-            }
-        })
-        if (findRoom) {
-            Room.update({ status: 1 }, {
-                where: {
-                    id: findRoom.id
-                }
-            })
-        } else {
-            await Room.create({
-                roomNum: parseInt(data.roomNum),
-                location: data.location,
-                note: 0
-            })
-        }
-        res.json(MessageResponse("Create Success !"))
+        const result = await createRoom(data)
+        res.json(MessageResponse(result))
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
@@ -320,18 +293,8 @@ router.delete('/', async (req, res) => {
     const roomNum = parseInt(req.body.roomNum);
 
     try {
-        const result = await Room.update({ status: 0 }, {
-            where: {
-                roomNum: roomNum,
-                status: 1
-            }
-        })
-        console.log(result);
-        if (result === 0) {
-            res.json(NotFoundResponse());
-        } else {
-            res.json(MessageResponse('Delete Success !'))
-        }
+        const result = await deleteRoom(roomNum);
+        res.json(MessageResponse(result))
     } catch (error) {
         console.log(error)
         res.json(InternalErrResponse());
@@ -342,19 +305,8 @@ router.put('/', async (req, res) => {
     const id = parseInt(req.body.id);
     const data = req.body;
     try {
-        const row = await Room.update(data, {
-            where: {
-                id: id,
-                status: 1
-            }
-        })
-        if (row[0] == 0) {
-            res.json(MessageResponse("Not Found !"));
-            return;
-        } else {
-            res.json(MessageResponse("Update Success !"));
-            return;
-        }
+        const result = await updateRoom(id, data);
+        res.json(MessageResponse(result));
     } catch (err) {
         console.log(err);
         res.json(InternalErrResponse());
@@ -363,36 +315,7 @@ router.put('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const currentDay = new Date().toISOString().slice(0, 10)
-        const examPhase = await ExamPhase.findOne({
-            where: {
-                startDay: { [Op.lte]: currentDay },
-                endDay: { [Op.gt]: currentDay }
-            }
-        })
-        const roomArr = []
-        function insertRoom(id, roomNum, location, status, allowed) {
-            const roomDetail = {
-                id, roomNum, location, status, allowed
-            }
-            roomArr.push(roomDetail)
-        }
-        const room = await Room.findAll()
-        if (examPhase) {
-            room.forEach(e => {
-                const length = e.roomNum + ""
-                if (length.length > 1) {
-                    insertRoom(e.id, e.roomNum, e.location, e.status, 0)
-                }
-            })
-        } else {
-            room.forEach(e => {
-                const length = e.roomNum + ""
-                if (length.length > 1) {
-                    insertRoom(e.id, e.roomNum, e.location, e.status, 1)
-                }
-            })
-        }
+        const roomArr = await getAllRoom();
         res.json(DataResponse(roomArr))
     } catch (error) {
         console.log(error);
@@ -402,13 +325,8 @@ router.get('/', async (req, res) => {
 
 router.get('/roomInUse', async (req, res) => {
     const roomId = parseInt(req.query.roomId)
-
     try {
-        const roomLogTime = await RoomLogTime.findAll({
-            where: {
-                roomId: roomId
-            }
-        })
+        const roomLogTime = await getRoomInUse(roomId)
         res.json(DataResponse(roomLogTime))
     } catch (error) {
         console.log(error)
@@ -420,41 +338,8 @@ router.get('/roomFreeSlot', async (req, res) => {
     const day = req.query.day;
     const timeSlotId = req.query.timeSlotId
 
-    const roomIdInUse = []
-    const roomIdNotUse = []
-
     try {
-        const roomLogTime = await RoomLogTime.findAll({
-            where: {
-                [Op.and]: {
-                    day: day,
-                    timeSlotId: timeSlotId
-                }
-            }
-        })
-        const room = await Room.findAll({ where: { status: 1 } })
-
-        for (let i = 0; i < roomLogTime.length; i++) {
-            if (!roomIdInUse.includes(roomLogTime[i].roomId)) {
-                roomIdInUse.push(roomLogTime[i].roomId);
-            }
-        }
-
-        room.forEach(element => {
-            if (!roomIdInUse.includes(element.id)) {
-                roomIdNotUse.push(element.id)
-            }
-        });
-
-        const roomNotUse = await Room.findAll({
-            where: {
-                id: {
-                    [Op.or]: roomIdNotUse
-                },
-                status: 1
-            }
-        })
-
+        const roomNotUse = await getRoomFreeSlot(day, timeSlotId)
         res.json(DataResponse(roomNotUse))
     } catch (error) {
         console.log(error);
@@ -465,36 +350,12 @@ router.get('/roomFreeSlot', async (req, res) => {
 router.get('/roomUseSlot', async (req, res) => {
     const day = req.query.day;
     const timeSlotId = req.query.timeSlotId
-
-    const roomIdInUse = []
-
     try {
-        const roomLogTime = await RoomLogTime.findAll({
-            where: {
-                [Op.and]: {
-                    day: day,
-                    timeSlotId: timeSlotId
-                }
-            }
-        })
-        if (roomLogTime.length > 0) {
-            for (let i = 0; i < roomLogTime.length; i++) {
-                if (!roomIdInUse.includes(roomLogTime[i].roomId)) {
-                    roomIdInUse.push(roomLogTime[i].roomId);
-                }
-            }
-
-            const roomUse = await Room.findAll({
-                where: {
-                    id: {
-                        [Op.or]: roomIdInUse
-                    },
-                    status: 1
-                }
-            })
-            res.json(DataResponse(roomUse))
-        } else {
-            res.json(MessageResponse(`In day ${day} and slot id ${timeSlotId}, there are no occupied rooms`))
+        const result = await getRoomUseSlot(day, timeSlotId)
+        if(Array.isArray(result)){
+            res.json(DataResponse(result))
+        }else{
+            res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
@@ -513,30 +374,13 @@ router.get('/roomDamaged', async (req, res) => {
 })// Get all room was damaged
 
 router.get('/search', async (req, res) => {
+    const value = req.query.value
     try {
-        var room = []
-        const value = req.query.value
-        if (Number.isInteger(parseInt(value))) {
-            room = await Room.findAll({
-                where: {
-                    roomNum: parseInt(value),
-                    status: 1
-                }
-            })
-        } else {
-            room = await Room.findAll({
-                where: {
-                    location: {
-                        [Op.like]: '%' + value + '%'
-                    },
-                    status: 1
-                }
-            })
-        }
-        if (room.length) {
-            res.json(DataResponse(room))
-        } else {
-            res.json(NotFoundResponse())
+        const result = await searchRoom(value)
+        if(Array.isArray(result)){
+            res.json(DataResponse(result))
+        }else{
+            res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
