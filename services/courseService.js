@@ -133,7 +133,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     if(numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
 }
 
-async function changeCourseStatus(phaseId, courId) {
+export async function changeCourseStatus(phaseId, courId) {
     const courList = await Course.findAll({
         where: {
             status: 1,
