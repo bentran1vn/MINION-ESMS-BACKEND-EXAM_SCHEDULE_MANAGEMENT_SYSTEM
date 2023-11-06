@@ -443,19 +443,19 @@ export async function futureSlotOfLecOnePhase(userId, phaseId) {
     return count;
 }
 
-export async function totalRegistionEachPhase(userId, semesterId){
+export async function totalRegistionEachPhase(userId, semesterId) {
     const examiner = await Examiner.findAll({
         where: {
             userId: userId
         }
     })
-    if(!examiner) throw new Error("Can not find examiner")
+    if (!examiner) throw new Error("Can not find examiner")
     const semester = await Semester.findOne({
         where: {
             id: semesterId
         }
     })
-    if(!semester) throw new Error("Can not find semester")
+    if (!semester) throw new Error("Can not find semester")
     let room = [];
     for (const ex of examiner) {
         const exroom = await ExamRoom.findAll({
@@ -466,14 +466,14 @@ export async function totalRegistionEachPhase(userId, semesterId){
         const a = exroom.map(e => e.dataValues);
         room = [...room, ...a];
     }
-    if(room.length === 0) throw new Error("Can not find any room")
+    if (room.length === 0) throw new Error("Can not find any room")
     //mảng room đã chứa tất cả slot đã đk từ trước tới giờ
     const examphase = await ExamPhase.findAll({
         where: {
             alive: 1
         }
     });
-    if(examphase.length === 0) throw new Error("Can not find any exam phase")
+    if (examphase.length === 0) throw new Error("Can not find any exam phase")
     let sloteachphase = [];
     for (const phase of examphase) {
         if (phase.startDay >= semester.start && phase.endDay <= semester.end) {
@@ -501,11 +501,11 @@ export async function totalRegistionEachPhase(userId, semesterId){
             sloteachphase.push(s);
         }
     }
-    if(sloteachphase.length === 0) throw new Error("Can not find any slot") 
+    if (sloteachphase.length === 0) throw new Error("Can not find any slot")
     return sloteachphase;
 }
 
-export async function totalExamSLotByPhase(ePId){
+export async function totalExamSLotByPhase(ePId) {
     const examPhase = await ExamPhase.findOne({
         where: {
             id: ePId,
@@ -522,4 +522,93 @@ export async function totalExamSLotByPhase(ePId){
     } else {
         throw new Error("ExamPhase not found");
     }
+}
+
+export async function totalExaminerByPhase(ePId) {
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            id: ePId,
+            alive: 1
+        }
+    })
+    if (!examPhase) throw new Error("Can not find exam phase")
+    const exminerLogTime = await ExaminerLogTime.findAll({
+        where: {
+            day: {
+                [Op.and]: {
+                    [Op.gte]: examPhase.startDay,
+                    [Op.lt]: examPhase.endDay
+                }
+            }
+        }
+    })
+    if (!exminerLogTime) throw new Error("Can not find examiner log time")
+    let arr = []
+    for (const item of exminerLogTime) {
+        if (!arr.includes(item.examinerId)) {
+            arr.push(item.examinerId)
+        }
+    }
+    return arr.length;
+}
+
+export async function totalCourseByPhase(ePId) {
+    const course = await Course.findAll({
+        where: {
+            ePId
+        }
+    })
+    if (!course) throw new Error("Can not find course")
+    return course.length;
+}
+
+export async function totalExamroomByPhase(ePId) {
+    let arr = []
+    function insert(day, numExamroom) {
+        const a = {
+            day, numExamroom
+        }
+        arr.push(a)
+    }
+    const examSlots = await ExamSlot.findAll({
+        where: {
+            ePId: ePId
+        }
+    })
+    if(!examSlots) throw new Error("Can not find exam slot")
+    let arrDay = []
+    for (const item of examSlots) {
+        if (!arrDay.includes(item.day)) {
+            arrDay.push(item.day)
+        }
+    }
+    for (const day of arrDay) {
+        const examSlots = await ExamSlot.findAll({
+            where: {
+                day: day
+            }
+        })
+        let arrIdES = []
+        for (let i = 0; i < examSlots.length; i++) {
+            arrIdES.push(examSlots[i].id)
+        }
+        const subInSLot = await SubInSlot.findAll({
+            where: {
+                exSlId: arrIdES
+            }
+        })
+
+        let arrIdSIS = []
+        for (let i = 0; i < subInSLot.length; i++) {
+            arrIdSIS.push(subInSLot[i].id)
+        }
+        const examRoom = await ExamRoom.findAll({
+            where: {
+                sSId: arrIdSIS
+            }
+        })
+        insert(day, examRoom.length)
+    }
+    if(arr == 0) throw new Error("Can not find any exam room")
+    return arr
 }

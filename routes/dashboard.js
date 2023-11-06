@@ -13,7 +13,7 @@ import ExamPhase from '../models/ExamPhase.js'
 import { getNotSheduleOfCourse } from '../services/studentExamService.js'
 import Semester from '../models/Semester.js'
 import User from '../models/User.js'
-import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase } from '../services/dashboardService.js'
+import { countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase, numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase, totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec, totalRegistionOfLecOnePhase } from '../services/dashboardService.js'
 import { json } from 'body-parser'
 
 const router = express.Router()
@@ -160,31 +160,10 @@ router.get('/totalExamSLotByPhase', requireRole('staff'), async (req, res) => {
 })// Tổng số examSlot theo phaseId
 
 router.get('/totalExaminerByPhase', requireRole('staff'), async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     try {
-        const ePId = parseInt(req.query.ePId)
-        const examPhase = await ExamPhase.findOne({
-            where: {
-                id: ePId,
-                alive: 1
-            }
-        })
-        const exminerLogTime = await ExaminerLogTime.findAll({
-            where: {
-                day: {
-                    [Op.and]: {
-                        [Op.gte]: examPhase.startDay,
-                        [Op.lt]: examPhase.endDay
-                    }
-                }
-            }
-        })
-        let arr = []
-        for (const item of exminerLogTime) {
-            if (!arr.includes(item.examinerId)) {
-                arr.push(item.examinerId)
-            }
-        }
-        res.json(DataResponse(arr.length))
+        let total = await totalExaminerByPhase(ePId)
+        res.json(DataResponse(total))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
@@ -192,13 +171,9 @@ router.get('/totalExaminerByPhase', requireRole('staff'), async (req, res) => {
 })// Tổng số Examiner theo phaseId
 
 router.get('/totalCourseByPhase', requireRole('staff'), async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     try {
-        const ePId = parseInt(req.query.ePId)
-        const course = await Course.findAll({
-            where: {
-                ePId
-            }
-        })
+        let course = await totalCourseByPhase(ePId)
         res.json(DataResponse(course.length))
     } catch (error) {
         console.log(error);
@@ -211,53 +186,9 @@ router.get('/totalCourseByPhase', requireRole('staff'), async (req, res) => {
 // Course và số lượng hs mỗi course - giống admin
 
 router.get('/totalExamroomByPhase', requireRole('staff'), async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
     try {
-        const ePId = parseInt(req.query.ePId)
-        let arr = []
-        function insert(day, numExamroom) {
-            const a = {
-                day, numExamroom
-            }
-            arr.push(a)
-        }
-        const examSlots = await ExamSlot.findAll({
-            where: {
-                ePId: ePId
-            }
-        })
-        let arrDay = []
-        for (const item of examSlots) {
-            if (!arrDay.includes(item.day)) {
-                arrDay.push(item.day)
-            }
-        }
-        for (const day of arrDay) {
-            const examSlots = await ExamSlot.findAll({
-                where: {
-                    day: day
-                }
-            })
-            let arrIdES = []
-            for (let i = 0; i < examSlots.length; i++) {
-                arrIdES.push(examSlots[i].id)
-            }
-            const subInSLot = await SubInSlot.findAll({
-                where: {
-                    exSlId: arrIdES
-                }
-            })
-
-            let arrIdSIS = []
-            for (let i = 0; i < subInSLot.length; i++) {
-                arrIdSIS.push(subInSLot[i].id)
-            }
-            const examRoom = await ExamRoom.findAll({
-                where: {
-                    sSId: arrIdSIS
-                }
-            })
-            insert(day, examRoom.length)
-        }
+        let arr = totalExamroomByPhase(ePId)
         res.json(DataResponse(arr))
     } catch (error) {
         console.log(error);
