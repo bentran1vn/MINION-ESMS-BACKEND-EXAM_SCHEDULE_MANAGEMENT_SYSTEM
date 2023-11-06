@@ -44,12 +44,12 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     const numOdd = numStu % process.env.NUMBER_OF_STUDENT_IN_ROOM
     let numRoom = 0
 
-    if(numOdd >= 10){
+    if (numOdd >= 10) {
         numRoom = Math.ceil(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     } else {
         numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     }
-    
+
 
     if (numRoom > roomRequire) throw new Error("Problem with assign Course! Number Of Student is invalid !")
 
@@ -130,7 +130,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
             }
         } while (check)
     }
-    if(numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
+    if (numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
 }
 
 export async function changeCourseStatus(phaseId, courId) {
@@ -202,3 +202,12 @@ export async function changeCourseStatus(phaseId, courId) {
     }
 }
 
+export async function checkRoomExist(courId) {
+    const subInSlotList = await SubInSlot.findAll({
+        where: {
+            courId: courId
+        }
+    })
+    if (!subInSlotList) return false;
+    return true
+}//true là đã có phòng, false là chưa có phòng
