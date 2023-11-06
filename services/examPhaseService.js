@@ -50,35 +50,47 @@ export function checkTime(startDay, endDay) {
 
 }
 
-export async function findPhaseBySemId(id) {
-    const detailExamPhase = []
-    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des) {
-        const EPDetail = {
-            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des// 1 done, 0 chưa done
-        }
-        detailExamPhase.push(EPDetail)
-    }
-
-    const examPhases = await ExamPhase.findAll({
-        where: {
-            semId: id,
-            alive: 1
-        }
-    })
-
-    for (let i = 0; i < examPhases.length; i++) {
-        const course = await Course.findAll({
-            where: {
-                ePId: examPhases[i].id
+export async function getExamphasesBySemId(semesterId) {
+    let returnL = [];
+        const phase = await ExamPhase.findAll({
+            where:{
+                semId: semesterId,
+                alive: 1
             }
         })
-        if (course.length != 0) {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des)
-        } else {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des)
+        if(!phase || phase.length == 0) throw new Error('Not found!')
+        for(const exphase of phase){
+            const examslot = await ExamSlot.findAll({
+                where:{
+                    ePId: exphase.dataValues.id
+                }
+            })
+            if(examslot){
+                const r = {
+                    semId: exphase.dataValues.semId,
+                    ePName: exphase.dataValues.ePName,
+                    startDay: exphase.dataValues.startDay,
+                    endDay: exphase.dataValues.endDay,
+                    status: exphase.dataValues.status,
+                    des: exphase.dataValues.des,
+                    alive: exphase.dataValues.alive,
+                    edit: 0//không được sửa
+                }
+                returnL.push(r);
+            }else{
+                const r = {
+                    semId: exphase.dataValues.semId,
+                    ePName: exphase.dataValues.ePName,
+                    startDay: exphase.dataValues.startDay,
+                    endDay: exphase.dataValues.endDay,
+                    status: exphase.dataValues.status,
+                    des: exphase.dataValues.des,
+                    alive: exphase.dataValues.alive,
+                    edit: 1//không được sửa
+                }
+                returnL.push(r);
+            }
         }
-    }
-    if (!detailExamPhase) throw new Error("Can not find exam phases !")
     return detailExamPhase
 }
 
