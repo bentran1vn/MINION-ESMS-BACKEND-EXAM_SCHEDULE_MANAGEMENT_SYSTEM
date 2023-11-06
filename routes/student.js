@@ -133,7 +133,7 @@ router.get('/listOfStu', async (req, res) => {
         res.json(DataResponse(student))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -146,8 +146,8 @@ router.get('/scheduleOfStuBySemester', async (req, res) => {
         const schePerSemester = await getScheduleOfStuBySemester(userId, semId)
         res.json(DataResponse(schePerSemester));
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -159,8 +159,8 @@ router.get('/scheduleOfStu', async (req, res) => {
         const schePerSemester = await getScheduleOfStu(userId);
         res.json(DataResponse(schePerSemester));
     } catch (error) {
-        res.json(InternalErrResponse());
         console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 

@@ -183,9 +183,9 @@ router.post('/', async (req, res) => {
     try {
         const result = await createSubject(body)
         res.json(result)
-    } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Create new subject
 
@@ -197,7 +197,7 @@ router.delete('/', async (req, res) => {
         res.json(MessageResponse(result))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Delete subject
 
@@ -207,23 +207,23 @@ router.put('/', async (req, res) => {
     try {
         const result = await updateSubject(id, data)
         res.json(MessageResponse(result))
-    } catch (err) {
-        console.log(err);
-        res.json(InternalErrResponse());
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })// Update subject
 
 router.get('/', async (req, res) => {
     try {
         const result = await getAvailableSubject();
-        if(Array.isArray(result)){
+        if (Array.isArray(result)) {
             res.json(DataResponse(result))
-        }else{
+        } else {
             res.json(MessageResponse(result))
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all subject theo status: 1 
 
@@ -238,7 +238,7 @@ router.get('/all', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
 })// Get all subject bất kể status
 

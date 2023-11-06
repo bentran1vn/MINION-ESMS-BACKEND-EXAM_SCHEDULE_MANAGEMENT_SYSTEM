@@ -175,9 +175,9 @@ router.post('/', async (req, res) => {
     try {
         await createNewExamSlot(ePId, timeSlotId, day)
         res.json(MessageResponse("Create Exam Slot Successfully !"))
-    } catch (err) {
-        console.log(err)
-        res.json(ErrorResponse(400, err.message));
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -188,8 +188,8 @@ router.delete('/', async (req, res) => {
         const result = await deleteExamSlot(id);
         res.json(MessageResponse(result))
     } catch (error) {
-        console.log(error)
-        res.json(InternalErrResponse())
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
@@ -202,7 +202,7 @@ router.get('/', async (req, res) => {
         res.json(DataResponse(result))
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse())
+        res.json(ErrorResponse(500, error.message))
     }
 })// Lấy tất cả exam slot theo exam phase
 
@@ -214,9 +214,9 @@ router.get('/:id', async (req, res) => {
         if (slotList) {
             res.json(DataResponse(slotList))
         }
-    } catch (err) {
-        console.log(err);
-        res.json(ErrorResponse(500, err.message))
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 export default router

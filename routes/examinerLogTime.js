@@ -11,7 +11,7 @@ const router = express.Router()
 
 router.post('/', async (req, res) => {
     const { examinerId, day, timeSlotId } = req.body;
-    
+
 
     try {
         const examiner = await Examiner.findOne({
@@ -50,17 +50,17 @@ router.post('/', async (req, res) => {
                 timeSlotId: parseInt(timeSlotId),
                 semId: parseInt(semester.id)
             })
-            if(examinerLogTime){
+            if (examinerLogTime) {
                 res.json(MessageResponse("Create Success !"));
                 return;
-            }else{
+            } else {
                 res.json(MessageResponse("Error when create examiner log time"));
                 return;
             }
         }
     } catch (err) {
-        console.log(err)
-        res.json(InternalErrResponse());
+        consoleor.log(error);
+        res.json(ErrorResponse(500, error.message))
     }
 })
 
