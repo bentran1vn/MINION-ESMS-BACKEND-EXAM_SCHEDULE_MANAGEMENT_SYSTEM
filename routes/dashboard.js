@@ -83,8 +83,8 @@ router.get('/numOfDayRegister', requireRole('admin'), async (req, res) => {
 
 //------------------------------------dash của lecturer
 router.get('/totalRegistionOfLec', requireRole('lecturer'), async (req, res) => {
-    // const userId = parseInt(req.locals.userData.id);//nhận từ token
-    const userId = 256;
+    const userId = parseInt(res.locals.userData.id);//nhận từ token
+    // const userId = 256;
     try {
         let total = await totalRegistionOfLec(userId);
         res.json(DataResponse(total));
@@ -95,8 +95,8 @@ router.get('/totalRegistionOfLec', requireRole('lecturer'), async (req, res) => 
 })// Tất cả slot đã đk của lec
 
 router.get('/totalRegistionOfLecOnePhase', requireRole('lecturer'), async (req, res) => {
-    // const userId = parseInt(req.locals.userData.id);//nhận từ token
-    const userId = 256;
+    const userId = parseInt(res.locals.userData.id);//nhận từ token
+    // const userId = 256;
     const phaseId = parseInt(req.query.phaseId);
     try {
         let count = await totalRegistionOfLecOnePhase(userId, phaseId);
@@ -109,8 +109,8 @@ router.get('/totalRegistionOfLecOnePhase', requireRole('lecturer'), async (req, 
 
 
 router.get('/futureSlotOfLecOnePhase', requireRole('lecturer'), async (req, res) => {
-    // const userId = parseInt(req.locals.userData.id);//nhận từ token
-    const userId = 256;
+    const userId = parseInt(res.locals.userData.id);//nhận từ token
+    // const userId = 256;
     const phaseId = parseInt(req.query.phaseId);
     try {
         let count = await futureSlotOfLecOnePhase(userId, phaseId);
@@ -122,7 +122,8 @@ router.get('/futureSlotOfLecOnePhase', requireRole('lecturer'), async (req, res)
 })// Số slot chưa đi coi của 1 phase 
 
 router.get('/totalRegistionEachPhase', requireRole('lecturer'), async (req, res) => {
-    const userId = 256;
+    const userId = parseInt(res.locals.userData.id);//nhận từ token
+    // const userId = 256;
     const semesterId = parseInt(req.query.semesterId)
     try {
         let sloteachphase = await totalRegistionEachPhase(userId, semesterId)
