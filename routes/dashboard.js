@@ -12,9 +12,11 @@ import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { getNotSheduleOfCourse } from '../services/studentExamService.js'
 import Semester from '../models/Semester.js'
+import User from '../models/User.js'
 
 const router = express.Router()
 
+//------------------------------------dash của admin
 router.get('/examinerDashBoard', async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
     try {
@@ -79,7 +81,7 @@ router.get('/examinerDashBoard', async (req, res) => {
         console.log(err);
     }
     //trả ra email name, role, status
-})
+})// Tổng số examiner tham gia trong phase
 
 router.get('/totalSlotDashBoard', async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
@@ -128,7 +130,16 @@ router.get('/totalSlotDashBoard', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Tổng số slot trong phase
+
+router.get('/totalStaffDashBoard', async (req, res) => {
+    const user = await User.findAll({
+        where: {
+            role: { [Op.like]: 'staff' }
+        }
+    })
+    res.json(DataResponse(user.length))
+})// Tổng số Staff
 
 router.get('/topThreeExaminerDashBoard', async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
@@ -227,7 +238,7 @@ router.get('/topThreeExaminerDashBoard', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Top 3 examiner canh thi
 
 router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
     const ePId = parseInt(req.query.ePId)
@@ -282,7 +293,7 @@ router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
         res.json(InternalErrResponse());
         return;
     }
-})
+})// Course và số lượng hs mỗi course
 
 router.get('/numOfCourseNotScheduled', async (req, res) => {
     try {
@@ -302,7 +313,7 @@ router.get('/numOfCourseNotScheduled', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})
+})// Số lượng course chưa dc xếp lịch xong
 
 router.get('/numOfDayRegister', async (req, res) => {
     try {
@@ -359,10 +370,10 @@ router.get('/numOfDayRegister', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse())
     }
-})
+})// Số lượng đăng kí coi thi theo những ngày trong phase
+
 
 //------------------------------------dash của lecturer
-//tất cả slot đã đk của lec
 router.get('/totalRegistionOfLec', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -386,8 +397,8 @@ router.get('/totalRegistionOfLec', async (req, res) => {
         res.json(InternalErrResponse());
         console.log(error);
     }
-})
-//tất cả slot đk 1 phase
+})// Tất cả slot đã đk của lec
+
 router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -437,9 +448,9 @@ router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
         res.json(InternalErrResponse());
         console.log(error);
     }
-})
+})// Tất cả slot đk 1 phase
 
-//3. số slot chưa đi coi của 1 phase 
+
 router.get('/futureSlotOfLecOnePhase', async (req, res) => {
     // const userId = parseInt(req.locals.userData.id);//nhận từ token
     const userId = 256;
@@ -494,8 +505,8 @@ router.get('/futureSlotOfLecOnePhase', async (req, res) => {
         res.json(InternalErrResponse());
         console.log(error);
     }
-})
-//tổng số lượt canh thi mỗi phase từ trc tới hiện tại
+})// Số slot chưa đi coi của 1 phase 
+
 router.get('/totalRegistionEachPhase', async (req, res) => {
     const userId = 256;
     const semesterId = parseInt(req.query.semesterId)
@@ -554,7 +565,108 @@ router.get('/totalRegistionEachPhase', async (req, res) => {
         console.log(error);
         res.json(InternalErrResponse());
     }
-})
+})// Tổng số lượt canh thi mỗi phase từ trc tới hiện tại
 
+
+//------------------------------------dash của staff
+router.get('/totalExamSLotByPhase', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    const examSlot = await ExamSlot.findAll({
+        where: {
+            ePId
+        }
+    })
+    res.json(DataResponse(examSlot.length))
+})// Tổng số examSlot theo phaseId
+
+router.get('/totalExaminerByPhase', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            id: ePId
+        }
+    })
+    const exminerLogTime = await ExaminerLogTime.findAll({
+        where: {
+            day: {
+                [Op.and]: {
+                    [Op.gte]: examPhase.startDay,
+                    [Op.lt]: examPhase.endDay
+                }
+            }
+        }
+    })
+    let arr = []
+    for (const item of exminerLogTime) {
+        if (!arr.includes(item.examinerId)) {
+            arr.push(item.examinerId)
+        }
+    }
+    res.json(DataResponse(arr.length))
+})// Tổng số Examiner theo phaseId
+
+router.get('/totalCourseByPhase', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    const course = await Course.findAll({
+        where: {
+            ePId
+        }
+    })
+    res.json(DataResponse(course.length))
+})// Tổng số course theo phaseId
+
+// Số lượng course chưa dc xếp lịch xong - giống admin
+// Top 3 examiner canh thi - giống admin
+// Course và số lượng hs mỗi course - giống admin
+
+router.get('/totalExamroomByPhase', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    let arr = []
+    function insert(day, numExamroom) {
+        const a = {
+            day, numExamroom
+        }
+        arr.push(a)
+    }
+    const examSlots = await ExamSlot.findAll({
+        where: {
+            ePId: ePId
+        }
+    })
+    let arrDay = []
+    for (const item of examSlots) {
+        if (!arrDay.includes(item.day)) {
+            arrDay.push(item.day)
+        }
+    }
+    for (const day of arrDay) {
+        const examSlots = await ExamSlot.findAll({
+            where: {
+                day: day
+            }
+        })
+        let arrIdES = []
+        for (let i = 0; i < examSlots.length; i++) {
+            arrIdES.push(examSlots[i].id)
+        }
+        const subInSLot = await SubInSlot.findAll({
+            where: {
+                exSlId: arrIdES
+            }
+        })
+
+        let arrIdSIS = []
+        for (let i = 0; i < subInSLot.length; i++) {
+            arrIdSIS.push(subInSLot[i].id)
+        }
+        const examRoom = await ExamRoom.findAll({
+            where: {
+                sSId: arrIdSIS
+            }
+        })
+        insert(day, examRoom.length)
+    }
+    res.json(DataResponse(arr))
+})// Tổng số schedule (examroom) theo ngày trong phase (mảng)
 
 export default router
