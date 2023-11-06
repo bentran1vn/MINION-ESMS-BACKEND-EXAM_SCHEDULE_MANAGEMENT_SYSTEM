@@ -183,8 +183,9 @@ router.post('/', async (req, res) => {
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
+    const staff = res.locals.userData
     try {
-        const result = await deleteExamSlot(id);
+        const result = await deleteExamSlot(id, staff);
         res.json(MessageResponse(result))
     } catch (error) {
         console.log(error);
