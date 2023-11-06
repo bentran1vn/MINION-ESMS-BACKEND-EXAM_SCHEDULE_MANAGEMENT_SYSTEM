@@ -4,6 +4,11 @@ import Course from '../models/Course.js'
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
         {
+            where: {
+                alive: 1
+            }
+        },
+        {
             order: [
                 ['startDay', 'ASC'],
             ]
@@ -32,7 +37,7 @@ export function checkTime(startDay, endDay) {
     const endDate = enDay.toISOString().slice(0, 10);
     if (startDate && endDate) {
         if (startDay === startDate && endDay === endDate) {
-            
+
         } else {
             throw new Error('Invalid time value. The time must be in YYYY-MM-DD format')
         }
@@ -54,7 +59,8 @@ export async function findPhaseBySemId(id) {
 
     const examPhases = await ExamPhase.findAll({
         where: {
-            semId: id
+            semId: id,
+            alive: 1
         }
     })
 
@@ -123,19 +129,53 @@ export async function createPhase(examPhase) {
     const endDay = examPhase.endDay;
     const des = parseInt(examPhase.des)
     const semId = parseInt(examPhase.semId)
- 
+
     checkTime(startDay, endDay)
 
-    let result = await ExamPhase.create({
-        semId: semId,
-        ePName: ePName,
-        startDay: startDay,
-        endDay: endDay,
-        des: des
-    })
-    if(!result){
-        throw new Error('Create ExamPhase Fail!')
+    let check = await ExamPhase.findOne(
+        {
+            where: {
+                semId: semId,
+                ePName: ePName,
+                startDay: startDay,
+                endDay: endDay,
+                des: des,
+                alive: 0
+            }
+        }
+    )
+
+    if (check) {
+        const check = await ExamPhase.update(
+            {
+                alive: 1
+            },
+            {
+                where: {
+                    semId: semId,
+                    ePName: ePName,
+                    startDay: startDay,
+                    endDay: endDay,
+                    des: des,
+                    alive: 0
+                }
+            })
+        if (!check) {
+            throw new Error('Create ExamPhase Fail!')
+        }
+    } else {
+        let result = await ExamPhase.create({
+            semId: semId,
+            ePName: ePName,
+            startDay: startDay,
+            endDay: endDay,
+            des: des
+        })
+        if (!result) {
+            throw new Error('Create ExamPhase Fail!')
+        }
     }
+
 }
 
 export async function getExamPhaseBySemesterId(semesterId) {

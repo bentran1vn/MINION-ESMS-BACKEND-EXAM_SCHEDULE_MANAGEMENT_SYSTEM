@@ -466,6 +466,7 @@ router.post('/', async (req, res) => {
                 endDay: {
                     [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
                 },
+                alive: 1
             }
         })
 
