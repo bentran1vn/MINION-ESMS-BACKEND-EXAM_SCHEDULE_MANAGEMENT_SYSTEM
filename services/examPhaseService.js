@@ -1,5 +1,6 @@
 import ExamPhase from '../models/ExamPhase.js'
 import Course from '../models/Course.js'
+import ExamSlot from '../models/ExamSlot.js'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
@@ -189,4 +190,14 @@ export async function getExamPhaseBySemesterId(semesterId) {
         throw new Error('Not found!')
     }
     return examPhases
-}   
+}
+
+export async function checkExamSlotByPhaseId(examPhaseId) {
+    const examSlot = await ExamSlot.findAll({
+        where: {
+            ePId: examPhaseId
+        }
+    })
+    if(examSlot == null || examSlot.length ==0) return false
+    return true
+}//return true if have exam slot | false if dont have exam slot
