@@ -11,7 +11,96 @@ import Subject from "../models/Subject.js";
 import Room from "../models/Room.js";
 import { Op } from 'sequelize'
 
+export async function createVolunteerExaminer(exName, exEmail, semesterId) {
+    const examiner = await Examiner.create({
+        exName: exName,
+        exEmail: exEmail,
+        semesterId: semesterId,
+        status: 0,
+        typeExaminer: 2
+    })
+    if (examiner) {
+        return true
+    } else {
+        throw new Error('Error in create examiner volunteer')
+    }
+}//tạo examiner role ctv
 
+export async function getAllExaminerCTVBySemId(semesterId) {
+    const examiner = await Examiner.findAll({
+        where: {
+            semesterId: semesterId,
+            typeExaminer: 2
+        }
+    })
+    if (examiner) {
+        return examiner
+    } else {
+        throw new Error('Error in get examiner volunteer')
+    }
+}//get ra examiner role ctv theo semester
+
+export async function allScheduledOfExaminer(userId) {
+    const examiner = await Examiner.findAll({
+        where: {
+            userId: userId,
+        }
+    })
+    let ex = examiner.map(i => i.dataValues)
+    let exId = ex.map(exI => exI.id);
+    const finalList = await getAllScheduledOneExaminer(exId);
+    if (Array.isArray(finalList)) {
+        return finalList;
+    } else if (!Array.isArray(finalList)) {
+        throw new Error('Not found in allScheduledOfExaminer!')
+    }
+}//lấy tất cả lịch đã đăng kí của 1 examiner
+
+export async function deleteExaminer(id) {
+    const row = await Examiner.update({
+        status: 1
+    }, {
+        where: {
+            id: id
+        }
+    })
+    if (row[0] != 0) {
+        return true;
+    }
+}//xóa examiner
+
+export async function scheduledByPhase(id, examphaseId) {
+    const exPhase = await ExamPhase.findOne({
+        where: {
+            id: examphaseId,
+            alive: 1
+        }
+    })
+    if (!exPhase) {
+        throw new Error('Not found examPhase!')
+    }
+    const semester = await Semester.findOne({
+        where: {
+            start: { [Op.lte]: exPhase.startDay },
+            end: { [Op.gte]: exPhase.endDay }
+        }
+    })
+
+    const examiner = await Examiner.findOne({
+        where: {
+            userId: id,
+            semesterId: semester.id
+        }
+    })
+    const examinerId = examiner.id
+    const finalList = await getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId);
+
+    if (Array.isArray(finalList)) {
+        return finalList;
+    } else if (!Array.isArray(finalList)) {
+        throw new Error('Not found in scheduledByPhase !')
+    }
+}//lấy lịch đã đăng kí của 1 examiner theo phase
 
 export async function getScheduleByPhase(userId, examPhaseId) {
     let message = "";
@@ -142,9 +231,8 @@ export async function getScheduleByPhase(userId, examPhaseId) {
         }
     }
     return result;
-}//lịch có thể đăng kí theo phase
+}//lấy lịch để đăng kí theo phase
 
-//lấy hết lịch đã đk của 1 thg theo phase
 export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId) {
     let sheduledList = [];
     let message = "";
@@ -316,7 +404,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
         }
     }
     return returnList;
-}
+}//function của lấy hết lịch đã đk của 1 thg theo phase
 
 export async function getAllScheduledOneExaminer(examinerId) {
     let sheduledList = [];
