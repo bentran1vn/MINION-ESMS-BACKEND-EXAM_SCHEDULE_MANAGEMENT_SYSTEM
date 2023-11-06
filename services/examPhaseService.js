@@ -47,7 +47,7 @@ export async function findPhaseBySemId(id) {
     const detailExamPhase = []
     function insertExamPhase(id, semId, pN, sd, ed, cd, status) {
         const EPDetail = {
-            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status// 1 done, 0 chưa done
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des// 1 done, 0 chưa done
         }
         detailExamPhase.push(EPDetail)
     }
@@ -65,9 +65,9 @@ export async function findPhaseBySemId(id) {
             }
         })
         if (course.length != 0) {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status)
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des)
         } else {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status)
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des)
         }
     }
     if (!detailExamPhase) throw new Error("Can not find exam phases !")
