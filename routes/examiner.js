@@ -6,7 +6,10 @@ import User from '../models/User.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
 import StaffLogChange from '../models/StaffLogChange.js'
-import { getScheduleByPhase, getAllScheduledOneExaminer, getScheduledOneExaminerByPhaseVer2 } from '../services/examinerService.js'
+import {
+    getScheduleByPhase, allScheduledOfExaminer, getScheduledOneExaminerByPhaseVer2, createVolunteerExaminer,
+    getAllExaminerCTVBySemId, deleteExaminer, scheduledByPhase
+} from '../services/examinerService.js'
 import ExaminerLogTime from '../models/ExaminerLogTime.js'
 import ExamPhase from '../models/ExamPhase.js'
 
@@ -251,10 +254,11 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const userId = parseInt(req.body.userId);
-    const staffId = parseInt(res.locals.userData.id);
-    //staff id thực chất là userId của role staff lấy từ token
     try {
+        const userId = parseInt(req.body.userId);
+        const staffId = parseInt(res.locals.userData.id);
+        //staff id thực chất là userId của role staff lấy từ token
+
         const statusMap = new Map([
             ['lecturer', 0],
             ['staff', 1],
@@ -317,28 +321,13 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
-router.post('/volunteerExaminer', requireRole('staff'), async (req, res) => {
-    const exName = req.body.name
-    const exEmail = req.body.email
-    const semesterId = parseInt(req.body.semesterId)
-    const status = 0
-    const typeExaminer = 2
-    const staffId = parseInt(res.locals.userData.id);
+router.post('/volunteerExaminer', async (req, res) => {
     try {
-        const examiner = await Examiner.create({
-            exName: exName,
-            exEmail: exEmail,
-            semesterId: semesterId,
-            status: status,
-            typeExaminer: typeExaminer
-        })
-        if (examiner) {
-            const stafflog = await StaffLogChange.create({
-                userId: staffId,
-                rowId: examiner.id,
-                tableName: 5,
-                typeChange: 8
-            })
+        const exName = req.body.name
+        const exEmail = req.body.email
+        const semesterId = parseInt(req.body.semesterId)
+        const result = await createVolunteerExaminer(exName, exEmail, semesterId);
+        if (result) {
             res.json(MessageResponse("Add volunteer success!"));
         }
     } catch (error) {
@@ -347,40 +336,25 @@ router.post('/volunteerExaminer', requireRole('staff'), async (req, res) => {
     }
 })//tạo examiner role ctv
 
-router.get('/volunteerExaminer', requireRole('staff'), async (req, res) => {
-    const semesterId = parseInt(req.query.semesterId);
+router.get('/volunteerExaminer', async (req, res) => {
     try {
-        const examiner = await Examiner.findAll({
-            where: {
-                semesterId: semesterId,
-                typeExaminer: 2
-            }
-        })
-        res.json(DataResponse(examiner));
+        const semesterId = parseInt(req.query.semesterId);
+        const examiner = await getAllExaminerCTVBySemId(semesterId)
+        if (examiner) {
+            res.json(DataResponse(examiner));
+        }
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
 })//get ra examiner role ctv theo semester
 
-router.get('/allScheduled', requireRole('lecturer'), async (req, res) => {
-    const id = parseInt(res.locals.userData.id);//cái này sau bắt bằng token
-    const examiner = await Examiner.findAll({
-        where: {
-            userId: id,
-        }
-    })
-    let ex = examiner.map(i => i.dataValues)
-    let exId = ex.map(exI => exI.id);
+router.get('/allScheduled', async (req, res) => {
     try {
-        const finalList = await getAllScheduledOneExaminer(exId);
-
-        if (Array.isArray(finalList)) {
-            res.json(DataResponse(finalList));
-            return;
-        } else if (!Array.isArray(finalList)) {
-            res.json(NotFoundResponse());
-            return;
+        const id = parseInt(req.query.userId);//cái này sau bắt bằng token
+        const finalList = await allScheduledOfExaminer(id)
+        if (finalList) {
+            res.json(DataResponse(finalList))
         }
     } catch (error) {
         console.log(error);
@@ -396,10 +370,8 @@ router.get('/examPhaseId', requireRole('lecturer'), async (req, res) => {
         const result = await getScheduleByPhase(userId, examPhaseId);
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
-            return;
         } else if (!Array.isArray(result)) {
             res.json(NotFoundResponse());
-            return;
         }
     } catch (error) {
         console.log(error);
@@ -408,18 +380,11 @@ router.get('/examPhaseId', requireRole('lecturer'), async (req, res) => {
 })//lấy lịch để đăng kí theo phase
 
 router.delete('/', async (req, res) => {
-    const id = parseInt(req.query.examinerId);
     try {
-        const row = await Examiner.update({
-            status: 1
-        }, {
-            where: {
-                id: id
-            }
-        })
-        if (row[0] != 0) {
+        const id = parseInt(req.query.examinerId);
+        const row = await deleteExaminer(id)
+        if (row) {
             res.json(MessageResponse("Deleted !"));
-            return;
         }
     } catch (error) {
         console.log(error);
@@ -427,41 +392,13 @@ router.delete('/', async (req, res) => {
     }
 })//xóa examiner
 
-router.get('/scheduledByPhase', requireRole('lecturer'), async (req, res) => {
-    const id = parseInt(res.locals.userData.id);
-    const examphaseId = parseInt(req.query.examphaseId);
+router.get('/scheduledByPhase', async (req, res) => {
     try {
-        const exPhase = await ExamPhase.findOne({
-            where: {
-                id: examphaseId
-            }
-        })
-        if (!exPhase) {
-            res.json(NotFoundResponse());
-            return;
-        }
-        const semester = await Semester.findOne({
-            where: {
-                start: { [Op.lte]: exPhase.startDay },
-                end: { [Op.gte]: exPhase.endDay }
-            }
-        })
-
-        const examiner = await Examiner.findOne({
-            where: {
-                userId: id,
-                semesterId: semester.id
-            }
-        })
-        const examinerId = examiner.id
-        const finalList = await getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId);
-
-        if (Array.isArray(finalList)) {
-            res.json(DataResponse(finalList));
-            return;
-        } else if (!Array.isArray(finalList)) {
-            res.json(NotFoundResponse());
-            return;
+        const id = parseInt(req.query.userId);
+        const examphaseId = parseInt(req.query.examphaseId);
+        const finalList = await scheduledByPhase(id, examphaseId)
+        if (finalList) {
+            res.json(DataResponse(finalList))
         }
     } catch (error) {
         console.log(error);
@@ -480,7 +417,8 @@ router.get('/getExaminerByPhase', requireRole('admin'), async (req, res) => {
         let examinerLists = [];
         const exPhase = await ExamPhase.findOne({
             where: {
-                id: exPhaseId
+                id: exPhaseId,
+                alive: 1
             }
         })
         if (exPhase) {

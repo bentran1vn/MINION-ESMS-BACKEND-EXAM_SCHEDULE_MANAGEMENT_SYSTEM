@@ -218,8 +218,9 @@ const router = express.Router()
 
 router.post('/', requireRole('admin'), async (req, res) => {
     const examPhase = req.body
+    const staff = res.locals.userData
     try {
-        await createPhase(examPhase)
+        await createPhase(examPhase, staff)
         res.json(MessageResponse('Create successfully !'))
     } catch (error) {
         console.log(error)
@@ -229,8 +230,9 @@ router.post('/', requireRole('admin'), async (req, res) => {
 
 router.put('/', requireRole('admin'), async (req, res) => {
     const examPhaseUp = req.body
+    const staff = res.locals.userData
     try {
-        await updatePhase(examPhaseUp)
+        await updatePhase(examPhaseUp, staff)
         res.json(MessageResponse("ExamPhase Update !"))
     } catch (error) {
         console.log(error)
@@ -240,8 +242,9 @@ router.put('/', requireRole('admin'), async (req, res) => {
 
 router.delete('/', requireRole('admin'), async (req, res) => {
     const id = parseInt(req.body.id)
+    const staff = res.locals.userData
     try {
-        await deletePhaseBySemId(id)
+        await deletePhaseBySemId(id, staff)
         res.json(MessageResponse("ExamPhase Delete !"))
     } catch (error) {
         console.log(error)
@@ -254,7 +257,8 @@ router.get('/semId', async (req, res) => {
     try {
         const phase = await ExamPhase.findAll({
             where:{
-                semId: semesterId
+                semId: semesterId,
+                alive: 1
             }
         })
         res.json(DataResponse(phase));

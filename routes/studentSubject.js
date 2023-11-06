@@ -43,13 +43,6 @@ const router = express.Router()
 //     }
 // })
 
-router.put('/', async (req, res) => {
-    await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
-    await Course.update({ status: 0 }, { where: { status: 1 } })
-    await ExamPhase.update({ status: 0 }, { where: { status: 1 } })
-    res.json(MessageResponse('Update success'))
-})// Update lại student subject từ status: 1 về 0
-
 router.post('/excel', upload.single('excelFile'), async (req, res) => {
     try {
         if (!req.file) {

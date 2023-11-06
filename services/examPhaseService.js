@@ -1,8 +1,15 @@
 import ExamPhase from '../models/ExamPhase.js'
 import Course from '../models/Course.js'
+import ExamSlot from '../models/ExamSlot.js'
+import StaffLogChange from '../models/StaffLogChange.js'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
+        {
+            where: {
+                alive: 1
+            }
+        },
         {
             order: [
                 ['startDay', 'ASC'],
@@ -32,7 +39,7 @@ export function checkTime(startDay, endDay) {
     const endDate = enDay.toISOString().slice(0, 10);
     if (startDate && endDate) {
         if (startDay === startDate && endDay === endDate) {
-            
+
         } else {
             throw new Error('Invalid time value. The time must be in YYYY-MM-DD format')
         }
@@ -54,7 +61,8 @@ export async function findPhaseBySemId(id) {
 
     const examPhases = await ExamPhase.findAll({
         where: {
-            semId: id
+            semId: id,
+            alive: 1
         }
     })
 
@@ -74,7 +82,7 @@ export async function findPhaseBySemId(id) {
     return detailExamPhase
 }
 
-export async function deletePhaseBySemId(id) {
+export async function deletePhaseBySemId(id, staff) {
     const examPhase = await ExamPhase.findOne({
         where: {
             id: id,
@@ -93,13 +101,20 @@ export async function deletePhaseBySemId(id) {
                 where: examPhase
             }
         )
+        const checkLogStaff = await StaffLogChange.create({
+            rowId: examRoom.dataValues.id,
+            tableName: 6,
+            userId: staff.id,
+            typeChange: 15,
+        })
+        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
         if (result === 0) {
             throw new Error('Delete Success !')
         }
     }
 }
 
-export async function updatePhase(examPhaseUp) {
+export async function updatePhase(examPhaseUp, staff) {
     const check = await ExamPhase.update({
         semId: examPhaseUp.semId,
         ePName: examPhaseUp.ePName,
@@ -112,30 +127,88 @@ export async function updatePhase(examPhaseUp) {
             alive: 1
         }
     })
+
+    const checkLogStaff = await StaffLogChange.create({
+        rowId: examRoom.dataValues.id,
+        tableName: 6,
+        userId: staff.id,
+        typeChange: 14,
+    })
+    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+
     if (check[0] !== 1) {
         throw new Error('Update Fail !')
     }
 }
 
-export async function createPhase(examPhase) {
+export async function createPhase(examPhase, staff) {
     const ePName = examPhase.ePName
     const startDay = examPhase.startDay;
     const endDay = examPhase.endDay;
     const des = parseInt(examPhase.des)
     const semId = parseInt(examPhase.semId)
- 
+
     checkTime(startDay, endDay)
 
-    let result = await ExamPhase.create({
-        semId: semId,
-        ePName: ePName,
-        startDay: startDay,
-        endDay: endDay,
-        des: des
-    })
-    if(!result){
-        throw new Error('Create ExamPhase Fail!')
+    let check = await ExamPhase.findOne(
+        {
+            where: {
+                semId: semId,
+                ePName: ePName,
+                startDay: startDay,
+                endDay: endDay,
+                des: des,
+                alive: 0
+            }
+        }
+    )
+
+    if (check) {
+        const check = await ExamPhase.update(
+            {
+                alive: 1
+            },
+            {
+                where: {
+                    semId: semId,
+                    ePName: ePName,
+                    startDay: startDay,
+                    endDay: endDay,
+                    des: des,
+                    alive: 0
+                }
+            })
+            const checkLogStaff = await StaffLogChange.create({
+                rowId: examRoom.dataValues.id,
+                tableName: 6,
+                userId: staff.id,
+                typeChange: 13,
+            })
+            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+        if (!check) {
+            throw new Error('Create ExamPhase Fail!')
+        }
+    } else {
+        let result = await ExamPhase.create({
+            semId: semId,
+            ePName: ePName,
+            startDay: startDay,
+            endDay: endDay,
+            des: des
+        })
+        const checkLogStaff = await StaffLogChange.create({
+            rowId: examRoom.dataValues.id,
+            tableName: 6,
+            userId: staff.id,
+            typeChange: 13,
+        })
+        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+
+        if (!result) {
+            throw new Error('Create ExamPhase Fail!')
+        }
     }
+
 }
 
 export async function getExamPhaseBySemesterId(semesterId) {
@@ -149,4 +222,14 @@ export async function getExamPhaseBySemesterId(semesterId) {
         throw new Error('Not found!')
     }
     return examPhases
-}   
+}
+
+export async function checkExamSlotByPhaseId(examPhaseId) {
+    const examSlot = await ExamSlot.findAll({
+        where: {
+            ePId: examPhaseId
+        }
+    })
+    if(examSlot == null || examSlot.length ==0) return false
+    return true
+}//return true if have exam slot | false if dont have exam slot
