@@ -573,8 +573,8 @@ router.post('/', async (req, res) => {
 //require role staff để cái middle ware reqRole đây
 router.post('/auto', async (req, res) => {
     //lấy id thông qua token
-    // const staffId = parseInt(res.locals.userData.id) || 1;
-    const staffId = 1;
+    const staffId = parseInt(res.locals.userData.id) || 1;
+    // const staffId = 1;
     const examphaseId = req.body.examphaseId;
     try {
         const message = await autoFillLecturerToExamRoom(staffId, examphaseId);
@@ -593,9 +593,9 @@ router.post('/auto', async (req, res) => {
 //=> xuống exam room xem (mỗi phòng của môn đó trong giờ đã có lecturer chưa, chưa thì filed random lec vô cái)
 //thêm giành cho role lecturer | lect tự đăng kí 
 //PASS , requireRole('lecturer')
-router.put('/lecturer', async (req, res) => {
+router.put('/lecturer', requireRole('lecturer'), async (req, res) => {
     //route đăng kí của lecturer
-    const lecturerId = parseInt(req.body.userId);
+    const lecturerId = parseInt(res.locals.userData.id);
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
@@ -614,9 +614,9 @@ router.put('/lecturer', async (req, res) => {
 
 // hủy đăng ký
 // PASS , requireRole('lecturer')
-router.put('/delLecturer', async (req, res) => {
+router.put('/delLecturer', requireRole('lecturer'), async (req, res) => {
     //hủy đăng kí của 1 lecturer
-    const lecturerId = parseInt(req.body.userId);
+    const lecturerId = parseInt(res.locals.userData.id);
     const startTime = req.body.startTime;
     const endTime = req.body.endTime;
     const day = req.body.day;
@@ -635,9 +635,9 @@ router.put('/delLecturer', async (req, res) => {
 
 //thêm lecturer cho role staff
 //require role staff
-router.put('/addExaminer', async (req, res) => {
-    // const staffId = parseInt(res.locals.userData.id);//lấy từ token
-    const staffId = 1
+router.put('/addExaminer', requireRole('staff'), async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);//lấy từ token
+    // const staffId = 1
     //thêm lecturer của staff
     const examRoomId = parseInt(req.body.examRoomId)
     const examinerId = parseInt(req.body.examinerId)
@@ -654,9 +654,9 @@ router.put('/addExaminer', async (req, res) => {
 
 // update roomId to 1 examRoom
 //role staff , requireRole("staff")
-router.put('/room', async (req, res) => {
-    // const staffId = parseInt(res.locals.userData.id);
-    const staffId = 1;
+router.put('/room', requireRole("staff"), async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = 1;
 
     //thêm phòng của staff
     const examRoomId = parseInt(req.body.examRoomId)
@@ -673,9 +673,9 @@ router.put('/room', async (req, res) => {
 
 //delete 1 roomId from examRoom
 //role staff , requireRole("staff")
-router.put('/delRoom', async (req, res) => {
-    // const staffId = parseInt(res.locals.userData.id);
-    const staffId = 1;
+router.put('/delRoom', requireRole("staff"), async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = 1;
 
     //staff nhìn vô bảng examRoom thấy lỗi chỗ nào bấm
     //client bắt r trả id dòng đó về và update roomId dòng đó thành null
@@ -774,9 +774,9 @@ router.get('/', async (req, res) => {
 
 //tất cả examiner rảnh tại examslot
 //role staff
-router.get('/allExaminerInSlot', async (req, res) => {
-    // const staffId = parseInt(res.locals.userData.id);
-    const staffId = 1;
+router.get('/allExaminerInSlot', requireRole('staff'), async (req, res) => {
+    const staffId = parseInt(res.locals.userData.id);
+    // const staffId = 1;
     const examslotId = parseInt(req.query.examslotId);
 
     try {
@@ -795,7 +795,7 @@ router.get('/allExaminerInSlot', async (req, res) => {
 })
 
 //tất cả ... trong 1 examSlot có trong examRoom
-router.get('/getCourseOneSlot', async (req, res) => {
+router.get('/getCourseOneSlot', requireRole('staff'), async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllCourseOneSlot(exSlotID);
@@ -813,7 +813,7 @@ router.get('/getCourseOneSlot', async (req, res) => {
 })
 
 //tất cả course trong 1 examSlot và số học sinh thi môn đó trong examRoom
-router.get('/getCourseAndNumOfStuOneSlot', async (req, res) => {
+router.get('/getCourseAndNumOfStuOneSlot', requireRole('staff'), async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllCourseAndNumOfStudentOneSlot(exSlotID);
@@ -831,7 +831,7 @@ router.get('/getCourseAndNumOfStuOneSlot', async (req, res) => {
 })
 
 //tất cả room đc xếp trong exslot này
-router.get('/getRoomOneSlot', async (req, res) => {
+router.get('/getRoomOneSlot', requireRole('staff'), async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllRoomOneSlot(exSlotID);
@@ -849,7 +849,7 @@ router.get('/getRoomOneSlot', async (req, res) => {
 })
 
 //tất cả examiner đc xếp trong exslot này
-router.get('/getExaminerOneSlot', async (req, res) => {
+router.get('/getExaminerOneSlot', requireRole('staff'), async (req, res) => {
     const exSlotID = parseInt(req.query.exSlotID);
     try {
         const result = await getAllExaminerOneSlot(exSlotID);
@@ -866,7 +866,7 @@ router.get('/getExaminerOneSlot', async (req, res) => {
     }
 });
 //ngày, giờ, môn, phòng, ai coi, status đc sửa không
-router.get('/getExamRoomDetailByPhase', async (req, res) => {
+router.get('/getExamRoomDetailByPhase', requireRole('staff'), async (req, res) => {
     const examSlotId = parseInt(req.query.examSlotId);
     try {
         const result = await getDetailScheduleOneExamSlot(examSlotId);
