@@ -1,12 +1,9 @@
 import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Semester from '../models/Semester.js'
-import ExamPhase from '../models/ExamPhase.js'
-import StaffLogChange from '../models/StaffLogChange.js'
-import { Op, STRING } from 'sequelize'
-import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
+import { createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
 
+//Swagger-TableInfo
 /**
  * @swagger
  * components:
@@ -42,6 +39,9 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *          des: 
  *              type: integer
  *              description: 0 is normal, 1 is coursera
+ *          alive: 
+ *              type: integer
+ *              description: 0 is dead, 1 is alive
  *       example:
  *           id: 1
  *           semId: 1
@@ -50,8 +50,10 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *           endDay: 2023-10-15
  *           status: 0
  *           des: 0
+ *           alive: 1
  */
 
+//Swagger-TableTag
 /**
  * @swagger
  * tags:
@@ -59,6 +61,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *    description: The ExamPhases managing API
  */
 
+//Swagger-Post-CreateExamPhase
 /**
  * @swagger
  * /examPhases:
@@ -72,6 +75,9 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *           schema:
  *             type: object
  *             properties:
+ *               semId:
+ *                 type: integer
+ *                 example: 1
  *               ePName:
  *                 type: string
  *                 example: FALL_2023, SUMMER_2023
@@ -85,6 +91,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *                 type: integer
  *                 example: 0 is normal, 1 is coursera
  *           required:
+ *             - semId
  *             - ePName
  *             - startDay
  *             - endDay
@@ -94,6 +101,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *         description: Create Successfully!
  */
 
+//Swagger-Post-UpdateExamPhase
 /**
  * @swagger
  * /examPhases:
@@ -107,9 +115,6 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *           schema:
  *             type: object
  *             properties:
- *               examPhaseId:
- *                 type: integer
- *                 example: 1
  *               semId:
  *                 type: integer
  *                 example: 1
@@ -122,17 +127,21 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *               endDay:
  *                 type: DATEONLY
  *                 example: 2023-10-15
+  *              des:
+ *                 type: string
+ *                 example: Normal
  *           required:
- *             - examPhaseId
  *             - semId
  *             - ePName
  *             - startDay
  *             - endDay
+ *             - des
  *     responses:
  *       '200':
  *         description: ExamPhase Update !
  */
 
+//SWagger-Delete-DeleteExamPhase
 /**
  * @swagger
  * /examPhases:
@@ -156,6 +165,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *         description: Delete Successfully!
  */
 
+//Swagger-Get-GetListExamPhaseBySemId
 /**
  * @swagger
  * /examPhases/semId :
@@ -168,7 +178,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *          schema:
  *            type: integer
  *          required: true
- *          description: The Semester Id client want to get
+ *          description: Return Examphase List by Semester Id
  *     responses :
  *       200 :
  *         description: OK !
@@ -180,12 +190,20 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
  *                 $ref: '#/components/schemas/ExamPhases'
  */
 
+//Swagger-Get-GetExamPhaseBySemId
 /**
  * @swagger
- * /examPhases/notScheduled/ :
+ * /examPhases/{id} :
  *   get :
- *     summary : Return all exam phase has not been scheduled yet.
+ *     summary : Return all ExamPhase by Semester Id
  *     tags: [ExamPhases]
+ *     parameters:
+ *        - in: path
+ *          name: id
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: Return Examphase by Semester Id
  *     responses :
  *       200 :
  *         description: OK !
@@ -199,7 +217,7 @@ import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePha
 
 const router = express.Router()
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('admin'), async (req, res) => {
     const examPhase = req.body
     try {
         await createPhase(examPhase)
@@ -210,7 +228,7 @@ router.post('/', async (req, res) => {
     }
 })// Creat new Exam Phase
 
-router.put('/', async (req, res) => {
+router.put('/', requireRole('admin'), async (req, res) => {
     const examPhaseUp = req.body
     try {
         await updatePhase(examPhaseUp)
@@ -221,7 +239,7 @@ router.put('/', async (req, res) => {
     }
 })// Update ExamPhase
 
-router.delete('/', async (req, res) => {
+router.delete('/', requireRole('admin'), async (req, res) => {
     const id = parseInt(req.body.id)
     try {
         await deletePhaseBySemId(id)
@@ -235,53 +253,14 @@ router.delete('/', async (req, res) => {
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
-
-        const time = new Date() //ngày hiện tại
-        var timeFormatted = time.toISOString().slice(0, 10)
-
-        const examPhase = await ExamPhase.findAll({
-            where: {
-                semId: semesterId
-            }
-        })
-        if (examPhase.length != 0) {
-            res.json(DataResponse(examPhase));
-            return;
-        }
-    } catch (err) {
-        res.json(InternalErrResponse());
-        return;
-    }
-})
-
-router.get('/notScheduled', async (req, res) => {
-    const detailExamPhase = []
-    function insertExamPhase(id, ss, y, pN, sd, ed) {
-        const EPDetail = {
-            id: id, season: ss, year: y, ePName: pN, sDay: sd, eDay: ed
-        }
-        detailExamPhase.push(EPDetail)
-    }
-    try {
-        const examPhases = await ExamPhase.findAll({ where: { status: 0 } })
-
-        for (let i = 0; i < examPhases.length; i++) {
-            const semester = await Semester.findOne({
-                where: {
-                    id: examPhases[i].semId
-                }
-            })
-
-            if (semester) {
-                insertExamPhase(semester.id, semester.season, semester.year, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay)
-            }
-        }
+        let examPhase
+        await findPhaseBySemId(semesterId).then(value => examPhase = value)
+        res.json(DataResponse(examPhase));
     } catch (error) {
-        console.log(error);
-        res.json(MessageResponse('Error found'))
+        console.log(error)
+        res.json(ErrorResponse(500, error.message))
     }
-    res.json(DataResponse(detailExamPhase))
-})// Get all Exam Phase has not been scheduled
+})//get all Exam Phase by Semester Id
 
 router.get('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
@@ -293,6 +272,6 @@ router.get('/:id', async (req, res) => {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
-})
+})// Get Exam Phase by Semester Id
 
 export default router
