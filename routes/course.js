@@ -78,7 +78,7 @@ router.get('/', requireRole('admin'), async (req, res) => {
     try {
         let courses
         await getCouseByExamPhase(ePId).then(value => courses = value)
-        res.jhson(DataResponse(courses))
+        res.json(DataResponse(courses))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
