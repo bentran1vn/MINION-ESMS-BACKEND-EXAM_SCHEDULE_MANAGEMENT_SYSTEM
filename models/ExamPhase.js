@@ -32,9 +32,15 @@ const ExamPhase = sequelize.define(tableName, {
     des: {
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
     // 0 is Nor
     // 1 is Cour
+    alive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: 1,
+    },
+    // 1 is alive
+    // 0 is dead
     
 });
 
