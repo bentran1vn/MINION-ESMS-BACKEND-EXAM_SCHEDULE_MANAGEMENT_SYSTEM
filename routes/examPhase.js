@@ -5,7 +5,7 @@ import Semester from '../models/Semester.js'
 import ExamPhase from '../models/ExamPhase.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { Op, STRING } from 'sequelize'
-import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
+import { checkTime, createPhase, deletePhaseBySemId, findPhaseBySemId, updatePhase } from '../services/examPhaseService.js'
 
 /**
  * @swagger
@@ -200,98 +200,41 @@ import { checkTime, findPhaseBySemId } from '../services/examPhaseService.js'
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const ePName = req.body.ePName
-    const startDay = req.body.startDay;
-    const endDay = req.body.endDay;
-    const des = parseInt(req.body.des)
-
+    const examPhase = req.body
     try {
-        const currentYear = new Date().getFullYear();
-
-        const semester = await Semester.findOne({
-            where: {
-                [Op.and]: {
-                    year: currentYear,
-                    status: 1
-                }
-            }
-        })
-        try {
-            !checkTime(startDay, endDay)
-
-        } catch (err) {
-            res.json(ErrorResponse(500, err.message))
-            return
-        }
-        if (!semester) {
-            res.json(NotFoundResponse());
-            return;
-        } else {
-            await ExamPhase.create({
-                semId: semester.id,
-                ePName: ePName,
-                startDay: startDay,
-                endDay: endDay,
-                des: des
-            })
-            res.json(MessageResponse('Create successfully !'))
-            return;
-        }
-    } catch (errer) {
-        console.log(errer)
-        res.json(InternalErrResponse());
+        await createPhase(examPhase)
+        res.json(MessageResponse('Create successfully !'))
+    } catch (error) {
+        console.log(error)
+        res.json(ErrorResponse(500, error.message))
     }
 })// Creat new Exam Phase
 
 router.put('/', async (req, res) => {
     const examPhaseUp = req.body
-    const id = parseInt(examPhaseUp.examPhaseId)
-
     try {
-        const check = await ExamPhase.update({
-            semId: examPhaseUp.semId,
-            ePName: examPhaseUp.ePName,
-            startDay: examPhaseUp.startDay,
-            endDay: examPhaseUp.endDay,
-        }, {
-            where: {
-                id: id,
-                status: 1
-            }
-        })
-        if (check[0] === 1) {
-            res.json(MessageResponse("ExamPhase Update !"))
-        } else {
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+        await updatePhase(examPhaseUp)
+        res.json(MessageResponse("ExamPhase Update !"))
     } catch (error) {
         console.log(error)
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.json(ErrorResponse(500, error.message))
     }
 })// Update ExamPhase
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.body.id)
     try {
-        const result = await ExamPhase.destroy({
-            where: {
-                id: id,
-            }
-        })
-        if (result === 0) {
-            res.json(NotFoundResponse('Not found'))
-        } else {
-            res.json(MessageResponse('Exam Phase deleted'))
-        }
+        await deletePhaseBySemId(id)
+        res.json(MessageResponse("ExamPhase Delete !"))
     } catch (error) {
         console.log(error)
-        res.json(MessageResponse('Error found'))
+        res.json(ErrorResponse(500, error.message))
     }
 })// Delete Exam Phase
 
 router.get('/semId', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
-    try{
+    try {
 
         const time = new Date() //ngày hiện tại
         var timeFormatted = time.toISOString().slice(0, 10)
@@ -301,11 +244,11 @@ router.get('/semId', async (req, res) => {
                 semId: semesterId
             }
         })
-        if(examPhase.length != 0){
+        if (examPhase.length != 0) {
             res.json(DataResponse(examPhase));
             return;
         }
-    }catch(err){
+    } catch (err) {
         res.json(InternalErrResponse());
         return;
     }
@@ -340,13 +283,13 @@ router.get('/notScheduled', async (req, res) => {
     res.json(DataResponse(detailExamPhase))
 })// Get all Exam Phase has not been scheduled
 
-router.get('/:id',  async (req, res) => {
+router.get('/:id', async (req, res) => {
     const semId = parseInt(req.params.id)
-    try{
+    try {
         let phaseList
         await findPhaseBySemId(semId).then(value => phaseList = value)
         res.json(DataResponse(phaseList))
-    } catch(err){
+    } catch (err) {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
