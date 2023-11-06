@@ -1,4 +1,3 @@
-import express from 'express'
 import StudentExam from '../models/StudentExam.js'
 import Course from '../models/Course.js'
 import SubInSlot from '../models/SubInSlot.js'

@@ -1,6 +1,5 @@
 import ExamRoom from '../models/ExamRoom.js'
 import StudentExam from '../models/StudentExam.js'
-import Subject from '../models/Subject.js'
 import StudentSubject from '../models/StudentSubject.js'
 import SubInSlot from '../models/SubInSlot.js'
 import Course from '../models/Course.js'

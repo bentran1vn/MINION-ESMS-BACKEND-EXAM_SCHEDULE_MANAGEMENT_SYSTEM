@@ -1,4 +1,3 @@
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 
