@@ -148,7 +148,11 @@ router.get('/', requireRole('admin'), async (req, res) => {
     try {
         const pageNo = parseInt(req.query.page_no) || 1
         const limit = parseInt(req.query.limit) || 20
-        const users_Total = await User.findAll()
+        const users_Total = await User.findAll({
+            where: {
+                role: { [Op.notLike]: '%admin' }
+            }
+        })
         const users = await User.findAll({
             where: {
                 role: { [Op.notLike]: '%admin' }
