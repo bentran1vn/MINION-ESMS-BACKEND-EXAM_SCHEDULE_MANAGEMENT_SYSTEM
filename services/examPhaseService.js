@@ -46,7 +46,7 @@ export async function findPhaseBySemId(id) {
     const detailExamPhase = []
     function insertExamPhase(id, semId, pN, sd, ed, cd) {
         const EPDetail = {
-            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd// 1 done, 0 chưa done
         }
         detailExamPhase.push(EPDetail)
     }

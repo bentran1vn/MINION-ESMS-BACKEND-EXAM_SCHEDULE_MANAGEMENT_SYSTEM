@@ -147,10 +147,83 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
         })
         await StudentSubject.update({ status: 0 }, {
             where: {
-                id: numStuInRoom[i],
+                stuId: numStuInRoom[i],
                 status: 1
             }
         })
+    }
+}
+
+export async function handleFillStuLittle(courId, numOfStu) {
+    const subIdInCourse = await Course.findOne({
+        where: {
+            status: 1,
+            id: courId
+        }
+    })// Lấy subject id trong course cần thi
+
+    const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
+        where: {
+            subjectId: subIdInCourse.subId,
+            status: 1
+        },
+    })
+    if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
+
+    const ListStudentIdInCourse = [] // Array tổng số student ID 
+    if (ArrStudentIdInCourse.length !== 0) {
+        ArrStudentIdInCourse.forEach(e => { // Lấy ID ra và nhét vào array tổng số student ID của học sinh (cho dễ những thao tác sau)
+            ListStudentIdInCourse.push(e.stuId)
+        });
+    } else {
+        throw new Error('Error in ArrStudentIdInCourse')
+    }
+
+    if (numOfStu > ListStudentIdInCourse.length) {
+        throw new Error('The number of students needing placement must be less than or equal to the number of unplaced students')
+    }
+
+    const subInSlot = await SubInSlot.findOne({
+        where: {
+            courId: courId
+        }
+    })
+
+    let arrReversed = [];
+    const examRoom = await ExamRoom.findAll({ // Lấy ra những room tương ứng với slot
+        where: {
+            sSId: subInSlot.id
+        }
+    })
+    if (examRoom.length == 0) {
+        throw new Error('Error found in examRoom')
+    }
+    for (let i = examRoom.length - 1; i >= 0; i--) {
+        arrReversed.push(examRoom[i].id);
+    }
+
+    const numStuInRoom = ListStudentIdInCourse.slice(0, numOfStu)
+
+    for (let i = 0; i < numOfStu; i++) {
+        for (let j = 0; j < arrReversed.length; j++) {
+            let count = 0
+            const a = await StudentExam.create({
+                eRId: arrReversed[j],
+                stuId: numStuInRoom[count]
+            })
+            const b = await StudentSubject.update({ status: 0 }, {
+                where: {
+                    stuId: numStuInRoom[count],
+                    status: 1
+                }
+            })
+            if (a && b) {
+                numStuInRoom.splice(0, 1)
+            }
+            if (numStuInRoom.length == 0) {
+                return
+            }
+        }
     }
 }
 
