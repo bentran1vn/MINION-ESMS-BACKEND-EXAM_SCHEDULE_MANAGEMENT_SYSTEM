@@ -49,7 +49,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
     } else {
         numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     }
-    if(numStu < 10 && checkRoomExist(courseId)){
+    if (numStu < 10 && checkRoomExist(courseId)) {
         await handleFillStuLittle(courseId, numStu)
         return
     }
@@ -220,3 +220,54 @@ export async function checkRoomExist(courId) {
     if (!subInSlotList) return false;
     return true
 }//true là đã có phòng, false là chưa có phòng
+
+export async function getCouseByExamPhase(ePId) {
+    let listCourse = [];
+    let check;
+    await autoCreateCourse().then(value => check = value);
+    if (check) {
+        const result = await Course.findAll({
+            where: {
+                ePId
+            },
+            include: [{
+                model: Subject,
+                attributes: ['code']
+            }]
+        });
+        const examPhase = await ExamPhase.findOne({
+            where: {
+                id: ePId,
+                alive: 1
+            }
+        })
+        for (const course of result) {
+            if (course.dataValues.status == 1) {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu,
+                    ePName: examPhase.ePName,
+                    status: 1
+                };
+                listCourse.push(sub);
+            } else {
+                const subject = course.subject;
+                const sub = {
+                    courseId: course.dataValues.id,
+                    subCode: subject.code,
+                    numOfStu: course.dataValues.numOfStu,
+                    ePName: examPhase.ePName,
+                    status: 0
+                };
+                listCourse.push(sub);
+            }
+        }
+        if (listCourse.length == 0) {
+            res.json(NotFoundResponse);
+        } else {
+            res.json(DataResponse(listCourse));
+        }
+    }
+}

@@ -5,9 +5,11 @@ import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import ExamPhase from '../models/ExamPhase.js'
 import { autoCreateCourse } from '../utility/courseUtility.js'
+import { getCouseByExamPhase } from '../services/courseService.js'
 
 const router = express.Router()
 
+//Swagger-TableInfo
 /**
  * @swagger
  * components:
@@ -42,6 +44,7 @@ const router = express.Router()
  *           status: 1
  */
 
+//Swagger-TableTag
 /**
  * @swagger
  * tags:
@@ -49,6 +52,7 @@ const router = express.Router()
  *    description: The courses managing API
  */
 
+//Swager-Get-GetAllCourses
 /**
  * @swagger
  * /courses/:
@@ -73,133 +77,49 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Courses'
  */
 
-/**
- * @swagger
- * /courses/:
- *   delete:
- *     summary: Delete 1 Courses by id or Delete all if id null by Staff
- *     tags: [Courses]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id: 
- *                 type: integer
- *                 example: 1, or null
- *           required:
- *             - id
- *     responses:
- *       '200':
- *         description: Course deleted / All courses deleted 
- */
-
-router.get('/', async (req, res) => {
+router.get('/', requireRole('admin'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
-    let listCourse = [];
     try {
-        let check;
-        await autoCreateCourse().then(value => check = value);
-        if (check) {
-            const result = await Course.findAll({
-                where: {
-                    ePId
-                },
-                include: [{
-                    model: Subject,
-                    attributes: ['code']
-                }]
-            });
-            const examPhase = await ExamPhase.findOne({
-                where: {
-                    id: ePId
-                }
-            })
-            for (const course of result) {
-                if (course.dataValues.status == 1) {
-                    const subject = course.subject;
-                    const sub = {
-                        courseId: course.dataValues.id,
-                        subCode: subject.code,
-                        numOfStu: course.dataValues.numOfStu,
-                        ePName: examPhase.ePName,
-                        status: 1
-                    };
-                    listCourse.push(sub);
-                } else {
-                    const subject = course.subject;
-                    const sub = {
-                        courseId: course.dataValues.id,
-                        subCode: subject.code,
-                        numOfStu: course.dataValues.numOfStu,
-                        ePName: examPhase.ePName,
-                        status: 0
-                    };
-                    listCourse.push(sub);
-                }
-            }
-            if (listCourse.length == 0) {
-                res.json(NotFoundResponse);
-            } else {
-                res.json(DataResponse(listCourse));
-            }
-        }
+        await getCouseByExamPhase(ePId)
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
 })// Get all course by detail: courseId, subCode, numOfStu, semesterId
 
-
-// router.post('/assign', async (req, res) => {
-//     const courId = req.body.courseId
-//     const date = req.body.day
-//     const slot = req.body.slot
-//     const examPhaseId = req.body.examPhaseId
+// //requireRole("staff"),
+// router.delete('/', async (req, res) => {
+//     const id = parseInt(req.body.id) || null;
 //     try {
-//         assignCourse(courId, date, slot, examPhaseId)
-//         res.json(MessageResponse("Assign Slot Successfully!"))
-//     } catch (Error) {
-//         console.log(Error);
-//         res.json(ErrorResponse(500, Error.message))
+//         if (id != null) {
+//             const rowAffected = await Course.update({ status: 0 }, {
+//                 where: {
+//                     id: id
+//                 }
+//             })
+//             if (rowAffected === 0) {
+//                 res.json(NotFoundResponse());
+//                 return;
+//             } else {
+//                 res.json(MessageResponse('Course deleted'));
+//                 return;
+//             }
+//         } else {
+//             const rowAffected = await Course.update({ status: 0 }, {
+//                 where: {}
+//             });
+//             if (rowAffected === 0) {
+//                 res.json(NotFoundResponse());
+//                 return;
+//             } else {
+//                 res.json(MessageResponse('All courses deleted'));
+//                 return;
+//             }
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
 //     }
 // })
-
-//requireRole("staff"),
-router.delete('/', async (req, res) => {
-    const id = parseInt(req.body.id) || null;
-    try {
-        if (id != null) {
-            const rowAffected = await Course.update({ status: 0 }, {
-                where: {
-                    id: id
-                }
-            })
-            if (rowAffected === 0) {
-                res.json(NotFoundResponse());
-                return;
-            } else {
-                res.json(MessageResponse('Course deleted'));
-                return;
-            }
-        } else {
-            const rowAffected = await Course.update({ status: 0 }, {
-                where: {}
-            });
-            if (rowAffected === 0) {
-                res.json(NotFoundResponse());
-                return;
-            } else {
-                res.json(MessageResponse('All courses deleted'));
-                return;
-            }
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})
 
 export default router
