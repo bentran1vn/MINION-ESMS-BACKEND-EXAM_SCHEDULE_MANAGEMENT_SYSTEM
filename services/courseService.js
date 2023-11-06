@@ -9,7 +9,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
 
-export async function assignCourse(courseId, ExamSlotId, numStu) {
+export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
 
     const numOfStu = await Course.findOne({
         where: {
@@ -105,11 +105,11 @@ export async function assignCourse(courseId, ExamSlotId, numStu) {
                     })
                     if (!checkLogRoom) throw new Error("Problem with assign Course! Fail to write room log!")
 
-                    //ghi logtime cho Staff
+                    //ghi logtime cho Staff for
                     const checkLogStaff = await StaffLogChange.create({
                         rowId: examRoom.dataValues.id,
                         tableName: 0,
-                        userId: 1,
+                        userId: staff.id,
                         typeChange: 12,
                     })
                     if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")

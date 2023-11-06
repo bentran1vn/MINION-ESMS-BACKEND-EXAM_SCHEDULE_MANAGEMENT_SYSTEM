@@ -1,12 +1,11 @@
 import express from "express";
 import User from "../models/User.js";
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import { Op } from "sequelize";
-import { DataResponse, ErrorResponse, InternalErrResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
+import { DataResponse, ErrorResponse, MessageResponse, NotFoundResponse } from "../common/reponses.js";
 import { requireRole } from "../middlewares/auth.js";
 import { fieldValidator } from "../middlewares/fieldValidator.middleware.js";
 import { searchValidation } from "../validation/userValidation.js";
+import { createUser, getAllUser, searchUser } from "../services/userService.js";
 
 const router = express.Router()
 
@@ -145,22 +144,10 @@ const router = express.Router()
 
 //requireRole('admin')
 router.get('/', requireRole('admin'), async (req, res) => {
+    const pageNo = parseInt(req.query.page_no) || 1
+    const limit = parseInt(req.query.limit) || 20
     try {
-        const pageNo = parseInt(req.query.page_no) || 1
-        const limit = parseInt(req.query.limit) || 20
-        const users_Total = await User.findAll({
-            where: {
-                role: { [Op.notLike]: '%admin' }
-            }
-        })
-        const users = await User.findAll({
-            where: {
-                role: { [Op.notLike]: '%admin' }
-            },
-            limit: limit,
-            offset: (pageNo - 1) * limit
-        })
-        const count_User = { Total: users_Total.length, Data: users }
+        const count_User = await getAllUser(pageNo, limit)
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
@@ -168,63 +155,25 @@ router.get('/', requireRole('admin'), async (req, res) => {
     }
 })// Get all User (status = 1)
 
-//requireRole('admin')
-router.post('/', async (req, res) => {
+//
+router.post('/', requireRole('admin'), async (req, res) => {
+    const userData = req.body
+    const staff = res.locals.userData
     try {
-        const userData = req.body
-
-        const user = await User.findOne({
-            where: {
-                email: userData.email,
-                status: 0
-            }
-        })
-        if (user) {
-            await User.update(
-                { status: 1, name: userData.name },
-                {
-                    where: {
-                        email: userData.email,
-                        status: 0
-                    }
-                }
-            )
-            res.json(MessageResponse("Create Successfully !"))
-        } else {
-            await User.create({
-                email: userData.email,
-                name: userData.name,
-                role: userData.role,
-            })
-            res.json(MessageResponse("Create Successfully !"))
-        }
+        await createUser(userData, staff)
+        res.json(MessageResponse("Create User Sucess!"))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
 })
 
-router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) => {
+router.get('/:searchValue', requireRole('admin'), fieldValidator(searchValidation), async (req, res) => {
     const string = req.params.searchValue
+    const pageNo = parseInt(req.query.page_no) || 1
+    const limit = parseInt(req.query.limit) || 20
     try {
-        const pageNo = parseInt(req.query.page_no) || 1
-        const limit = parseInt(req.query.limit) || 20
-        const users = await User.findAndCountAll({
-            where: {
-                [Op.or]: {
-                    name: {
-                        [Op.like]: '%' + string + '%'
-                    },
-                    email: {
-                        [Op.like]: '%' + string + '%'
-                    }
-                },
-                status: 1
-            },
-            limit: limit,
-            offset: (pageNo - 1) * limit
-        })
-        const count_User = { Total: users.count, Data: users.rows }
+        const count_User = searchUser(string, pageNo, limit)
         res.json(DataResponse(count_User))
     } catch (error) {
         console.log(error);
@@ -233,39 +182,15 @@ router.get('/:searchValue', fieldValidator(searchValidation), async (req, res) =
 })// Get User or Users by name 
 
 //requireRole('admin')
-router.delete('/', async (req, res) => {
+router.delete('/', requireRole('admin'), async (req, res) => {
     const email = req.body.email
+    const staff = res.locals.userData
     try {
-        const result = await User.update({ status: 0 }, {
-            where: {
-                email: email,
-                status: 1
-            }
-        })
-        if (result[0] == 0) {
-            res.json(NotFoundResponse('Not found'))
-        } else {
-            res.json(MessageResponse('User deleted'))
-        }
+        await deleteUser(email, staff)
+        res.json(MessageResponse('User deleted'))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
 })// Delete User by email (change status = 1 to 0)
-
-function sendToken(res, user) {
-    const payload = {
-        id: user.id,
-        name: user.username,
-        role: user.role,
-    }
-    const token = jwt.sign(payload, process.env.SECRET, {
-        expiresIn: '3h'
-    })
-    res.cookie('token', token)
-    res.json(DataResponse({
-        token: token
-    }))
-}// Send token
-
 export default router
