@@ -233,6 +233,65 @@ export async function getScheduleByPhase(userId, examPhaseId) {
     return result;
 }//lấy lịch để đăng kí theo phase
 
+export async function getExaminerByPhase(exPhaseId) {
+    const statusMap = new Map([
+        [0, 'lecturer'],
+        [1, 'staff'],
+        [2, 'volunteer']
+    ]);
+    let examinerLists = [];
+    const exPhase = await ExamPhase.findOne({
+        where: {
+            id: exPhaseId,
+            alive: 1
+        }
+    })
+    if (exPhase) {
+        const examiners = await ExaminerLogTime.findAll({
+            where: {
+                day: {
+                    [Op.gte]: exPhase.startDay, // Lấy examiner có day lớn hơn hoặc bằng startDay
+                    [Op.lte]: exPhase.endDay,   // và nhỏ hơn hoặc bằng endDay
+                }
+            }
+        });
+        if (examiners.length == 0) {
+            throw new Error('This phase has no examiners')
+        }
+        const uniqueExaminers = examiners.reduce((acc, current) => {
+            const x = acc.find(item => item.examinerId === current.examinerId);
+            if (!x) {
+                return acc.concat([current]);
+            } else {
+                return acc;
+            }
+        }, []);
+
+        for (const item of uniqueExaminers) {
+            const examiner = await Examiner.findOne({
+                where: {
+                    id: item.examinerId,
+                    semesterId: item.semId
+                }
+            });
+
+            const ex = {
+                exEmail: examiner.exEmail,
+                exName: examiner.exName,
+                role: statusMap.get(examiner.typeExaminer),
+                status: examiner.status
+            };
+            examinerLists.push(ex);
+        }
+        if (examinerLists.length == 0) {
+            throw new Error('Not found examiner !')
+        }
+        else {
+            return examinerLists;
+        }
+    }
+}//lấy danh sách examiner by phase của màn hình admin
+
 export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId) {
     let sheduledList = [];
     let message = "";
@@ -261,7 +320,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
         }
     );
     if (!examphase) {
-        return message = "Error";
+        throw new Error('Error in examPhase')
     }
 
     const exslot = await ExamSlot.findAll({
@@ -274,7 +333,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
     });
 
     if (exslot.length == 0) {
-        return message = "Not Found";
+        throw new Error('Not found')
     }
 
     for (const exsl of exslot) {
@@ -325,7 +384,7 @@ export async function getScheduledOneExaminerByPhaseVer2(examinerId, examphaseId
         }
     }
     if (sheduledList.length == 0) {
-        return message = `Your schedule in phase ${examphase.ePName} is empty`
+        throw new Error(`Your schedule in phase ${examphase.ePName} is empty`)
     }
     let finalList = [];
     for (const sche of sheduledList) {
