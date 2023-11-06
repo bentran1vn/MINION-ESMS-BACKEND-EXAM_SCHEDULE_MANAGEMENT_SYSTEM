@@ -25,12 +25,14 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
             day: day
         }
     })
+    if(!slot) throw new Error("Already Exist Exam Slot !")
     const examPhase = await ExamPhase.findOne({
         where: {
             id: phaseId,
             alive: 1
         }
     })
+    if(!examPhase) throw new Error("Not found exam phase !");
     if(validDay(examPhase.startDay, examPhase.endDay, day)){
         if (!slot) {
             const examSlot = await ExamSlot.create({
