@@ -19,6 +19,7 @@ const StaffLogChange = sequelize.define(tableName, {
         // 3 table examSlot
         // 4 table user
         // 5 table Examiner
+        // 6 table Examphase
     },
     userId: {
         type: DataTypes.INTEGER,
@@ -44,6 +45,13 @@ const StaffLogChange = sequelize.define(tableName, {
         // 10 thay đổi 1 row trong table Examiner (ghi nhận rowId)
         // 11 thay đổi nhiều row trong table Examiner
         // 12 tạo mới 1 ExamRoom
+        // 13 tạo mới 1 ExamPhase
+        // 14 thay đổi 1 row trong ExamPhase (ghi nhận rowId)
+        // 15 xóa một ExamPhase
+        // 16 tạo mới 1 subInSlot
+        // 17 tạo mới 1 User
+        // 18 xóa 1 User
+        
     },
     ...SQLModel
 });
