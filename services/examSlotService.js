@@ -56,13 +56,20 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
     }
 }
 
-export async function deleteExamSlot(examslotId){
+export async function deleteExamSlot(examslotId, staff){
     let message = "";
     const result = await ExamSlot.destroy({
         where: {
             id: examslotId,
         }
     })
+    const checkLogStaff = await StaffLogChange.create({
+        rowId: examRoom.dataValues.id,
+        tableName: 3,
+        userId: staff.id,
+        typeChange: 20,
+    })
+    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
     if (result === 0) {
         throw new Error("Not found")
     } else {
