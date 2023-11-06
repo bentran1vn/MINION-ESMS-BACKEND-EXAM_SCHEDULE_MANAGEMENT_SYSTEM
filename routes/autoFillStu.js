@@ -4,6 +4,7 @@ import StudentSubject from '../models/StudentSubject.js'
 import SubInSlot from '../models/SubInSlot.js'
 import Course from '../models/Course.js'
 import express from 'express'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 
 const router = express.Router()
 

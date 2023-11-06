@@ -1,5 +1,5 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
+import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse,ErrorResponse } from '../common/reponses.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import { requireRole } from '../middlewares/auth.js'
