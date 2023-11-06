@@ -1,10 +1,6 @@
 import express from 'express'
 import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import Subject from '../models/Subject.js'
-import Course from '../models/Course.js'
-import ExamPhase from '../models/ExamPhase.js'
-import { autoCreateCourse } from '../utility/courseUtility.js'
 import { getCouseByExamPhase } from '../services/courseService.js'
 
 const router = express.Router()
@@ -80,7 +76,9 @@ const router = express.Router()
 router.get('/', requireRole('admin'), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
-        await getCouseByExamPhase(ePId)
+        let courses
+        await getCouseByExamPhase(ePId).then(value => courses = value)
+        res.jhson(DataResponse(courses))
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))

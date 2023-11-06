@@ -265,9 +265,11 @@ export async function getCouseByExamPhase(ePId) {
             }
         }
         if (listCourse.length == 0) {
-            res.json(NotFoundResponse);
+            throw new Error("Problem with get Courses!")
         } else {
-            res.json(DataResponse(listCourse));
+            return listCourse
         }
+    } else {
+        throw new Error("Problem with get Courses!")
     }
 }
