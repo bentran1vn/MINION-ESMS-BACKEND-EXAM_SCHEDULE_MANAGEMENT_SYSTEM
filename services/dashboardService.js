@@ -1,12 +1,13 @@
-import ExamPhase from "../models/ExamPhase";
-import ExamSlot from "../models/ExamSlot";
-import Examiner from "../models/Examiner";
-import ExaminerLogTime from "../models/ExaminerLogTime";
+import ExamPhase from "../models/ExamPhase.js";
+import ExamSlot from "../models/ExamSlot.js";
+import Examiner from "../models/Examiner.js";
+import ExaminerLogTime from "../models/ExaminerLogTime.js";
 import { Op } from "sequelize";
-import SubInSlot from "../models/SubInSlot";
-import ExamRoom from "../models/ExamRoom";
-import { getNotSheduleOfCourse } from "./studentExamService";
-import Semester from "../models/Semester";
+import SubInSlot from "../models/SubInSlot.js";
+import ExamRoom from "../models/ExamRoom.js";
+import { getNotSheduleOfCourse } from "./studentExamService.js";
+import Semester from "../models/Semester.js";
+import User from "../models/User.js";
 
 export async function countExaminerInPhase(exPhaseId) {
     const statusMap = new Map([
@@ -255,7 +256,6 @@ export async function numberByCourse(ePId) {
 }
 
 export async function numOfCourseNotScheduled(ePId) {
-    const ePId = req.query.ePId
     const numOfCourse = await getNotSheduleOfCourse(ePId)
     const courseInEp = await Course.findAll({
         where: {
@@ -575,7 +575,7 @@ export async function totalExamroomByPhase(ePId) {
             ePId: ePId
         }
     })
-    if(!examSlots) throw new Error("Can not find exam slot")
+    if (!examSlots) throw new Error("Can not find exam slot")
     let arrDay = []
     for (const item of examSlots) {
         if (!arrDay.includes(item.day)) {
@@ -609,6 +609,6 @@ export async function totalExamroomByPhase(ePId) {
         })
         insert(day, examRoom.length)
     }
-    if(arr == 0) throw new Error("Can not find any exam room")
+    if (arr == 0) throw new Error("Can not find any exam room")
     return arr
 }
