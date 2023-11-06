@@ -811,7 +811,7 @@ export async function addRoomByStaff(staffId, id, roomId) {
 
     const examphase = await ExamPhase.findOne({
         where: {
-            id: esSl.ePId
+            id: esSl.ePId,
             alive: 1
         }
     })
@@ -918,7 +918,7 @@ export async function delRoomByStaff(staffId, id) {
 
     const examphase = await ExamPhase.findOne({
         where: {
-            id: ePId
+            id: ePId,
             alive: 1
         }
     })
