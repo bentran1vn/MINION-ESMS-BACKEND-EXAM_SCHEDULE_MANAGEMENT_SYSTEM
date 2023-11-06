@@ -91,7 +91,7 @@ export async function getExamphasesBySemId(semesterId) {
                 returnL.push(r);
             }
         }
-    return detailExamPhase
+    return returnL
 }
 
 export async function deletePhaseBySemId(id, staff) {

@@ -171,8 +171,9 @@ router.post('/', async (req, res) => {
     const ePId = parseInt(req.body.ePId);
     const timeSlotId = parseInt(req.body.timeSlotId);
     const day = req.body.day;
+    const staff = res.locals.userData
     try {
-        await createNewExamSlot(ePId, timeSlotId, day)
+        await createNewExamSlot(ePId, timeSlotId, day, staff)
         res.json(MessageResponse("Create Exam Slot Successfully !"))
     } catch (error) {
         console.log(error);
