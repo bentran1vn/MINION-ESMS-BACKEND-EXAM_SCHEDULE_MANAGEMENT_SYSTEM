@@ -28,7 +28,8 @@ router.get('/examinerDashBoard', async (req, res) => {
         let examinerLists = [];
         const exPhase = await ExamPhase.findOne({
             where: {
-                id: exPhaseId
+                id: exPhaseId,
+                alive: 1
             }
         })
         if (exPhase) {
@@ -88,7 +89,8 @@ router.get('/totalSlotDashBoard', async (req, res) => {
     try {
         const phase = await ExamPhase.findOne({
             where: {
-                id: exPhaseId
+                id: exPhaseId,
+                alive: 1
             }
         });
         if (!phase) {
@@ -151,7 +153,8 @@ router.get('/topThreeExaminerDashBoard', async (req, res) => {
     try {
         const phase = await ExamPhase.findOne({
             where: {
-                id: exPhaseId
+                id: exPhaseId,
+                alive: 1
             }
         });
 
@@ -261,7 +264,8 @@ router.get('/courseAndNumOfStuDashBoard', async (req, res) => {
 
         const examPhase = await ExamPhase.findOne({
             where: {
-                id: ePId
+                id: ePId,
+                alive: 1
             }
         })
         if (!examPhase) {
@@ -332,7 +336,8 @@ router.get('/numOfDayRegister', async (req, res) => {
         const ePId = parseInt(req.query.ePId)
         const examPhase = await ExamPhase.findOne({
             where: {
-                id: ePId
+                id: ePId,
+                alive: 1
             }
         })
         if (!examPhase) {
@@ -411,7 +416,8 @@ router.get('/totalRegistionOfLecOnePhase', async (req, res) => {
         let count = 0;
         const phase = await ExamPhase.findOne({
             where: {
-                id: phaseId
+                id: phaseId,
+                alive: 1
             }
         })
         const semester = await Semester.findOne({
@@ -463,7 +469,8 @@ router.get('/futureSlotOfLecOnePhase', async (req, res) => {
         let count = 0;
         const phase = await ExamPhase.findOne({
             where: {
-                id: phaseId
+                id: phaseId,
+                alive: 1
             }
         })
         const semester = await Semester.findOne({
@@ -576,12 +583,22 @@ router.get('/totalRegistionEachPhase', async (req, res) => {
 router.get('/totalExamSLotByPhase', async (req, res) => {
     try {
         const ePId = parseInt(req.query.ePId)
-        const examSlot = await ExamSlot.findAll({
+        const examPhase = await ExamPhase.findOne({
             where: {
-                ePId
+                id: ePId,
+                alive: 1
             }
         })
-        res.json(DataResponse(examSlot.length))
+        if (examPhase) {
+            const examSlot = await ExamSlot.findAll({
+                where: {
+                    ePId
+                }
+            })
+            res.json(DataResponse(examSlot.length))
+        } else {
+            res.json(NotFoundResponse());
+        }
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
@@ -593,7 +610,8 @@ router.get('/totalExaminerByPhase', async (req, res) => {
         const ePId = parseInt(req.query.ePId)
         const examPhase = await ExamPhase.findOne({
             where: {
-                id: ePId
+                id: ePId,
+                alive: 1
             }
         })
         const exminerLogTime = await ExaminerLogTime.findAll({

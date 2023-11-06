@@ -63,6 +63,7 @@ const router = express.Router()
  *    description: The Examiners managing API
  */
 
+// Swagger - get: scheduledByPhase
 /**
  * @swagger
  * /examiners/scheduledByPhase/:
@@ -93,6 +94,7 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Examiners'
  */
 
+// Swagger - get: allScheduled
 /**
  * @swagger
  * /examiners/allScheduled/:
@@ -117,6 +119,7 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Examiners'
  */
 
+// Swagger - get: examPhaseId
 /**
  * @swagger
  * /examiners/examPhaseId/:
@@ -147,6 +150,7 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Examiners'
  */
 
+// Swagger - delete
 /**
  * @swagger
  * /examiners/:
@@ -165,6 +169,7 @@ const router = express.Router()
  *         description: Deleted !
  */
 
+// Swagger - get: getExaminerByPhase
 /**
  * @swagger
  * /examiners/getExaminerByPhase:
@@ -178,6 +183,62 @@ const router = express.Router()
  *            type: integer
  *          required: true
  *          description: The ExamPhase Id client want to get
+ *     responses:
+ *       '200':
+ *         description: OK !
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: 
+ *                 $ref: '#/components/schemas/Examiners'
+ */
+
+// Swagger - post: volunteerExaminer
+/**
+ * @swagger
+ * /examiners/volunteerExaminer:
+ *   post:
+ *     summary: Create Examiner role CTV
+ *     tags: [Lecturers]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: STRING
+ *                 example: Examiner Name
+ *               email:
+ *                 type: STRING
+ *                 example: examiner@gmail.com
+ *               semesterId:
+ *                 type: integer
+ *                 example: 4
+ *           required:
+ *             - name
+ *             - email
+ *             - semesterId
+ *     responses:
+ *       '200':
+ *         description: Create successfully !
+ */
+
+// Swagger - get: getExaminerByPhase
+/**
+ * @swagger
+ * /examiners/volunteerExaminer:
+ *   get:
+ *     summary: Return all Examiners have role CTV
+ *     tags: [Lecturers]
+ *     parameters:
+ *        - in: query
+ *          name: semesterId
+ *          schema:
+ *            type: integer
+ *          required: true
+ *          description: The semesterId client want to get
  *     responses:
  *       '200':
  *         description: OK !
@@ -256,7 +317,6 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
-//tạo examiner role ctv
 router.post('/volunteerExaminer', async (req, res) => {
     const exName = req.body.name
     const exEmail = req.body.email
@@ -278,8 +338,8 @@ router.post('/volunteerExaminer', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
-//get ra examiner role ctv theo semester
+})//tạo examiner role ctv
+
 router.get('/volunteerExaminer', async (req, res) => {
     const semesterId = parseInt(req.query.semesterId);
     try {
@@ -294,9 +354,8 @@ router.get('/volunteerExaminer', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})//get ra examiner role ctv theo semester
 
-//lấy tất cả lịch đã đăng kí của 1 examiner 
 router.get('/allScheduled', async (req, res) => {
     const id = parseInt(req.query.userId);//cái này sau bắt bằng token
     const examiner = await Examiner.findAll({
@@ -320,9 +379,8 @@ router.get('/allScheduled', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})//lấy tất cả lịch đã đăng kí của 1 examiner 
 
-//lấy lịch để đăng kí theo phase
 router.get('/examPhaseId', async (req, res) => {
     try {// Nhận userId xong đi check trong examiner 
         const userId = parseInt(req.query.userId) //cái này sẽ đổi thành lấy từ token sau
@@ -340,7 +398,7 @@ router.get('/examPhaseId', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})//lấy lịch để đăng kí theo phase
 
 router.delete('/', async (req, res) => {
     const id = parseInt(req.query.examinerId);
@@ -360,9 +418,8 @@ router.delete('/', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})//xóa examiner
 
-//lấy lịch đã đăng kí của 1 examiner theo phase
 router.get('/scheduledByPhase', async (req, res) => {
     const id = parseInt(req.query.userId);
     const examphaseId = parseInt(req.query.examphaseId);
@@ -403,9 +460,8 @@ router.get('/scheduledByPhase', async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})//lấy lịch đã đăng kí của 1 examiner theo phase
 
-//lấy danh sách examiner by phase của màn hình admin
 router.get('/getExaminerByPhase', async (req, res) => {
     const exPhaseId = parseInt(req.query.exPhaseId);
     try {
@@ -473,7 +529,7 @@ router.get('/getExaminerByPhase', async (req, res) => {
         res.json(ErrorResponse(500, error.message))
     }
     //trả ra email name, role, status
-})
+})//lấy danh sách examiner by phase của màn hình admin
 
 export default router
 //add được
