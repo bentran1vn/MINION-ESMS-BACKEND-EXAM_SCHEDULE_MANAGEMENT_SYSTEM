@@ -67,6 +67,7 @@ export async function getExamphasesBySemId(semesterId) {
             })
             if(examslot){
                 const r = {
+                    id: exphase.dataValues.id,
                     semId: exphase.dataValues.semId,
                     ePName: exphase.dataValues.ePName,
                     startDay: exphase.dataValues.startDay,
@@ -79,6 +80,7 @@ export async function getExamphasesBySemId(semesterId) {
                 returnL.push(r);
             }else{
                 const r = {
+                    id: exphase.dataValues.id,
                     semId: exphase.dataValues.semId,
                     ePName: exphase.dataValues.ePName,
                     startDay: exphase.dataValues.startDay,
