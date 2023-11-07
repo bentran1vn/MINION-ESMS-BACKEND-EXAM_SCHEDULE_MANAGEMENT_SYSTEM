@@ -1,4 +1,5 @@
 import Semester from "../models/Semester.js";
+import TimeSlot from "../models/TimeSlot.js";
 
 export async function createNewSemesterS(season, year, start, end) {
     const semester = await Semester.findOne({
@@ -44,16 +45,17 @@ export async function deleteSemesterById(semId) {
             id: semId
         }
     })
-    if (!result) {
+    if (result[0] != 0) {
         throw new Error("Can not delete Semester!")
     } else {
-        return result
+        return true
     }
 }
 
 export async function findAllSemester(value, filterBy, pageNo, limit) {
-    let whereClause
-    let semesterList
+    // let whereClause
+    let semList = [];
+    const current = new Date().toISOString().slice(0, 10);
     // if (filterBy === "year") {
     //     whereClause = { year: parseInt(value) }
     // } else if (filterBy === "season") {
@@ -67,17 +69,60 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
     //     });
     //     return semesterList;
     // }
-    semesterList = await Semester.findAll({
+    const semesterList = await Semester.findAll({
         // where: whereClause,
         // limit: limit || 1,
         // offset: (pageNo - 1) * limit
     });
 
-    if (semesterList == null || semesterList.length === 0) {
-        throw new Error("Can not find the List Of Semester!");
-    } else {
-        return semesterList;
+    for (const sem of semesterList) {
+        if (sem.dataValues.start > current && sem.dataValues.status == 1) {
+            const s = {
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 1, //ĐC XÓA
+                time: "FUTURE"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.start > current && sem.dataValues.status == 0) {
+            const s = {
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "FUTURE"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.start <= current && current <= sem.dataValues.end) {
+            const s = {
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "ONGOING"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.end < current) {
+            const s = {
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "PASSED"
+            }
+            semList.push(s);
+        }
     }
+    return semList;
 }
 
 export async function findOneSemester(valueList, typeList) {
@@ -156,36 +201,40 @@ export async function getSemesterAndStatus() {
 }
 
 export async function autoCreateTimeSlotWhenCreateSemester(year, season, start, end) {
-    const newSemester = await Semester.create({
-        season: season,
-        year: year,
-        start: start,
-        end: end
-    })
-
     const semester = await Semester.findOne({
         where: {
+            [Op.or]: [
+                {
+                    start: { [Op.between]: [start, end] },
+                },
+                {
+                    end: { [Op.between]: [start, end] },
+                },
+            ],
+        },
+    });
+    if (semester) {
+        throw new Error("Collision to other Semester start, end")
+    } else {
+        const newSemester = await Semester.create({
             season: season,
             year: year,
             start: start,
             end: end
-        }
-    })
-    let oldsemId = parseInt(semester.id) - 1;
-    let standardTimeSlot = [
-        { startTime: "07:30:00", endTime: "09:00:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "09:15:00", endTime: "10:45:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "11:00:00", endTime: "12:30:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "12:45:00", endTime: "14:15:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "14:30:00", endTime: "16:00:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "16:15:00", endTime: "17:45:00", semId: `${semester.id}`, des: 0 },
-        { startTime: "07:30:00", endTime: "10:00:00", semId: `${semester.id}`, des: 1 },
-        { startTime: "10:15:00", endTime: "12:45:00", semId: `${semester.id}`, des: 1 },
-        { startTime: "13:30:00", endTime: "15:30:00", semId: `${semester.id}`, des: 1 },
-        { startTime: "15:45:00", endTime: "18:15:00", semId: `${semester.id}`, des: 1 }
-    ]
-    let check = 0;
-    if (oldsemId == 0) {
+        })
+        let standardTimeSlot = [
+            { startTime: "07:30:00", endTime: "09:00:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "09:15:00", endTime: "10:45:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "11:00:00", endTime: "12:30:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "12:45:00", endTime: "14:15:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "14:30:00", endTime: "16:00:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "16:15:00", endTime: "17:45:00", semId: `${newSemester.id}`, des: 0 },
+            { startTime: "07:30:00", endTime: "10:00:00", semId: `${newSemester.id}`, des: 1 },
+            { startTime: "10:15:00", endTime: "12:45:00", semId: `${newSemester.id}`, des: 1 },
+            { startTime: "13:30:00", endTime: "15:30:00", semId: `${newSemester.id}`, des: 1 },
+            { startTime: "15:45:00", endTime: "18:15:00", semId: `${newSemester.id}`, des: 1 }
+        ]
+        let check = 0;
         for (const item of standardTimeSlot) {
             const time = await TimeSlot.create({
                 startTime: item.startTime,
@@ -197,22 +246,8 @@ export async function autoCreateTimeSlotWhenCreateSemester(year, season, start, 
                 check++;
             }
         }
-    }
-    if (check != 0) {
-        return "Add time slot success";
-    }
-    const oldtimeslot = await TimeSlot.findAll({
-        where: {
-            semId: oldsemId
+        if (check != 0) {
+            return "Add time slot success";
         }
-    })
-    for (const time of oldtimeslot) {
-        const newtimeslot = await TimeSlot.create({
-            startTime: time.dataValues.startTime,
-            endTime: time.dataValues.endTime,
-            semId: parseInt(semester.id),
-            des: time.dataValues.des
-        })
     }
-    return "Add new timeslot success";
 }
