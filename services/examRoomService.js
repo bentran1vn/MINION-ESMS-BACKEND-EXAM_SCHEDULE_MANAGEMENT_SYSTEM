@@ -16,7 +16,7 @@ import { Op } from 'sequelize'
 import ExamPhase from '../models/ExamPhase.js'
 import { expandTimePhase } from '../services/examPhaseService.js'
 import { findAll } from '../services/roomService.js'
-import {changeCourseStatus} from '../services/courseService.js'
+import { changeCourseStatus } from '../services/courseService.js'
 
 export async function autoCreateExamRoom(incomingPhase) {
     let roomList
@@ -752,14 +752,14 @@ export async function addExaminerForStaff(staffId, id, examinerId) {
                 tableName: 0,
                 typeChange: 0
             })
-            
+
             const addToLecLogTime = await ExaminerLogTime.create({
                 examinerId: parseInt(examiner.id),
                 timeSlotId: timeSlot.id,
                 day: exSl.day,
                 semId: parseInt(semester.id)
             })
-            
+
             if (addToLecLogTime) {
                 // res.json(MessageResponse("Add Success to exam room and update examiner log time !"));
                 return message = "Add Success to exam room and update examiner log time !";
@@ -1390,3 +1390,131 @@ export async function getDetailScheduleOneExamSlot(examSlotId) {
 
     return returnList;
 }
+
+
+export async function createExamRoom(sSId, roomId, userId) {
+    const user = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+    const subInSlot = await SubInSlot.findOne({
+        where: {
+            id: sSId
+        }
+    })
+    const room = await Room.findOne({
+        where: {
+            id: roomId
+        }
+    })
+    const examSlot = await ExamSlot.findOne({
+        where: {
+            id: subInSlot.exSlId
+        }
+    })
+    const timeSlot = await TimeSlot.findOne({
+        where: {
+            id: examSlot.timeSlotId
+        }
+    })
+
+    const currentExamPhase = await ExamPhase.findOne({
+        where: {
+            startDay: {
+                [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+            },
+            endDay: {
+                [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+            },
+            alive: 1
+        }
+    })
+
+    const semester = await Semester.findOne({
+        where: {
+            start: {
+                [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
+            },
+            end: {
+                [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
+            },
+        }
+    })
+    if (currentExamPhase.status == 0) {
+        throw new Error("Can't change on-going or passed schedule")
+    }
+    const examiner = await Examiner.findOne({
+        where: {
+            userId: userId,
+            semesterId: semester.id
+        }
+    })
+
+    const statusMap = new Map([
+        ['lecturer', 0],
+        ['staff', 1],
+        ['volunteer', 2]
+    ]);
+
+    if (!subInSlot || !room || !examSlot || !timeSlot) {
+        throw new Error('Not found !')
+    } else if (!examiner) {
+        const newExaminer = await Examiner.create({
+            userId: userId,
+            typeExaminer: statusMap.get(user.role),
+            semesterId: parseInt(semester.id),
+            status: 0
+        })
+        if (!newExaminer) {
+            throw new Error('Error when create new Examiner !')
+        } else {
+            const checkRoomLogTime = await RoomLogTime.findOne({
+                where: {
+                    day: examSlot.day,
+                    timeSlotId: timeSlot.id,
+                    roomId: roomId,
+                    semId: parseInt(semester.id),
+                }
+            })
+            if (checkRoomLogTime) {
+                throw new Error(`This room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`)
+            } else {
+                const examRoom = await ExamRoom.create({
+                    sSId: sSId,
+                    roomId: roomId,
+                    examinerId: parseInt(newExaminer.id),
+                })
+                return true
+            }
+        }
+    }
+    else {
+        const checkLecLogTime = await ExaminerLogTime.findOne({
+            where: {
+                day: examSlot.day,
+                timeSlotId: timeSlot.id,
+                examinerId: parseInt(examiner.id),
+                semId: parseInt(semester.id)
+            }
+        })
+        const checkRoomLogTime = await RoomLogTime.findOne({
+            where: {
+                day: examSlot.day,
+                timeSlotId: timeSlot.id,
+                roomId: roomId,
+                semId: parseInt(semester.id)
+            }
+        })
+        if (!checkLecLogTime && !checkRoomLogTime) {
+            const examRoom = await ExamRoom.create({
+                sSId: sSId,
+                roomId: roomId,
+                examinerId: parseInt(examiner.id),
+            })
+            return true;
+        } else {
+            throw new Error(`This examiner ${examiner.id} or room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`)
+        }
+    }
+}// Tạo examroom và fill examiner vào examroom
