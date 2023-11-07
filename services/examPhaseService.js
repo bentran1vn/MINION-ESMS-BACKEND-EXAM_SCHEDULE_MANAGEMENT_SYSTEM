@@ -250,9 +250,9 @@ export async function checkExamSlotByPhaseId(examPhaseId) {
 
 export async function findPhaseBySemId(id) {
     const detailExamPhase = []
-    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des) {
+    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des, del) {
         const EPDetail = {
-            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des// 1 done, 0 chưa done
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des, del: del// 1 done, 0 chưa done
         }
         detailExamPhase.push(EPDetail)
     }
@@ -275,10 +275,12 @@ export async function findPhaseBySemId(id) {
                 ePId: examPhases[i].id
             }
         })
-        if (course.length != 0) {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des)
+        if (course.length != 0 || examslot.length != 0) {
+            //1 la xoa
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des, 1)
         } else {
-            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des)
+            //0 la dc
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des, 0)
         }
     }
     if (!detailExamPhase) throw new Error("Can not find exam phases !")
