@@ -114,6 +114,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
             status: 1
         },
     })
+    const ePName = ArrStudentIdInCourse[0].ePName
     if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
 
     const ListStudentIdInCourse = [] // Array tổng số student ID 
@@ -146,6 +147,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
         })
         await StudentSubject.update({ status: 0 }, {
             where: {
+                ePName: ePName,
                 stuId: numStuInRoom[i],
                 status: 1
             }
@@ -167,6 +169,7 @@ export async function handleFillStuLittle(courId, numOfStu) {
             status: 1
         },
     })
+    const ePName = ArrStudentIdInCourse[0].ePName
     if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
 
     const ListStudentIdInCourse = [] // Array tổng số student ID 
@@ -212,6 +215,7 @@ export async function handleFillStuLittle(courId, numOfStu) {
             })
             const b = await StudentSubject.update({ status: 0 }, {
                 where: {
+                    ePName: ePName,
                     stuId: numStuInRoom[count],
                     status: 1
                 }
