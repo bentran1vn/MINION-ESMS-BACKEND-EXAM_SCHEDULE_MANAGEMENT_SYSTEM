@@ -6,6 +6,7 @@ import Course from '../models/Course.js'
 import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import {autoCreateCourse} from '../utility/courseUtility.js'
 import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
 

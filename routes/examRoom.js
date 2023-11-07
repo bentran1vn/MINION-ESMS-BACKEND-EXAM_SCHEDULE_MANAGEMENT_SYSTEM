@@ -426,7 +426,7 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('staff'),async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
     const userId = parseInt(req.body.userId);//bắt qua token
@@ -572,7 +572,7 @@ router.post('/', async (req, res) => {
 })
 
 //require role staff để cái middle ware reqRole đây
-router.post('/auto', async (req, res) => {
+router.post('/auto', requireRole('staff'), async (req, res) => {
     //lấy id thông qua token
     const staffId = parseInt(res.locals.userData.id) || 1;
     // const staffId = 1;
@@ -691,87 +691,87 @@ router.put('/delRoom', requireRole("staff"), async (req, res) => {
     }
 })
 
-//get examList By Staff
-router.get('/', async (req, res) => {
-    try {
-        const examRoomList = await ExamRoom.findAll();
-        let examList = [];
-        let i = 1
-        for (const key in examRoomList) {
-            let item = {
-                no: "",
-                startTime: "",
-                endTime: "",
-                day: "",
-                subCode: "",
-                subName: "",
-                roomCode: "",
-                roomLocation: "",
-                lecturerCode: "",
-            }
-            if (Object.hasOwnProperty.call(examRoomList, key)) {
-                const element = examRoomList[key];
-                const room = await Room.findOne({
-                    where: {
-                        id: element.roomId
-                    }
-                })
-                if (room != null) {
-                    item.roomCode = room.dataValues.id
-                    item.roomLocation = room.location
-                }
-                if (element.lecturerId) {
-                    const lecturer = await Lecturer.findOne({
-                        where: {
-                            id: element.lecturerId
-                        }
-                    })
-                    item.lecturerCode = lecturer.lecId
-                }
-                const subInSlot = await SubInSlot.findOne({
-                    where: {
-                        id: element.sSId
-                    }
-                })
-                const course = await Course.findOne({
-                    where: {
-                        id: subInSlot.courId
-                    }
-                })
-                const subject = await Subject.findOne({
-                    where: {
-                        id: course.subId
-                    }
-                })
-                item.subCode = subject.code
-                item.subName = subject.name
-                const examSlot = await ExamSlot.findOne({
-                    where: {
-                        id: subInSlot.exSlId
-                    }
-                })
-                item.day = examSlot.day
-                const timeSlot = await TimeSlot.findOne({
-                    where: {
-                        id: examSlot.timeSlotId
-                    }
-                })
-                item.startTime = timeSlot.startTime
-                item.endTime = timeSlot.endTime
-                item.no = i++
-            }
-            examList.push(item)
-        }
-        if (examList.length === 0) {
-            res.json(InternalErrResponse())
-        } else {
-            res.json(DataResponse(examList))
-        }
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})
+//get examList By Staff || API nay con xai table Lecturer ma Lecturer xoa me roi
+// router.get('/', async (req, res) => {
+//     try {
+//         const examRoomList = await ExamRoom.findAll();
+//         let examList = [];
+//         let i = 1
+//         for (const key in examRoomList) {
+//             let item = {
+//                 no: "",
+//                 startTime: "",
+//                 endTime: "",
+//                 day: "",
+//                 subCode: "",
+//                 subName: "",
+//                 roomCode: "",
+//                 roomLocation: "",
+//                 lecturerCode: "",
+//             }
+//             if (Object.hasOwnProperty.call(examRoomList, key)) {
+//                 const element = examRoomList[key];
+//                 const room = await Room.findOne({
+//                     where: {
+//                         id: element.roomId
+//                     }
+//                 })
+//                 if (room != null) {
+//                     item.roomCode = room.dataValues.id
+//                     item.roomLocation = room.location
+//                 }
+//                 if (element.lecturerId) {
+//                     const lecturer = await Lecturer.findOne({
+//                         where: {
+//                             id: element.lecturerId
+//                         }
+//                     })
+//                     item.lecturerCode = lecturer.lecId
+//                 }
+//                 const subInSlot = await SubInSlot.findOne({
+//                     where: {
+//                         id: element.sSId
+//                     }
+//                 })
+//                 const course = await Course.findOne({
+//                     where: {
+//                         id: subInSlot.courId
+//                     }
+//                 })
+//                 const subject = await Subject.findOne({
+//                     where: {
+//                         id: course.subId
+//                     }
+//                 })
+//                 item.subCode = subject.code
+//                 item.subName = subject.name
+//                 const examSlot = await ExamSlot.findOne({
+//                     where: {
+//                         id: subInSlot.exSlId
+//                     }
+//                 })
+//                 item.day = examSlot.day
+//                 const timeSlot = await TimeSlot.findOne({
+//                     where: {
+//                         id: examSlot.timeSlotId
+//                     }
+//                 })
+//                 item.startTime = timeSlot.startTime
+//                 item.endTime = timeSlot.endTime
+//                 item.no = i++
+//             }
+//             examList.push(item)
+//         }
+//         if (examList.length === 0) {
+//             res.json(InternalErrResponse())
+//         } else {
+//             res.json(DataResponse(examList))
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
+//     }
+// })
 
 //tất cả examiner rảnh tại examslot
 //role staff
