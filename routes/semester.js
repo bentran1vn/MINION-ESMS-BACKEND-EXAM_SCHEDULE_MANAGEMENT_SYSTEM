@@ -1,5 +1,5 @@
 import express from 'express'
-import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse} from '../common/reponses.js'
+import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
@@ -250,7 +250,7 @@ router.get('/season', async (req, res) => {
 
 
 //create timeslot when create semester
-router.post('/whenCreateSemester', async (req, res) => {
+router.post('/whenCreateSemester', requireRole("admin"), async (req, res) => {
     const year = parseInt(req.body.season.split('_')[1]);
     const season = req.body.season.split('_')[0];
     const start = req.body.start;
@@ -265,7 +265,7 @@ router.post('/whenCreateSemester', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireRole("admin"), async (req, res) => {
     const semId = parseInt(req.params.id)
     try {
         let result
