@@ -9,6 +9,8 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import {autoCreateCourse} from '../utility/courseUtility.js'
 import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
+import Subject from '../models/Subject.js'
+
 
 export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
 
