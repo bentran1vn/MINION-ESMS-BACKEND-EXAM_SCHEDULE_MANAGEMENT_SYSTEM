@@ -7,14 +7,13 @@ import { check } from 'express-validator'
 
 
 export async function autoCreateCourse() {
-    const arrIdSub = []
     const stuSub = await StudentSubject.findAll({
         where: {
             status: 1
         }
     })
     if (stuSub.length == 0) {
-        return true;
+        throw new Error('Not found student in exam Phase');
     }
     const ePName = stuSub[0].ePName
     const examPhase = await ExamPhase.findOne({
@@ -50,7 +49,8 @@ export async function autoCreateCourse() {
         for (let i = 0; i < uniqueSubIdList.length; i++) {
             const stuSubV2 = await StudentSubject.findAll({
                 where: {
-                    subjectId: uniqueSubIdList[i]
+                    subjectId: uniqueSubIdList[i],
+                    status: 1
                 }
             })
 
