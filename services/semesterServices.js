@@ -46,7 +46,7 @@ export async function deleteSemesterById(semId) {
             id: semId
         }
     })
-    if (result[0] != 0) {
+    if (result[0] == 0) {
         throw new Error("Can not delete Semester!")
     } else {
         return true
