@@ -233,8 +233,8 @@ router.get('/', async (req, res) => {
             res.json(DataResponse(semesterList));
         }
     } catch (Error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
@@ -274,8 +274,8 @@ router.delete('/:id', async (req, res) => {
             res.json(MessageResponse('Delete successfully'))
         }
     } catch (Error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
 })
 
