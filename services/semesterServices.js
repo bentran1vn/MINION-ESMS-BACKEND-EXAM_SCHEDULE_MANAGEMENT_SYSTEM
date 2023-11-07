@@ -58,6 +58,9 @@ export async function findAllSemester() {
     let semList = [];
     const current = new Date().toISOString().slice(0, 10);
     const semesterList = await Semester.findAll();
+    if (semesterList.length == 0) {
+        throw new Error('Not found !')
+    }
 
     for (const sem of semesterList) {
         const phase = await ExamPhase.findOne({
