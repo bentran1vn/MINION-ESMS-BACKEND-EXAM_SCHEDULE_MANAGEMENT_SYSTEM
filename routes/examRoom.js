@@ -424,7 +424,7 @@ const router = express.Router()
  */
 
 
-router.post('/', requireRole('staff'),async (req, res) => {
+router.post('/', requireRole('staff'), async (req, res) => {
     const sSId = parseInt(req.body.sSId);
     const roomId = parseInt(req.body.roomId);
     const userId = parseInt(req.body.userId);//bắt qua token
@@ -700,10 +700,11 @@ router.get('/getCourseAndNumOfStuOneSlot', requireRole('staff'), async (req, res
         if (Array.isArray(result)) {
             res.json(DataResponse(result));
             return;
-        } else {
-            res.json(NotFoundResponse());
-            return;
         }
+        // } else {
+        //     res.json(NotFoundResponse());
+        //     return;
+        // }
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))

@@ -150,7 +150,7 @@ export async function autoCreateExamRoom(incomingPhase) {
             for (let i = 0; i < NumRoomOfCourse; i++) {
                 let room
                 room = roomList[roomCount]
- 
+
                 await ExamRoom.create({
                     sSId: subjectInSlot.id,
                     roomId: room.id,
@@ -1128,7 +1128,7 @@ export async function getAllCourseAndNumOfStudentOneSlot(exSlotID) {
         coursesWithSlot.push(cour);
     }
     if (coursesWithSlot.length == 0) {
-        return message = "Not found";
+        throw new Error("Not found");
     } else {
         return coursesWithSlot;
     }
