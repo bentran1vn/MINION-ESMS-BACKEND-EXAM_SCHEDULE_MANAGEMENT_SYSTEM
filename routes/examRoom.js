@@ -9,14 +9,11 @@ import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Course from '../models/Course.js'
 import Subject from '../models/Subject.js'
-import ExaminerLogTime from '../models/ExaminerLogTime.js'
-import RoomLogTime from '../models/RoomLogTime.js'
-import StaffLogChange from '../models/StaffLogChange.js'
-import Semester from '../models/Semester.js'
-import User from '../models/User.js'
-import { Op } from 'sequelize'
-import ExamPhase from '../models/ExamPhase.js'
-import { getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom, delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot, lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot } from '../services/examRoomService.js'
+import {
+    getDetailScheduleOneExamSlot, addExaminerForStaff, addRoomByStaff, autoFillLecturerToExamRoom,
+    delRoomByStaff, getAllAvailableExaminerInSlot, getAllCourseOneSlot, getAllExaminerOneSlot, getAllRoomOneSlot,
+    lecRegister, lecUnRegister, getAllCourseAndNumOfStudentOneSlot, createExamRoom
+} from '../services/examRoomService.js'
 import { changeCourseStatus } from '../services/courseService.js'
 
 const router = express.Router()
@@ -427,157 +424,28 @@ const router = express.Router()
  */
 
 router.post('/', async (req, res) => {
-    const sSId = parseInt(req.body.sSId);
-    const roomId = parseInt(req.body.roomId);
-    const userId = parseInt(req.body.userId);//bắt qua token
-
     try {
-        const user = await User.findOne({
-            where: {
-                id: userId
-            }
-        })
-        const subInSlot = await SubInSlot.findOne({
-            where: {
-                id: sSId
-            }
-        })
-        const room = await Room.findOne({
-            where: {
-                id: roomId
-            }
-        })
-        const examSlot = await ExamSlot.findOne({
-            where: {
-                id: subInSlot.exSlId
-            }
-        })
-        const timeSlot = await TimeSlot.findOne({
-            where: {
-                id: examSlot.timeSlotId
-            }
-        })
+        const sSId = parseInt(req.body.sSId);
+        const roomId = parseInt(req.body.roomId);
+        const userId = parseInt(req.body.userId);//bắt qua token
 
-        const currentExamPhase = await ExamPhase.findOne({
-            where: {
-                startDay: {
-                    [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                endDay: {
-                    [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-                alive: 1
-            }
-        })
-
-        const semester = await Semester.findOne({
-            where: {
-                start: {
-                    [Op.lte]: examSlot.day, // Kiểm tra nếu ngày bắt đầu kỳ học nhỏ hơn ngày cần kiểm tra
-                },
-                end: {
-                    [Op.gte]: examSlot.day, // Kiểm tra nếu ngày kết thúc kỳ học lớn hơn ngày cần kiểm tra
-                },
-            }
-        })
-        if (currentExamPhase.status == 0) {
-            res.json(MessageResponse("Can't change on-going or passed schedule"));
-            return;
-        }
-        const examiner = await Examiner.findOne({
-            where: {
-                userId: userId,
-                semesterId: semester.id
-            }
-        })
-
-        const statusMap = new Map([
-            ['lecturer', 0],
-            ['staff', 1],
-            ['volunteer', 2]
-        ]);
-
-        if (!subInSlot || !room || !examSlot || !timeSlot) {
-            res.json(NotFoundResponse());
-            return;
-        } else if (!examiner) {
-            const newExaminer = await Examiner.create({
-                userId: userId,
-                typeExaminer: statusMap.get(user.role),
-                semesterId: parseInt(semester.id),
-                status: 0
-            })
-            if (!newExaminer) {
-                res.json(MessageResponse("Error when create new Examiner"))
-            } else {
-                const checkRoomLogTime = await RoomLogTime.findOne({
-                    where: {
-                        day: examSlot.day,
-                        timeSlotId: timeSlot.id,
-                        roomId: roomId,
-                        semId: parseInt(semester.id),
-                    }
-                })
-                if (checkRoomLogTime) {
-                    res.json(MessageResponse(`This room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`))
-                    return;
-                } else {
-                    const examRoom = await ExamRoom.create({
-                        sSId: sSId,
-                        roomId: roomId,
-                        examinerId: parseInt(newExaminer.id),
-                    })
-                    console.log(examRoom);
-                    res.json(MessageResponse("Create Success !"));
-                    return;
-                }
-            }
-        }
-        else {
-            const checkLecLogTime = await ExaminerLogTime.findOne({
-                where: {
-                    day: examSlot.day,
-                    timeSlotId: timeSlot.id,
-                    examinerId: parseInt(examiner.id),
-                    semId: parseInt(semester.id)
-                }
-            })
-            const checkRoomLogTime = await RoomLogTime.findOne({
-                where: {
-                    day: examSlot.day,
-                    timeSlotId: timeSlot.id,
-                    roomId: roomId,
-                    semId: parseInt(semester.id)
-                }
-            })
-            if (!checkLecLogTime && !checkRoomLogTime) {
-                const examRoom = await ExamRoom.create({
-                    sSId: sSId,
-                    roomId: roomId,
-                    examinerId: parseInt(examiner.id),
-                })
-                // changeCourseStatus(currentExamPhase.id, subInSlot.courId);
-                res.json(MessageResponse("Create Success !"));
-                return;
-            } else {
-                res.json(MessageResponse(`This examiner ${examiner.id} or room ${roomId} is busy at ${timeSlot.startTime} - ${timeSlot.endTime} - ${examSlot.day}`))
-                return;
-            }
-
+        const result = await createExamRoom(sSId, roomId, userId)
+        if (result) {
+            res.json(MessageResponse('Create successfully !'))
         }
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
-})
+})// Tạo examroom và fill examiner vào examroom
 
 //require role staff để cái middle ware reqRole đây
 router.post('/auto', async (req, res) => {
-    //lấy id thông qua token
-    const staffId = parseInt(res.locals.userData.id) || 1;
-    // const staffId = 1;
-    const examphaseId = req.body.examphaseId;
     try {
+        //lấy id thông qua token
+        const staffId = parseInt(res.locals.userData.id) || 1;
+        // const staffId = 1;
+        const examphaseId = req.body.examphaseId;
         const message = await autoFillLecturerToExamRoom(staffId, examphaseId);
         res.json(MessageResponse(message));
     } catch (error) {
@@ -595,15 +463,14 @@ router.post('/auto', async (req, res) => {
 //thêm giành cho role lecturer | lect tự đăng kí 
 //PASS , requireRole('lecturer')
 router.put('/lecturer', requireRole('lecturer'), async (req, res) => {
-    //route đăng kí của lecturer
-    const lecturerId = parseInt(res.locals.userData.id);
-    const startTime = req.body.startTime;
-    const endTime = req.body.endTime;
-    const day = req.body.day;
-    const incomingPhase = parseInt(req.body.exPhaseId);
-    
-    // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
+        //route đăng kí của lecturer
+        const lecturerId = parseInt(res.locals.userData.id);
+        const startTime = req.body.startTime;
+        const endTime = req.body.endTime;
+        const day = req.body.day;
+        const incomingPhase = parseInt(req.body.exPhaseId);
+
         const result = await lecRegister(lecturerId, startTime, endTime, day, incomingPhase)
         res.json(MessageResponse(result));
         return;
@@ -616,15 +483,14 @@ router.put('/lecturer', requireRole('lecturer'), async (req, res) => {
 // hủy đăng ký
 // PASS , requireRole('lecturer')
 router.put('/delLecturer', requireRole('lecturer'), async (req, res) => {
-    //hủy đăng kí của 1 lecturer
-    const lecturerId = parseInt(res.locals.userData.id);
-    const startTime = req.body.startTime;
-    const endTime = req.body.endTime;
-    const day = req.body.day;
-    const incomingPhase = parseInt(req.body.exPhaseId);
-
-    // Bước 1: Lấy timeSlotId từ bảng timeSlot dựa vào startTime và endTime
     try {
+        //hủy đăng kí của 1 lecturer
+        const lecturerId = parseInt(res.locals.userData.id);
+        const startTime = req.body.startTime;
+        const endTime = req.body.endTime;
+        const day = req.body.day;
+        const incomingPhase = parseInt(req.body.exPhaseId);
+
         const result = await lecUnRegister(lecturerId, startTime, endTime, day, incomingPhase);
         res.json(MessageResponse(result));
         return;
@@ -637,13 +503,14 @@ router.put('/delLecturer', requireRole('lecturer'), async (req, res) => {
 //thêm lecturer cho role staff
 //require role staff
 router.put('/addExaminer', requireRole('staff'), async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);//lấy từ token
-    // const staffId = 1
-    //thêm lecturer của staff
-    const examRoomId = parseInt(req.body.examRoomId)
-    const examinerId = parseInt(req.body.examinerId)
-    //id ở đây là examRoom id
     try {
+        const staffId = parseInt(res.locals.userData.id);//lấy từ token
+        // const staffId = 1
+        //thêm lecturer của staff
+        const examRoomId = parseInt(req.body.examRoomId)
+        const examinerId = parseInt(req.body.examinerId)
+        //id ở đây là examRoom id
+
         const result = await addExaminerForStaff(staffId, examRoomId, examinerId);
         res.json(MessageResponse(result));
         return;
@@ -656,13 +523,14 @@ router.put('/addExaminer', requireRole('staff'), async (req, res) => {
 // update roomId to 1 examRoom
 //role staff , requireRole("staff")
 router.put('/room', requireRole("staff"), async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);
-    // const staffId = 1;
-
-    //thêm phòng của staff
-    const examRoomId = parseInt(req.body.examRoomId)
-    const roomId = parseInt(req.body.roomId)
     try {
+        const staffId = parseInt(res.locals.userData.id);
+        // const staffId = 1;
+
+        //thêm phòng của staff
+        const examRoomId = parseInt(req.body.examRoomId)
+        const roomId = parseInt(req.body.roomId)
+
         const result = await addRoomByStaff(staffId, examRoomId, roomId);
         res.json(MessageResponse(result));
         return;
@@ -675,13 +543,14 @@ router.put('/room', requireRole("staff"), async (req, res) => {
 //delete 1 roomId from examRoom
 //role staff , requireRole("staff")
 router.put('/delRoom', requireRole("staff"), async (req, res) => {
-    const staffId = parseInt(res.locals.userData.id);
-    // const staffId = 1;
-
-    //staff nhìn vô bảng examRoom thấy lỗi chỗ nào bấm
-    //client bắt r trả id dòng đó về và update roomId dòng đó thành null
-    const examRoomId = parseInt(req.body.examRoomId)
     try {
+        const staffId = parseInt(res.locals.userData.id);
+        // const staffId = 1;
+
+        //staff nhìn vô bảng examRoom thấy lỗi chỗ nào bấm
+        //client bắt r trả id dòng đó về và update roomId dòng đó thành null
+        const examRoomId = parseInt(req.body.examRoomId)
+
         const result = await delRoomByStaff(staffId, examRoomId);
         res.json(MessageResponse(result));
         return;
