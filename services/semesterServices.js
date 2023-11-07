@@ -54,13 +54,93 @@ export async function deleteSemesterById(semId) {
     }
 }
 
-export async function findAllSemester(value, filterBy, pageNo, limit) {
+export async function findAllSemester() {
     let semList = [];
     const current = new Date().toISOString().slice(0, 10);
     const semesterList = await Semester.findAll();
     if (semesterList.length == 0) {
         throw new Error('Not found !')
     }
+
+    for (const sem of semesterList) {
+        const phase = await ExamPhase.findOne({
+            where: {
+                semId: sem.dataValues.id
+            }
+        })
+        if (sem.dataValues.start > current && sem.dataValues.status == 1 && !phase) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 1, //ĐC XÓA
+                time: "FUTURE"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.start > current && sem.dataValues.status == 1 && phase) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "FUTURE"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.start > current && sem.dataValues.status == 0) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "FUTURE"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.start <= current && current <= sem.dataValues.end) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "ONGOING"
+            }
+            semList.push(s);
+        } else if (sem.dataValues.end < current) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "PASSED"
+            }
+            semList.push(s);
+        }
+    }
+    return semList;
+}
+
+export async function findAllSemesterVer2() {
+    let semList = [];
+    const current = new Date().toISOString().slice(0, 10);
+    const semesterList = await Semester.findAll({
+        where: {
+            status: 1
+        }
+    });
 
     for (const sem of semesterList) {
         const phase = await ExamPhase.findOne({
