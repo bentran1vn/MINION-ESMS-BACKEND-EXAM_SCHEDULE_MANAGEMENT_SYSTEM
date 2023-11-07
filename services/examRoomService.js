@@ -101,11 +101,6 @@ export async function autoCreateExamRoom(incomingPhase) {
 
     for (let i = 0; i < course.length; i++) { //Duyệt danh sách Môn Thi
 
-        /*TestFile-NewCouse
-        // let msg = "New Course"
-        // fs.appendFileSync("test.txt", msg + "\n");
-        */
-
         let daySlot = dayList[dayCount]
         let slot = slotList[slotCount].id
 
@@ -143,19 +138,7 @@ export async function autoCreateExamRoom(incomingPhase) {
 
         let NumRoomOfCourse = Math.ceil(val.numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
 
-        /* TestFile-CurrentSlot-NumRoomOfCourse
-            //let currentSlot = "Current Slot: " + slotCount
-            //fs.appendFileSync("test.txt", currentSlot + "\n");
-            //let roomCourseData = "roomCourse của môn: " + roomCourse
-            //fs.appendFileSync("test.txt", roomCourseData + "\n");
-        */
-
         roomSlot += NumRoomOfCourse
-
-        /* TestFile-RoomSlot
-        // let roomSlotData = "RoomSlot sau khi add: " + roomSlot
-        // fs.appendFileSync("test.txt", roomSlotData + "\n");
-        */
 
         if (roomSlot <= process.env.NUMBER_OF_FLOOR * process.env.NUMBER_OF_ROOM_IN_FLOOR) {
 
@@ -165,35 +148,10 @@ export async function autoCreateExamRoom(incomingPhase) {
                 exSlId: examSlot.id
             })
 
-            /* TestFile-subID--examSlotID
-            // let data = subjectInSlot.courId + "--" + subjectInSlot.exSlId
-            // fs.appendFileSync("test1.txt", data + "\n");
-            */
-
             for (let i = 0; i < NumRoomOfCourse; i++) {
                 let room
                 room = roomList[roomCount]
-                /**
-                let roomCheck
-                do {
-                    room = await randomRoom().then(val => room = val)
-                    roomCheck = {}
-                    roomCheck = await RoomLogTime.findOne({
-                        where: {
-                            roomId: room.id,
-                            day: daySlot,
-                            timeSlotId: slot
-                        }
-                    })
-                } while (roomCheck);
  
-                //TestFile-subID--examSlotID  
-                // let data = val.id + ".." + val.numOfStu + ".." + daySlot.getDate() + ".." + slot
-                // let data1 = dayCount + "---" + slotCount
-                // fs.appendFileSync("test.txt", data1 + "\n");
-                // fs.appendFileSync("test.txt", data + "\n");
-                console.log(room.id);
-                */
                 await ExamRoom.create({
                     sSId: subjectInSlot.id,
                     roomId: room.id,
