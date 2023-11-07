@@ -193,7 +193,7 @@ export async function createPhase(examPhase, staff) {
                 }
             })
         const checkLogStaff = await StaffLogChange.create({
-            rowId: examRoom.dataValues.id,
+            rowId: check.dataValues.id,
             tableName: 6,
             userId: staff.id,
             typeChange: 13,
@@ -211,7 +211,7 @@ export async function createPhase(examPhase, staff) {
             des: des
         })
         const checkLogStaff = await StaffLogChange.create({
-            rowId: examRoom.dataValues.id,
+            rowId: result.dataValues.id,
             tableName: 6,
             userId: staff.id,
             typeChange: 13,
