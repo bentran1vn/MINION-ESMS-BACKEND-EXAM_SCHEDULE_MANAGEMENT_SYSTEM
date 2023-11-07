@@ -74,6 +74,7 @@ export async function autoFillStu() {
                 }
             }
         }
+        await StudentSubject.update({ status: 0 }, { where: { status: 1 } })
         console.log('Arrangement completed');
     } catch (error) {
         console.log(error);
