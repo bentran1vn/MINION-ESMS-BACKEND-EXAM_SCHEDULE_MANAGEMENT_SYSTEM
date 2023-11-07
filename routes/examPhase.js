@@ -1,7 +1,7 @@
 import express from 'express'
 import { DataResponse, MessageResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
-import { createPhase, deletePhaseBySemId, getExamphasesBySemId, updatePhase, findPhaseBySemId } from '../services/examPhaseService.js'
+import { findPhaseBySemIdv2, createPhase, deletePhaseBySemId, getExamphasesBySemId, updatePhase, findPhaseBySemId } from '../services/examPhaseService.js'
 
 /**
  * @swagger
@@ -267,8 +267,20 @@ router.get('/semId', async (req, res) => {
 })//get all Exam Phase by Semester Id
 
 
-router.get('/:id', requireRole("admin"), async (req, res) => {
+router.get('/otherRole', async (req, res) => {
+    try {
+        const semId = parseInt(req.query.id)
+        let phaseList
+        await findPhaseBySemIdv2(semId).then(value => phaseList = value)
+        res.json(DataResponse(phaseList))
+    } catch (err) {
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
+    }
+})// Get Exam Phase by Semester Id
 
+
+router.get('/:id', requireRole("admin"), async (req, res) => {
     try {
         const semId = parseInt(req.params.id)
         let phaseList
@@ -278,6 +290,5 @@ router.get('/:id', requireRole("admin"), async (req, res) => {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
-})// Get Exam Phase by Semester Id
-
+})
 export default router
