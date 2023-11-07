@@ -68,33 +68,33 @@ export async function lecturerCron() {
     }
 }
 
-export async function semesterCron() {
-    let semesterList = await Semester.findAll({
-        where: {
-            status: 1
-        }
-    })
-    for (const item of semesterList) {
-        let day = modiDays(new Date(item.end), 1, 1)
-        let endDay = new Date(day).getDate()
-        let endMonth = new Date(day).getMonth() + 1
-        let jobSemester = new cron.schedule(
-            `0 0 ${endDay} ${endMonth} *`,
-            async () => {
-                let result = await Semester.update({ status: 0 }, {
-                    where: {
-                        id: item.id
-                    }
-                })
-                if(result[0] == 0) throw new Error('Update ExamPhase fail !')
-            },
-            {
-                scheduled: true,
-                timeZone: 'Asia/Ho_Chi_Minh' // Lưu ý set lại time zone cho đúng     
-            }
-        );
-        await jobSemester.start();
-    }
-}
+// export async function semesterCron() {
+//     let semesterList = await Semester.findAll({
+//         where: {
+//             status: 1
+//         }
+//     })
+//     for (const item of semesterList) {
+//         let day = modiDays(new Date(item.end), 1, 1)
+//         let endDay = new Date(day).getDate()
+//         let endMonth = new Date(day).getMonth() + 1
+//         let jobSemester = new cron.schedule(
+//             `0 0 ${endDay} ${endMonth} *`,
+//             async () => {
+//                 let result = await Semester.update({ status: 0 }, {
+//                     where: {
+//                         id: item.id
+//                     }
+//                 })
+//                 if(result[0] == 0) throw new Error('Update ExamPhase fail !')
+//             },
+//             {
+//                 scheduled: true,
+//                 timeZone: 'Asia/Ho_Chi_Minh' // Lưu ý set lại time zone cho đúng     
+//             }
+//         );
+//         await jobSemester.start();
+//     }
+// }
 
 
