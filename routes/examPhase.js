@@ -228,9 +228,10 @@ router.post('/', requireRole('admin'), async (req, res) => {
 })// Creat new Exam Phase
 
 router.put('/', requireRole('admin'), async (req, res) => {
-    const examPhaseUp = req.body
-    const staff = res.locals.userData
+
     try {
+        const examPhaseUp = req.body
+        const staff = res.locals.userData
         await updatePhase(examPhaseUp, staff)
         res.json(MessageResponse("ExamPhase Update !"))
     } catch (error) {
@@ -254,8 +255,9 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 })// Delete Exam Phase
 
 router.get('/semId', async (req, res) => {
-    const semesterId = parseInt(req.query.semesterId);
+
     try {
+        const semesterId = parseInt(req.query.semesterId);
         let returnL = await getExamphasesBySemId(semesterId);
         res.json(DataResponse(returnL));
     } catch (error) {
@@ -266,8 +268,9 @@ router.get('/semId', async (req, res) => {
 
 
 router.get('/:id', requireRole("admin"), async (req, res) => {
-    const semId = parseInt(req.params.id)
+
     try {
+        const semId = parseInt(req.params.id)
         let phaseList
         await findPhaseBySemId(semId).then(value => phaseList = value)
         res.json(DataResponse(phaseList))

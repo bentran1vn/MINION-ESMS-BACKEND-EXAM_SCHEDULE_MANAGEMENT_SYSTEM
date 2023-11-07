@@ -285,7 +285,6 @@ export async function findPhaseBySemId(id) {
     const examPhases = await ExamPhase.findAll({
         where: {
             semId: id,
-            alive: 1
         }
     })
 
@@ -300,8 +299,8 @@ export async function findPhaseBySemId(id) {
                 ePId: examPhases[i].id
             }
         })
-        if (course.length != 0 || examslot.length != 0) {
-            //1 la xoa
+        if (course.length != 0 || examslot.length != 0 || examPhases[i].alive == 0) {
+            //1 ko xoa
             insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des, 1)
         } else {
             //0 la dc
