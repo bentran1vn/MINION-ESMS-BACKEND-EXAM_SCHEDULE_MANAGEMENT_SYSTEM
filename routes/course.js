@@ -74,8 +74,8 @@ const router = express.Router()
  */
 
 router.get('/', requireRole("admin"), async (req, res) => {
-    const ePId = parseInt(req.query.ePId)
     try {
+        const ePId = parseInt(req.query.ePId)
         let courses
         await getCouseByExamPhase(ePId).then(value => courses = value)
         res.json(DataResponse(courses))

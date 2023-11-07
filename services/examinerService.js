@@ -322,6 +322,8 @@ export async function getExaminerByPhase(exPhaseId) {
         else {
             return examinerLists;
         }
+    } else {
+        throw new Error('Not found phase')
     }
 }//lấy danh sách examiner by phase của màn hình admin
 

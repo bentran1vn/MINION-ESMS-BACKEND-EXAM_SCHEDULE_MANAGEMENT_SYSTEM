@@ -6,7 +6,7 @@ import Course from '../models/Course.js'
 import { findAll } from './roomService.js'
 import RoomLogTime from '../models/RoomLogTime.js'
 import StaffLogChange from '../models/StaffLogChange.js'
-import {autoCreateCourse} from '../utility/courseUtility.js'
+import { autoCreateCourse } from '../utility/courseUtility.js'
 import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
 import Subject from '../models/Subject.js'
@@ -226,6 +226,10 @@ export async function checkRoomExist(courId) {
 }//true là đã có phòng, false là chưa có phòng
 
 export async function getCouseByExamPhase(ePId) {
+    console.log(ePId);
+    if (ePId == null || ePId == undefined) {
+        throw new Error("Phase not exist")
+    }
     let listCourse = [];
     let check;
     await autoCreateCourse().then(value => check = value);
