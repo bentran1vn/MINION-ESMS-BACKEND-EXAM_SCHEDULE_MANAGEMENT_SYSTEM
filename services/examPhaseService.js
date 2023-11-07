@@ -244,6 +244,38 @@ export async function checkExamSlotByPhaseId(examPhaseId) {
             ePId: examPhaseId
         }
     })
-    if(examSlot == null || examSlot.length ==0) return false
+    if(examSlot == null || examSlot.length == 0) return false
     return true
 }//return true if have exam slot | false if dont have exam slot
+
+export async function findPhaseBySemId(id) {
+    const detailExamPhase = []
+    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des) {
+        const EPDetail = {
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des// 1 done, 0 chưa done
+        }
+        detailExamPhase.push(EPDetail)
+    }
+
+    const examPhases = await ExamPhase.findAll({
+        where: {
+            semId: id,
+            alive: 1
+        }
+    })
+
+    for (let i = 0; i < examPhases.length; i++) {
+        const course = await Course.findAll({
+            where: {
+                ePId: examPhases[i].id
+            }
+        })
+        if (course.length != 0) {
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des)
+        } else {
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des)
+        }
+    }
+    if (!detailExamPhase) throw new Error("Can not find exam phases !")
+    return detailExamPhase
+}
