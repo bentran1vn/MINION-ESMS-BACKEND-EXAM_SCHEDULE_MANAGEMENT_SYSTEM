@@ -265,8 +265,8 @@ router.post('/whenCreateSemester', requireRole("admin"), async (req, res) => {
     }
 })
 
-router.delete('/:id', requireRole("admin"), async (req, res) => {
-    const semId = parseInt(req.params.id)
+router.delete('/', requireRole("admin"), async (req, res) => {
+    const semId = parseInt(req.query.id)
     try {
         const result = await deleteSemesterById(semId)
         if (result) {
