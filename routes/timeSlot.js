@@ -251,29 +251,29 @@ router.get('/semId', async (req, res) => {
 })
 
 //requireRole("admin")
-router.delete('/', async (req, res) => {
-    const id = parseInt(req.body.id);
-    try {
-        const result = await delTimeSlot(id);
-        res.json(MessageResponse(result))
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})
+// router.delete('/', async (req, res) => {
+//     const id = parseInt(req.body.id);
+//     try {
+//         const result = await delTimeSlot(id);
+//         res.json(MessageResponse(result))
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
+//     }
+// })
 
-router.put('/', async (req, res) => {
-    const id = parseInt(req.body.id)
-    const timeSlotData = req.body;
+// router.put('/', async (req, res) => {
+//     const id = parseInt(req.body.id)
+//     const timeSlotData = req.body;
 
-    try {
-        const result = await updateTime(id, timeSlotData);
-        res.json(MessageResponse(result))
-    } catch (err) {
-        console.log(err);
-        res.json(ErrorResponse(500, err.message))
-    }
-})//update time slot theo id
+//     try {
+//         const result = await updateTime(id, timeSlotData);
+//         res.json(MessageResponse(result))
+//     } catch (err) {
+//         console.log(err);
+//         res.json(ErrorResponse(500, err.message))
+//     }
+// })//update time slot theo id
 
 export default router
 //add xong

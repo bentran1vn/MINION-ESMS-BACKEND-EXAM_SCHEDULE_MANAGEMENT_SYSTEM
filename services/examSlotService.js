@@ -25,15 +25,15 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
             day: day
         }
     })
-    if(!slot) throw new Error("Already Exist Exam Slot !")
+    if (!slot) throw new Error("Already Exist Exam Slot !")
     const examPhase = await ExamPhase.findOne({
         where: {
             id: phaseId,
             alive: 1
         }
     })
-    if(!examPhase) throw new Error("Not found exam phase !");
-    if(validDay(examPhase.startDay, examPhase.endDay, day)){
+    if (!examPhase) throw new Error("Not found exam phase !");
+    if (validDay(examPhase.startDay, examPhase.endDay, day)) {
         if (!slot) {
             const examSlot = await ExamSlot.create({
                 ePId: phaseId,
@@ -56,7 +56,7 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
     }
 }
 
-export async function deleteExamSlot(examslotId, staff){
+export async function deleteExamSlot(examslotId, staff) {
     let message = "";
     const result = await ExamSlot.destroy({
         where: {
@@ -77,7 +77,7 @@ export async function deleteExamSlot(examslotId, staff){
     }
 }
 
-export async function getAllByPhase(semId, ePId){
+export async function getAllByPhase(semId, ePId) {
     const examPhase = await ExamPhase.findOne({
         where: {
             id: ePId,
@@ -85,7 +85,7 @@ export async function getAllByPhase(semId, ePId){
             alive: 1
         }
     })
-    if(!examPhase) throw new Error("Not found exam phase")
+    if (!examPhase) throw new Error("Not found exam phase")
     const exSlotFull = await ExamSlot.findAll({
         where: {
             ePId: examPhase.id
