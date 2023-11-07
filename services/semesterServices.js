@@ -172,7 +172,11 @@ export async function validateYearAndSeason(year, season) {
 
 export async function getSemesterAndStatus() {
     let final = [];
-    const semester = await Semester.findAll();
+    const semester = await Semester.findAll({
+        where: {
+            status: 1
+        }
+    });
     const time = new Date() //ngày hiện tại
     var timeFormatted = time.toISOString().slice(0, 10)
     semester.forEach(async (item) => {

@@ -220,7 +220,8 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
+//GET NÀY CHO ADMIN
+router.get('/', requireRole('admin'), async (req, res) => {
     const type = req.query.type
     const value = req.query.value
     const pageNo = parseInt(req.query.page_no) || 1
@@ -238,6 +239,7 @@ router.get('/', async (req, res) => {
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
 
+//GET NÀY CHO ROLE KHÁC
 router.get('/season', async (req, res) => {
     try {
         const final = await getSemesterAndStatus();
