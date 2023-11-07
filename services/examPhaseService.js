@@ -2,6 +2,7 @@ import ExamPhase from '../models/ExamPhase.js'
 import Course from '../models/Course.js'
 import ExamSlot from '../models/ExamSlot.js'
 import StaffLogChange from '../models/StaffLogChange.js'
+import { Op } from 'sequelize'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
