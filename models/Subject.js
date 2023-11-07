@@ -20,7 +20,6 @@ const Subject = sequelize.define(tableName, {
     },
     //1 là hiện ra
     //0 là ko hiện ra  
-
 });
 
 await Subject.sync().then(() => {

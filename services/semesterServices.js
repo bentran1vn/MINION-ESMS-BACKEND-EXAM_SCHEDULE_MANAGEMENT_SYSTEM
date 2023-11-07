@@ -77,6 +77,18 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
                 time: "FUTURE"
             }
             semList.push(s);
+        } else if (sem.dataValues.start > current && sem.dataValues.status == 1 && phase) {
+            const s = {
+                id: sem.dataValues.id,
+                season: sem.dataValues.season,
+                year: sem.dataValues.year,
+                start: sem.dataValues.start,
+                end: sem.dataValues.end,
+                status: sem.dataValues.status,
+                delete: 0, //KO
+                time: "FUTURE"
+            }
+            semList.push(s);
         } else if (sem.dataValues.start > current && sem.dataValues.status == 0) {
             const s = {
                 id: sem.dataValues.id,
@@ -204,6 +216,7 @@ export async function autoCreateTimeSlotWhenCreateSemester(year, season, start, 
                     end: { [Op.between]: [start, end] },
                 },
             ],
+            status: 1
         },
     });
     if (semester) {
