@@ -107,6 +107,11 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
             id: courId
         }
     })// Lấy subject id trong course cần thi
+    const course = await Course.findOne({
+        where: {
+            id: courId
+        }
+    })
 
     const ArrStudentIdInCourse = await StudentSubject.findAll({ // Lấy ra tất cả học sinh thi của 1 subject bằng subjectId
         where: {
@@ -147,8 +152,9 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
         })
         await StudentSubject.update({ status: 0 }, {
             where: {
+                subjectId: course.subId,
+                stuId: numStuInRoom[count],
                 ePName: ePName,
-                stuId: numStuInRoom[i],
                 status: 1
             }
         })
