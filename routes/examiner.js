@@ -319,12 +319,13 @@ router.post('/', async (req, res) => {
     }
 })//chưa làm được 
 
-router.post('/volunteerExaminer', async (req, res) => {
+router.post('/volunteerExaminer', requireRole('staff'), async (req, res) => {
     try {
+        const staffId = parseInt(res.locals.userData.id)
         const exName = req.body.name
         const exEmail = req.body.email
         const semesterId = parseInt(req.body.semesterId)
-        const result = await createVolunteerExaminer(exName, exEmail, semesterId);
+        const result = await createVolunteerExaminer(exName, exEmail, semesterId, staffId);
         if (result) {
             res.json(MessageResponse("Add volunteer success!"));
         }
@@ -334,7 +335,7 @@ router.post('/volunteerExaminer', async (req, res) => {
     }
 })//tạo examiner role ctv
 
-router.get('/volunteerExaminer', async (req, res) => {
+router.get('/volunteerExaminer', requireRole('staff'), async (req, res) => {
     try {
         const semesterId = parseInt(req.query.semesterId);
         const examiner = await getAllExaminerCTVBySemId(semesterId)
@@ -347,9 +348,9 @@ router.get('/volunteerExaminer', async (req, res) => {
     }
 })//get ra examiner role ctv theo semester
 
-router.get('/allScheduled', async (req, res) => {
+router.get('/allScheduled', requireRole('lecturer'), async (req, res) => {
     try {
-        const id = parseInt(req.query.userId);//cái này sau bắt bằng token
+        const id = parseInt(res.locals.userData.id);//cái này sau bắt bằng token
         const finalList = await allScheduledOfExaminer(id)
         if (finalList) {
             res.json(DataResponse(finalList))
@@ -390,9 +391,9 @@ router.delete('/', async (req, res) => {
     }
 })//xóa examiner
 
-router.get('/scheduledByPhase', async (req, res) => {
+router.get('/scheduledByPhase', requireRole('lecturer'), async (req, res) => {
     try {
-        const id = parseInt(req.query.userId);
+        const id = parseInt(res.locals.userData.id);
         const examphaseId = parseInt(req.query.examphaseId);
         const finalList = await scheduledByPhase(id, examphaseId)
         if (finalList) {
@@ -404,7 +405,7 @@ router.get('/scheduledByPhase', async (req, res) => {
     }
 })//lấy lịch đã đăng kí của 1 examiner theo phase
 
-router.get('/getExaminerByPhase', requireRole('admin'), async (req, res) => {
+router.get('/getExaminerByPhase', requireRole('staff'), async (req, res) => {
     try {
         const exPhaseId = parseInt(req.query.exPhaseId);
         const examinerLists = await getExaminerByPhase(exPhaseId)

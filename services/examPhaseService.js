@@ -52,47 +52,47 @@ export function checkTime(startDay, endDay) {
 
 export async function getExamphasesBySemId(semesterId) {
     let returnL = [];
-        const phase = await ExamPhase.findAll({
-            where:{
-                semId: semesterId,
-                alive: 1
+    const phase = await ExamPhase.findAll({
+        where: {
+            semId: semesterId,
+            alive: 1
+        }
+    })
+    if (!phase || phase.length == 0) throw new Error('Not found!')
+    for (const exphase of phase) {
+        const examslot = await ExamSlot.findAll({
+            where: {
+                ePId: exphase.dataValues.id
             }
         })
-        if(!phase || phase.length == 0) throw new Error('Not found!')
-        for(const exphase of phase){
-            const examslot = await ExamSlot.findAll({
-                where:{
-                    ePId: exphase.dataValues.id
-                }
-            })
-            if(examslot){
-                const r = {
-                    id: exphase.dataValues.id,
-                    semId: exphase.dataValues.semId,
-                    ePName: exphase.dataValues.ePName,
-                    startDay: exphase.dataValues.startDay,
-                    endDay: exphase.dataValues.endDay,
-                    status: exphase.dataValues.status,
-                    des: exphase.dataValues.des,
-                    alive: exphase.dataValues.alive,
-                    edit: 0//không được sửa
-                }
-                returnL.push(r);
-            }else{
-                const r = {
-                    id: exphase.dataValues.id,
-                    semId: exphase.dataValues.semId,
-                    ePName: exphase.dataValues.ePName,
-                    startDay: exphase.dataValues.startDay,
-                    endDay: exphase.dataValues.endDay,
-                    status: exphase.dataValues.status,
-                    des: exphase.dataValues.des,
-                    alive: exphase.dataValues.alive,
-                    edit: 1//không được sửa
-                }
-                returnL.push(r);
+        if (examslot) {
+            const r = {
+                id: exphase.dataValues.id,
+                semId: exphase.dataValues.semId,
+                ePName: exphase.dataValues.ePName,
+                startDay: exphase.dataValues.startDay,
+                endDay: exphase.dataValues.endDay,
+                status: exphase.dataValues.status,
+                des: exphase.dataValues.des,
+                alive: exphase.dataValues.alive,
+                edit: 0//không được sửa
             }
+            returnL.push(r);
+        } else {
+            const r = {
+                id: exphase.dataValues.id,
+                semId: exphase.dataValues.semId,
+                ePName: exphase.dataValues.ePName,
+                startDay: exphase.dataValues.startDay,
+                endDay: exphase.dataValues.endDay,
+                status: exphase.dataValues.status,
+                des: exphase.dataValues.des,
+                alive: exphase.dataValues.alive,
+                edit: 1//không được sửa
+            }
+            returnL.push(r);
         }
+    }
     return returnL
 }
 
@@ -192,13 +192,13 @@ export async function createPhase(examPhase, staff) {
                     alive: 0
                 }
             })
-            const checkLogStaff = await StaffLogChange.create({
-                rowId: examRoom.dataValues.id,
-                tableName: 6,
-                userId: staff.id,
-                typeChange: 13,
-            })
-            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+        const checkLogStaff = await StaffLogChange.create({
+            rowId: examRoom.dataValues.id,
+            tableName: 6,
+            userId: staff.id,
+            typeChange: 13,
+        })
+        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
         if (!check) {
             throw new Error('Create ExamPhase Fail!')
         }
@@ -244,7 +244,7 @@ export async function checkExamSlotByPhaseId(examPhaseId) {
             ePId: examPhaseId
         }
     })
-    if(examSlot == null || examSlot.length == 0) return false
+    if (examSlot == null || examSlot.length == 0) return false
     return true
 }//return true if have exam slot | false if dont have exam slot
 
@@ -266,6 +266,11 @@ export async function findPhaseBySemId(id) {
 
     for (let i = 0; i < examPhases.length; i++) {
         const course = await Course.findAll({
+            where: {
+                ePId: examPhases[i].id
+            }
+        })
+        const examslot = await ExamSlot.findAll({
             where: {
                 ePId: examPhases[i].id
             }

@@ -10,20 +10,53 @@ import Course from "../models/Course.js";
 import Subject from "../models/Subject.js";
 import Room from "../models/Room.js";
 import { Op } from 'sequelize'
+import StaffLogChange from "../models/StaffLogChange.js";
 
-export async function createVolunteerExaminer(exName, exEmail, semesterId) {
-    const examiner = await Examiner.create({
-        exName: exName,
-        exEmail: exEmail,
-        semesterId: semesterId,
-        status: 0,
-        typeExaminer: 2
+export async function createVolunteerExaminer(exName, exEmail, semesterId, staffId) {
+    const checkExist = await Examiner.findOne({
+        where: {
+            exName: exName,
+            exEmail: exEmail,
+            semesterId: semesterId,
+            typeExaminer: 2
+        }
     })
-    if (examiner) {
-        return true
-    } else {
-        throw new Error('Error in create examiner volunteer')
+    if (!checkExist) {
+        const examiner = await Examiner.create({
+            exName: exName,
+            exEmail: exEmail,
+            semesterId: semesterId,
+            status: 0,
+            typeExaminer: 2
+        })
+        if (examiner) {
+            await StaffLogChange.create({
+                rowId: examiner.id,
+                tableName: 5,
+                userId: staffId,
+                typeChange: 8
+            })
+            return true
+        } else {
+            throw new Error('Error in create examiner volunteer')
+        }
+    } else if (checkExist && checkExist.status == 1) {
+        await Examiner.update(
+            {
+                status: 0
+            }, {
+            where: {
+                id: checkExist.id
+            }
+        })
+        await StaffLogChange.create({
+            rowId: checkExist.id,
+            tableName: 5,
+            userId: staffId,
+            typeChange: 9
+        })
     }
+
 }//tạo examiner role ctv
 
 export async function getAllExaminerCTVBySemId(semesterId) {

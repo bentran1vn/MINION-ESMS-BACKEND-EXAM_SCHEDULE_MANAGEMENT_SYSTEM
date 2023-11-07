@@ -12,7 +12,6 @@ const router = express.Router()
 
 //------------------------------------dash của admin
 router.get('/examinerDashBoard', requireRole('admin'), async (req, res) => {
-    
     const exPhaseId = parseInt(req.query.ePId);
     try {
         let total = await countExaminerInPhase(exPhaseId);
@@ -26,7 +25,6 @@ router.get('/examinerDashBoard', requireRole('admin'), async (req, res) => {
 
 router.get('/totalSlotDashBoard', requireRole('admin'), async (req, res) => {
     const exPhaseId = parseInt(req.query.ePId);
-    
     try {
         let totalSlot = await countTotalSlot(exPhaseId)
         res.json(DataResponse(totalSlot));
@@ -37,7 +35,6 @@ router.get('/totalSlotDashBoard', requireRole('admin'), async (req, res) => {
 })// Tổng số slot trong phase
 
 router.get('/totalStaffDashBoard', requireRole('admin'), async (req, res) => {
-    
     try {
         const total = await countStaff()
         res.json(DataResponse(total))
