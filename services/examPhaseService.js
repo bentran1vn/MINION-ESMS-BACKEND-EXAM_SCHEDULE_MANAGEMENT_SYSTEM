@@ -109,23 +109,20 @@ export async function deletePhaseBySemId(id, staff) {
     if (!examPhase) {
         throw new Error('Not found')
     } else {
-        const result = await ExamPhase.update(
-            {
-                alive: 0
-            },
-            {
-                where: examPhase
+        const result = await ExamPhase.update({ alive: 0 }, {
+            where: {
+                id: examPhase.id
             }
-        )
-        const checkLogStaff = await StaffLogChange.create({
-            rowId: examRoom.dataValues.id,
-            tableName: 6,
-            userId: staff.id,
-            typeChange: 15,
         })
-        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
-        if (result === 0) {
-            throw new Error('Delete Success !')
+        if (result[0] === 1) {
+            const checkLogStaff = await StaffLogChange.create({
+                rowId: examPhase.id,
+                tableName: 6,
+                userId: staff,
+                typeChange: 15,
+            })
+            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+            return true
         }
     }
 }
