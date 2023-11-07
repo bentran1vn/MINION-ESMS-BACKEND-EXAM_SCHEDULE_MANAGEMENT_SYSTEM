@@ -53,30 +53,17 @@ export async function deleteSemesterById(semId) {
 }
 
 export async function findAllSemester(value, filterBy, pageNo, limit) {
-    // let whereClause
     let semList = [];
     const current = new Date().toISOString().slice(0, 10);
-    // if (filterBy === "year") {
-    //     whereClause = { year: parseInt(value) }
-    // } else if (filterBy === "season") {
-    //     whereClause = { season: value }
-    // } else if (filterBy === "status") {
-    //     whereClause = { status: parseInt(value) }
-    // } else {
-    //     semesterList = await Semester.findAll({
-    //         limit: limit || 1,
-    //         offset: (pageNo - 1) * limit
-    //     });
-    //     return semesterList;
-    // }
-    const semesterList = await Semester.findAll({
-        // where: whereClause,
-        // limit: limit || 1,
-        // offset: (pageNo - 1) * limit
-    });
+    const semesterList = await Semester.findAll();
 
     for (const sem of semesterList) {
-        if (sem.dataValues.start > current && sem.dataValues.status == 1) {
+        const phase = await ExamPhase.findOne({
+            where: {
+                semId: sem.dataValues.id
+            }
+        })
+        if (sem.dataValues.start > current && sem.dataValues.status == 1 && !phase) {
             const s = {
                 id: sem.dataValues.id,
                 season: sem.dataValues.season,
