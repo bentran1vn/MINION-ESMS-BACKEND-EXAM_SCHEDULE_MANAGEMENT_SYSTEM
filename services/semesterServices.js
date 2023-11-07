@@ -1,5 +1,6 @@
 import Semester from "../models/Semester.js";
 import TimeSlot from "../models/TimeSlot.js";
+import ExamPhase from "../models/ExamPhase.js";
 
 export async function createNewSemesterS(season, year, start, end) {
     const semester = await Semester.findOne({
