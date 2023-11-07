@@ -214,8 +214,8 @@ router.post('/', async (req, res) => {
         const result = await createTimeSlot(timeSlotDatas, semId);
         res.json(MessageResponse(result));
     } catch (err) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
 })
 
@@ -270,8 +270,8 @@ router.put('/', async (req, res) => {
         const result = await updateTime(id, timeSlotData);
         res.json(MessageResponse(result))
     } catch (err) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
     }
 })//update time slot theo id
 

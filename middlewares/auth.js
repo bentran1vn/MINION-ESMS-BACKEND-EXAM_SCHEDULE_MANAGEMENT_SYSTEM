@@ -21,7 +21,7 @@ export function requireRole(role){
             const tokenParts = token.split(" ");
             token = tokenParts[1];
         }
-        
+        // console.log(token);
         try{
             const data = jwt.verify(token, process.env.SECRET)
             res.locals.userData = data
