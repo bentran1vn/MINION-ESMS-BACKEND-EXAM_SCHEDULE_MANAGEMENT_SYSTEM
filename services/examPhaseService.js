@@ -310,3 +310,42 @@ export async function findPhaseBySemId(id) {
     if (!detailExamPhase) throw new Error("Can not find exam phases !")
     return detailExamPhase
 }
+
+export async function findPhaseBySemIdv2(id) {
+    const detailExamPhase = []
+    function insertExamPhase(id, semId, pN, sd, ed, cd, status, des, del) {
+        const EPDetail = {
+            id: id, semId: semId, ePName: pN, sDay: sd, eDay: ed, courseDone: cd, status: status, des: des, del: del// 1 done, 0 chưa done
+        }
+        detailExamPhase.push(EPDetail)
+    }
+
+    const examPhases = await ExamPhase.findAll({
+        where: {
+            semId: id,
+            alive: 1
+        }
+    })
+
+    for (let i = 0; i < examPhases.length; i++) {
+        const course = await Course.findAll({
+            where: {
+                ePId: examPhases[i].id
+            }
+        })
+        const examslot = await ExamSlot.findAll({
+            where: {
+                ePId: examPhases[i].id
+            }
+        })
+        if (course.length != 0 || examslot.length != 0 || examPhases[i].alive == 0) {
+            //1 ko xoa
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 1, examPhases[i].status, examPhases[i].des, 1)
+        } else {
+            //0 la dc
+            insertExamPhase(examPhases[i].id, examPhases[i].semId, examPhases[i].ePName, examPhases[i].startDay, examPhases[i].endDay, 0, examPhases[i].status, examPhases[i].des, 0)
+        }
+    }
+    if (!detailExamPhase) throw new Error("Can not find exam phases !")
+    return detailExamPhase
+}
