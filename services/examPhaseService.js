@@ -3,6 +3,7 @@ import Course from '../models/Course.js'
 import ExamSlot from '../models/ExamSlot.js'
 import StaffLogChange from '../models/StaffLogChange.js'
 import { Op } from 'sequelize'
+import Semester from '../models/Semester.js'
 
 export async function getExamPhasesStartOrder() {
     const examPhaseList = await ExamPhase.findAll(
@@ -204,26 +205,52 @@ export async function createPhase(examPhase, staff) {
             throw new Error('Create ExamPhase Fail!')
         }
     } else {
-        let result = await ExamPhase.create({
-            semId: semId,
-            ePName: ePName,
-            startDay: startDay,
-            endDay: endDay,
-            des: des
+        const semester = await Semester.findOne({
+            where: {
+                id: semId
+            }
         })
-        const checkLogStaff = await StaffLogChange.create({
-            rowId: result.dataValues.id,
-            tableName: 6,
-            userId: staff.id,
-            typeChange: 13,
-        })
-        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+        if (semester) {
+            if (startDay < semester.start || endDay > semester.end) {
+                throw new Error('Examphase time must be within the semester !')
+            } else {
+                const examPhase = await ExamPhase.findOne({
+                    where: {
+                        [Op.or]: [
+                            {
+                                startDay: { [Op.between]: [startDay, endDay] },
+                            },
+                            {
+                                endDay: { [Op.between]: [startDay, endDay] },
+                            },
+                        ],
+                    },
+                });
+                if (examPhase) {
+                    throw new Error('Examphase time is collision with another examphase')
+                } else {
+                    let result = await ExamPhase.create({
+                        semId: semId,
+                        ePName: ePName,
+                        startDay: startDay,
+                        endDay: endDay,
+                        des: des
+                    })
+                    const checkLogStaff = await StaffLogChange.create({
+                        rowId: result.dataValues.id,
+                        tableName: 6,
+                        userId: staff.id,
+                        typeChange: 13,
+                    })
+                    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
-        if (!result) {
-            throw new Error('Create ExamPhase Fail!')
+                    if (!result) {
+                        throw new Error('Create ExamPhase Fail!')
+                    }
+                }
+            }
         }
     }
-
 }
 
 export async function getExamPhaseBySemesterId(semesterId) {
