@@ -3,6 +3,10 @@ import sequelize from '../database/database.js';
 import Room from '../models/Room.js'
 import ExamPhase from '../models/ExamPhase.js';
 import RoomLogTime from '../models/RoomLogTime.js';
+import ExamRoom from '../models/ExamRoom.js'
+import Semester from '../models/Semester.js';
+import ExamSlot from '../models/ExamSlot.js';
+import SubInSlot from '../models/SubInSlot.js';
 
 export async function findAll() {
     const rooms = await Room.findAll({
@@ -25,7 +29,7 @@ export async function createRoom(data) {
     const findRoom = await Room.findOne({
         where: {
             roomNum: parseInt(data.roomNum),
-            location: data.location,         
+            location: data.location,
         }
     })
     if (findRoom) {
@@ -35,7 +39,7 @@ export async function createRoom(data) {
                 status: 0
             }
         })
-        if(findRoom.status == 1){
+        if (findRoom.status == 1) {
             throw new Error('Room exist !')
         }
     } else {
@@ -44,9 +48,9 @@ export async function createRoom(data) {
             location: data.location,
             note: 0
         })
-        if(result){
+        if (result) {
             return message = "Create Success !"
-        }else{
+        } else {
             return message = "Add fail !"
         }
     }
@@ -83,37 +87,112 @@ export async function updateRoom(id, data) {
 
 export async function getAllRoom() {
     const currentDay = new Date().toISOString().slice(0, 10)
-    const examPhase = await ExamPhase.findOne({
+    const room = await Room.findAll()
+
+    //nếu hiện tại k trong sem, chưa có phòng bận => tất cả được xóa
+    let roomNotInSemester = [];
+    for (const rooom of room) {
+        const r = {
+            roomNum: rooom.dataValues.roomNum,
+            location: rooom.dataValues.location,
+            note: rooom.dataValues.note || "N/A",
+            status: rooom.dataValues.status,
+            delete: 1//được xóa
+        }
+        roomNotInSemester.push(r)
+    }
+    const semester = await Semester.findOne({
         where: {
-            startDay: { [Op.lte]: currentDay },
-            endDay: { [Op.gt]: currentDay },
-            alive: 1
+            start: { [Op.lte]: currentDay },
+            end: { [Op.gte]: currentDay },
         }
     })
-    const roomArr = []
-    function insertRoom(id, roomNum, location, status, allowed) {
-        const roomDetail = {
-            id, roomNum, location, status, allowed
+    if (!semester) {
+        return roomNotInSemester;
+    }
+
+    const phases = await ExamPhase.findAll({
+        where: {
+            semId: semester.id
         }
-        roomArr.push(roomDetail)
-    }
-    const room = await Room.findAll()
-    if (examPhase) {
-        room.forEach(e => {
-            const length = e.roomNum + ""
-            if (length.length > 1) {
-                insertRoom(e.id, e.roomNum, e.location, e.status, 0)
+    })
+    let roomIdInUse = [];
+    for (const phase of phases) {
+        const exslots = await ExamSlot.findAll({
+            where: {
+                ePId: phase.dataValues.id
             }
         })
-    } else {
-        room.forEach(e => {
-            const length = e.roomNum + ""
-            if (length.length > 1) {
-                insertRoom(e.id, e.roomNum, e.location, e.status, 1)
+        for (const exslot of exslots) {
+            const subslots = await SubInSlot.findAll({
+                where: {
+                    exSlId: exslot.dataValues.id
+                }
+            })
+            for (const subslot of subslots) {
+                const roomInSemester = await ExamRoom.findAll({
+                    where: {
+                        sSId: subslot.dataValues.id
+                    }
+                })
+                for (const rom of roomInSemester) {
+                    const r = {
+                        roomId: rom.dataValues.roomId
+                    }
+                    roomIdInUse.push(r);
+                }
             }
-        })
+        }
     }
-    return roomArr
+
+    let roomWithAction = [];
+
+    for (const rm of room) {
+        if (roomIdInUse.includes(rm.dataValues.id)) {
+            const r = {
+                roomNum: rm.dataValues.roomNum,
+                location: rm.dataValues.location,
+                note: rm.dataValues.note || "N/A",
+                status: rm.dataValues.status,
+                delete: 0//không được xóa
+            }
+            roomWithAction.push(r);
+        } else {
+            const r = {
+                roomNum: rm.dataValues.roomNum,
+                location: rm.dataValues.location,
+                note: rm.dataValues.note || "N/A",
+                status: rm.dataValues.status,
+                delete: 1//được xóa
+            }
+            roomWithAction.push(r);
+        }
+    }
+    return roomWithAction;
+    // const roomArr = []
+    // function insertRoom(id, roomNum, location, status, allowed) {
+    //     const roomDetail = {
+    //         id, roomNum, location, status, allowed
+    //     }
+    //     roomArr.push(roomDetail)
+    // }
+
+    // if (examPhase) {
+    //     room.forEach(e => {
+    //         const length = e.roomNum + ""
+    //         if (length.length > 1) {
+    //             insertRoom(e.id, e.roomNum, e.location, e.status, 0)
+    //         }
+    //     })
+    // } else {
+    //     room.forEach(e => {
+    //         const length = e.roomNum + ""
+    //         if (length.length > 1) {
+    //             insertRoom(e.id, e.roomNum, e.location, e.status, 1)
+    //         }
+    //     })
+    // }
+    // return roomArr
 }
 
 export async function getRoomInUse(roomId) {
