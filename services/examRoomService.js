@@ -35,15 +35,14 @@ export async function autoCreateExamRoom(incomingPhase) {
     if (examPhase === null || examPhase.length == 0) {
         throw new Error("Can not create exam rooms! Examphase problem!")
     }
-
     let slotList = await TimeSlot.findAll(
         {
             where: {
                 semId: {
-                    [Op.eq]: examPhase.semId
+                    [Op.eq]: examPhase.dataValues.semId
                 },
                 des: {
-                    [Op.eq]: examPhase.des
+                    [Op.eq]: examPhase.dataValues.des
                 },
             },
         },
