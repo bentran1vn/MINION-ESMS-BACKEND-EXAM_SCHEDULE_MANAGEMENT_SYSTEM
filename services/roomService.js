@@ -91,108 +91,34 @@ export async function getAllRoom() {
 
     //nếu hiện tại k trong sem, chưa có phòng bận => tất cả được xóa
     let roomNotInSemester = [];
-    for (const rooom of room) {
-        const r = {
-            roomNum: rooom.dataValues.roomNum,
-            location: rooom.dataValues.location,
-            note: rooom.dataValues.note || "N/A",
-            status: rooom.dataValues.status,
-            delete: 1//được xóa
-        }
-        roomNotInSemester.push(r)
-    }
     const semester = await Semester.findOne({
         where: {
             start: { [Op.lte]: currentDay },
             end: { [Op.gte]: currentDay },
         }
     })
-    if (!semester) {
-        return roomNotInSemester;
-    }
-
-    const phases = await ExamPhase.findAll({
-        where: {
-            semId: semester.id
-        }
-    })
-    let roomIdInUse = [];
-    for (const phase of phases) {
-        const exslots = await ExamSlot.findAll({
-            where: {
-                ePId: phase.dataValues.id
-            }
-        })
-        for (const exslot of exslots) {
-            const subslots = await SubInSlot.findAll({
-                where: {
-                    exSlId: exslot.dataValues.id
-                }
-            })
-            for (const subslot of subslots) {
-                const roomInSemester = await ExamRoom.findAll({
-                    where: {
-                        sSId: subslot.dataValues.id
-                    }
-                })
-                for (const rom of roomInSemester) {
-                    const r = {
-                        roomId: rom.dataValues.roomId
-                    }
-                    roomIdInUse.push(r);
-                }
-            }
-        }
-    }
-
-    let roomWithAction = [];
-
-    for (const rm of room) {
-        if (roomIdInUse.includes(rm.dataValues.id)) {
+    for (const rooom of room) {
+        if (semester) {
             const r = {
-                roomNum: rm.dataValues.roomNum,
-                location: rm.dataValues.location,
-                note: rm.dataValues.note || "N/A",
-                status: rm.dataValues.status,
+                roomNum: rooom.dataValues.roomNum,
+                location: rooom.dataValues.location,
+                note: rooom.dataValues.note || "N/A",
+                status: rooom.dataValues.status,
                 delete: 0//không được xóa
             }
-            roomWithAction.push(r);
+            roomNotInSemester.push(r)
         } else {
             const r = {
-                roomNum: rm.dataValues.roomNum,
-                location: rm.dataValues.location,
-                note: rm.dataValues.note || "N/A",
-                status: rm.dataValues.status,
+                roomNum: rooom.dataValues.roomNum,
+                location: rooom.dataValues.location,
+                note: rooom.dataValues.note || "N/A",
+                status: rooom.dataValues.status,
                 delete: 1//được xóa
             }
-            roomWithAction.push(r);
+            roomNotInSemester.push(r)
         }
     }
-    return roomWithAction;
-    // const roomArr = []
-    // function insertRoom(id, roomNum, location, status, allowed) {
-    //     const roomDetail = {
-    //         id, roomNum, location, status, allowed
-    //     }
-    //     roomArr.push(roomDetail)
-    // }
-
-    // if (examPhase) {
-    //     room.forEach(e => {
-    //         const length = e.roomNum + ""
-    //         if (length.length > 1) {
-    //             insertRoom(e.id, e.roomNum, e.location, e.status, 0)
-    //         }
-    //     })
-    // } else {
-    //     room.forEach(e => {
-    //         const length = e.roomNum + ""
-    //         if (length.length > 1) {
-    //             insertRoom(e.id, e.roomNum, e.location, e.status, 1)
-    //         }
-    //     })
-    // }
-    // return roomArr
+    return roomNotInSemester;
 }
 
 export async function getRoomInUse(roomId) {
