@@ -243,8 +243,10 @@ router.delete('/', requireRole('admin'), async (req, res) => {
     const id = parseInt(req.body.id)
     const staff = res.locals.userData.id
     try {
-        await deletePhaseBySemId(id, staff)
-        res.json(MessageResponse("ExamPhase Delete !"))
+        const result = await deletePhaseBySemId(id, staff)
+        if (result) {
+            res.json(MessageResponse("ExamPhase Delete !"))
+        }
     } catch (error) {
         console.log(error)
         res.json(ErrorResponse(500, error.message))
