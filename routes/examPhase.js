@@ -265,7 +265,7 @@ router.get('/semId', async (req, res) => {
 })//get all Exam Phase by Semester Id
 
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireRole("admin"), async (req, res) => {
     const semId = parseInt(req.params.id)
     try {
         let phaseList

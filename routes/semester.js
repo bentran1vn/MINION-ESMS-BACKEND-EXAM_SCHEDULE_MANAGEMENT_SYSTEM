@@ -3,7 +3,7 @@ import { DataResponse, ErrorResponse, InternalErrResponse, InvalidTypeResponse, 
 import { requireRole } from '../middlewares/auth.js'
 import Semester from '../models/Semester.js'
 import { Op } from 'sequelize'
-import { autoCreateTimeSlotWhenCreateSemester, createNewSemesterS, deleteSemesterById, findAllSemester, getSemesterAndStatus, validateYearAndSeason } from '../services/semesterServices.js'
+import { findAllSemesterVer2, autoCreateTimeSlotWhenCreateSemester, createNewSemesterS, deleteSemesterById, findAllSemester, getSemesterAndStatus, validateYearAndSeason } from '../services/semesterServices.js'
 import TimeSlot from '../models/TimeSlot.js'
 
 const router = express.Router()
@@ -220,16 +220,11 @@ router.post('/', async (req, res) => {
     }
 })
 
-//GET NÀY CHO ADMIN
+//GET NÀY CHO ADMIN , requireRole('admin')
 router.get('/', requireRole('admin'), async (req, res) => {
-    const type = req.query.type
-    const value = req.query.value
-    const pageNo = parseInt(req.query.page_no) || 1
-    const limit = parseInt(req.query.limit) || 10
-
     try {
         let semesterList
-        await findAllSemester(value, type, pageNo, limit).then(value => semesterList = value)
+        await findAllSemester().then(value => semesterList = value)
         if (semesterList != null && semesterList.length > 0) {
             res.json(DataResponse(semesterList));
         }
@@ -238,6 +233,20 @@ router.get('/', requireRole('admin'), async (req, res) => {
         res.json(ErrorResponse(500, err.message))
     }
 })// Tìm kiếm bằng type : value (year: số năm, season: tên mùa, status : 0/1); nếu không có thì get all
+
+//get cho role khác
+router.get('/otherRole', async (req, res) => {
+    try {
+        let semesterList
+        await findAllSemesterVer2().then(value => semesterList = value)
+        if (semesterList != null && semesterList.length > 0) {
+            res.json(DataResponse(semesterList));
+        }
+    } catch (err) {
+        console.log(err);
+        res.json(ErrorResponse(500, err.message))
+    }
+})
 
 //GET NÀY CHO ROLE KHÁC
 router.get('/season', async (req, res) => {
