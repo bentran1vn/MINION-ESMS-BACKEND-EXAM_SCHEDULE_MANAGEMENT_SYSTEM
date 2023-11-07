@@ -78,6 +78,7 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
     for (const sem of semesterList) {
         if (sem.dataValues.start > current && sem.dataValues.status == 1) {
             const s = {
+                id: sem.dataValues.id,
                 season: sem.dataValues.season,
                 year: sem.dataValues.year,
                 start: sem.dataValues.start,
@@ -89,6 +90,7 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
             semList.push(s);
         } else if (sem.dataValues.start > current && sem.dataValues.status == 0) {
             const s = {
+                id: sem.dataValues.id,
                 season: sem.dataValues.season,
                 year: sem.dataValues.year,
                 start: sem.dataValues.start,
@@ -100,6 +102,7 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
             semList.push(s);
         } else if (sem.dataValues.start <= current && current <= sem.dataValues.end) {
             const s = {
+                id: sem.dataValues.id,
                 season: sem.dataValues.season,
                 year: sem.dataValues.year,
                 start: sem.dataValues.start,
@@ -111,6 +114,7 @@ export async function findAllSemester(value, filterBy, pageNo, limit) {
             semList.push(s);
         } else if (sem.dataValues.end < current) {
             const s = {
+                id: sem.dataValues.id,
                 season: sem.dataValues.season,
                 year: sem.dataValues.year,
                 start: sem.dataValues.start,
