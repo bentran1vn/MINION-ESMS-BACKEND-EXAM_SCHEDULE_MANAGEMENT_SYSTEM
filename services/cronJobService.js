@@ -3,6 +3,7 @@ import ExamPhase from '../models/ExamPhase.js'
 import Semester from '../models/Semester.js'
 import cron from "node-cron";
 import { modiDays } from '../utility/dayUtility.js';
+import { autoFillLecturerToExamRoom } from './examRoomService.js';
 
 
 export async function examPhaseCron() {
@@ -42,6 +43,30 @@ export async function examPhaseCron() {
     }
 }
 
+export async function lecturerCron() {
+    let examPhaseList = await ExamPhase.findAll({
+        where: {
+            status: true,
+            alive: 1
+        }
+    })
+    for (const item of examPhaseList) {
+        let day = modiDays(new Date(item.startDay), 5, 0)
+        let startDay = new Date(day).getDate()
+        let startMonth = new Date(day).getMonth() + 1
+        let jobLec = new cron.schedule(
+            `0 0 ${startDay} ${startMonth} *`,
+            async () => {
+                await autoFillLecturerToExamRoom(1, item.id)
+            },
+            {
+                scheduled: true,
+                timeZone: 'Asia/Ho_Chi_Minh' // Lưu ý set lại time zone cho đúng     
+            }
+        );
+        await jobLec.start();
+    }
+}
 
 export async function semesterCron() {
     let semesterList = await Semester.findAll({
