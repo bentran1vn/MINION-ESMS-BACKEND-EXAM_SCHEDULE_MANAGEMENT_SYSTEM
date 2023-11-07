@@ -350,7 +350,7 @@ export async function autoFillLecturerToExamRoom(staffId, incomingPhase) {
     await Promise.all(promises);
     if (roomToSchedule.length == 0) {
         // res.json(MessageResponse("Register time ended!"));
-        return message = `All schedule in ${exPhase.ePName} is assigned`;
+        return message = `All schedule in ${exPhase.ePName} are assigned`;
     }
 
     for (const item of roomToSchedule) {
@@ -417,7 +417,7 @@ export async function autoFillLecturerToExamRoom(staffId, incomingPhase) {
             typeChange: 1,
         })
         // res.json(MessageResponse("Number of examiner not enough to fill up exam room"));
-        return message = `Lecturer examiner not enough, need ${count} exminers to fill up`;
+        return message = `Lecturer examiner not enough, need ${count} examiners to fill up`;
     } else if (count == 0) {
         const staffLog = await StaffLogChange.create({
             tableName: 0,
