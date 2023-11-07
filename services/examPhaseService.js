@@ -244,7 +244,7 @@ export async function checkExamSlotByPhaseId(examPhaseId) {
             ePId: examPhaseId
         }
     })
-    if(examSlot == null || examSlot.length ==0) return false
+    if(examSlot == null || examSlot.length == 0) return false
     return true
 }//return true if have exam slot | false if dont have exam slot
 

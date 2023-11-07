@@ -16,7 +16,7 @@ router.get('/', requireRole('staff'),  async (req, res) => {
     try {
         console.log("Checking Exam Phase !");
         let result = await checkExamSlotByPhaseId(examPhase)
-        if(!result) throw new Error("Exam Phase is being not schedule !")
+        if(result) throw new Error("Exam Phase is being not schedule !")
         console.log("Creating Exam Room !");
         await autoCreateExamRoom(examPhase)
         console.log("Filling Student Into Exam Room !");
