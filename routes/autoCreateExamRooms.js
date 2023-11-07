@@ -11,7 +11,7 @@ const router = express.Router()
 router.get('/', requireRole('staff'),  async (req, res) => {
     console.log("System is running !");
     console.log("Creating Exam Room !");
-    const examPhase = req.body.examPhaseId
+    const examPhase = req.query.examPhaseId
 
     try {
         console.log("Checking Exam Phase !");
