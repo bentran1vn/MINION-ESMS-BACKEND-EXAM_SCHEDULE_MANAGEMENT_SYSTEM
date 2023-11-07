@@ -73,7 +73,7 @@ const router = express.Router()
  *                 $ref: '#/components/schemas/Courses'
  */
 
-router.get('/', requireRole('admin'), async (req, res) => {
+router.get('/', requireRole("admin"), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
         let courses
