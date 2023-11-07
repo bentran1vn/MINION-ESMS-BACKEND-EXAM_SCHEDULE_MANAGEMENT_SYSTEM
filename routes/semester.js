@@ -232,7 +232,7 @@ router.get('/', async (req, res) => {
         if (semesterList != null && semesterList.length > 0) {
             res.json(DataResponse(semesterList));
         }
-    } catch (Error) {
+    } catch (err) {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
@@ -273,7 +273,7 @@ router.delete('/:id', requireRole("admin"), async (req, res) => {
         if (result) {
             res.json(MessageResponse('Delete successfully'))
         }
-    } catch (Error) {
+    } catch (err) {
         console.log(err);
         res.json(ErrorResponse(500, err.message))
     }
