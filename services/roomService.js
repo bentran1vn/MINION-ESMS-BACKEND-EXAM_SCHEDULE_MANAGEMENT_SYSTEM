@@ -63,8 +63,7 @@ export async function deleteRoom(roomId) {
             status: 1
         }
     })
-    console.log(result);
-    if (result === 0) {
+    if (result[0] == 0) {
         throw new Error("Not found")
     } else {
         return 'Delete Success !'

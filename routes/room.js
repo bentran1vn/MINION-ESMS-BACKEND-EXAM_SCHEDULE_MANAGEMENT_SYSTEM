@@ -290,8 +290,7 @@ router.post('/', requireRole('admin'), async (req, res) => {
 })// Create new room
 
 router.delete('/', requireRole('admin'), async (req, res) => {
-    const roomNum = parseInt(req.body.roomNum);
-
+    const roomNum = parseInt(req.query.roomNum);
     try {
         const result = await deleteRoom(roomNum);
         res.json(MessageResponse(result))

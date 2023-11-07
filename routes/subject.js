@@ -1,5 +1,5 @@
 import express from 'express'
-import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse,ErrorResponse } from '../common/reponses.js'
+import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse, ErrorResponse } from '../common/reponses.js'
 import Subject from '../models/Subject.js'
 import Course from '../models/Course.js'
 import { requireRole } from '../middlewares/auth.js'
@@ -177,41 +177,41 @@ const router = express.Router()
  *         description: Internal Server Error !
  */
 
-router.post('/', async (req, res) => {
-    const body = req.body;
+// router.post('/', async (req, res) => {
+//     const body = req.body;
 
-    try {
-        const result = await createSubject(body)
-        res.json(result)
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})// Create new subject
+//     try {
+//         const result = await createSubject(body)
+//         res.json(result)
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
+//     }
+// })// Create new subject
 
-router.delete('/', async (req, res) => {
-    const id = parseInt(req.body.id);
+// router.delete('/', async (req, res) => {
+//     const id = parseInt(req.body.id);
 
-    try {
-        const result = await deleteSubject(id);
-        res.json(MessageResponse(result))
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})// Delete subject
+//     try {
+//         const result = await deleteSubject(id);
+//         res.json(MessageResponse(result))
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
+//     }
+// })// Delete subject
 
-router.put('/', async (req, res) => {
-    const id = parseInt(req.body.id);
-    const data = req.body;
-    try {
-        const result = await updateSubject(id, data)
-        res.json(MessageResponse(result))
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})// Update subject
+// router.put('/', async (req, res) => {
+//     const id = parseInt(req.body.id);
+//     const data = req.body;
+//     try {
+//         const result = await updateSubject(id, data)
+//         res.json(MessageResponse(result))
+//     } catch (error) {
+//         console.log(error);
+//         res.json(ErrorResponse(500, error.message))
+//     }
+// })// Update subject
 
 router.get('/', async (req, res) => {
     try {
