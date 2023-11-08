@@ -56,6 +56,8 @@ export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
     if (numStu < 10 && checkRoomExist(courseId)) {
         await handleFillStuLittle(courseId, numStu)
         return
+    } else if (numStu < 10 && !checkRoomExist(courseId)) {
+        throw new Error('First time add student must be greater than nine')
     }
 
 
