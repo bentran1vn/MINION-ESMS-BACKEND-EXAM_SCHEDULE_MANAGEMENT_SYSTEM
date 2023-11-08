@@ -1,6 +1,7 @@
 import ExamSlot from "../models/ExamSlot.js"
 import TimeSlot from "../models/TimeSlot.js";
 import ExamPhase from "../models/ExamPhase.js";
+import StaffLogChange from "../models/StaffLogChange.js";
 import { validDay } from "../utility/dayUtility.js";
 
 export async function findAllExamSlotByPhase(id) {
@@ -25,7 +26,7 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
             day: day
         }
     })
-    if (!slot) throw new Error("Already Exist Exam Slot !")
+    if (slot) throw new Error("Already Exist Exam Slot !")
     const examPhase = await ExamPhase.findOne({
         where: {
             id: phaseId,
@@ -33,7 +34,8 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
         }
     })
     if (!examPhase) throw new Error("Not found exam phase !");
-    if (validDay(examPhase.startDay, examPhase.endDay, day)) {
+    // validDay(examPhase.startDay, examPhase.endDay, day)
+    if (examPhase.startDay <= day && examPhase.endDay >= day) {
         if (!slot) {
             const examSlot = await ExamSlot.create({
                 ePId: phaseId,
@@ -41,18 +43,18 @@ export async function createNewExamSlot(phaseId, timeSlotId, day, staff) {
                 day: day
             })
             if (!examSlot) throw new Error("Can not create exam slot !")
-            const checkLogStaff = await StaffLogChange.create({
-                rowId: examRoom.dataValues.id,
-                tableName: 3,
-                userId: staff.id,
-                typeChange: 19,
-            })
-            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+            // const checkLogStaff = await StaffLogChange.create({
+            //     rowId: examSlot.dataValues.id,
+            //     tableName: 3,
+            //     userId: staff.id,
+            //     typeChange: 19,
+            // })
+            // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
         } else {
             throw new Error("Already Exist Exam Slot !")
         }
     } else {
-        throw new Error("Day must in the range !")
+        throw new Error("Day must in the phase range !")
     }
 }
 
@@ -63,13 +65,13 @@ export async function deleteExamSlot(examslotId, staff) {
             id: examslotId,
         }
     })
-    const checkLogStaff = await StaffLogChange.create({
-        rowId: examRoom.dataValues.id,
-        tableName: 3,
-        userId: staff.id,
-        typeChange: 20,
-    })
-    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+    // const checkLogStaff = await StaffLogChange.create({
+    //     rowId: examRoom.dataValues.id,
+    //     tableName: 3,
+    //     userId: staff.id,
+    //     typeChange: 20,
+    // })
+    // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
     if (result === 0) {
         throw new Error("Not found")
     } else {
