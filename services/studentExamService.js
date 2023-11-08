@@ -5,6 +5,7 @@ import Subject from '../models/Subject.js'
 import ExamSlot from '../models/ExamSlot.js'
 import ExamRoom from '../models/ExamRoom.js'
 import StudentSubject from '../models/StudentSubject.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 export async function getNotSheduleOfStudent(ePId) {
 
@@ -148,7 +149,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
         await StudentSubject.update({ status: 0 }, {
             where: {
                 subjectId: subIdInCourse.subId,
-                stuId: numStuInRoom[count],
+                stuId: numStuInRoom[i],
                 ePName: ePName,
                 status: 1
             }
@@ -170,8 +171,20 @@ export async function handleFillStuLittle(courId, numOfStu) {
             status: 1
         },
     })
-    const ePName = ArrStudentIdInCourse[0].ePName
     if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
+
+    const ePName = ArrStudentIdInCourse[0].ePName
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            ePName: ePName
+        }
+    })
+
+    const exSlot = await ExamSlot.findOne({
+        where: {
+            ePId: examPhase.id
+        }
+    })
 
     const ListStudentIdInCourse = [] // Array tổng số student ID 
     if (ArrStudentIdInCourse.length !== 0) {
@@ -188,7 +201,8 @@ export async function handleFillStuLittle(courId, numOfStu) {
 
     const subInSlot = await SubInSlot.findOne({
         where: {
-            courId: courId
+            courId: courId,
+            exSlId: exSlot.id,
         }
     })
 
