@@ -38,18 +38,23 @@ router.get('/google/callback', passport.authenticate('google', {
                 const token = jwt.sign(payload, process.env.SECRET, {
                     expiresIn: '3h'
                 })
-                res.cookie('token', token)
+                // res.cookie('token', token, { secure: true, httpOnly: true })
+                // console.log(user);
                 // console.log(token);
-                if (user.role == 'admin') res.redirect(`${process.env.CLIENT_URL}/admin`)
-                if (user.role == 'lecturer') res.redirect(`${process.env.CLIENT_URL}/lecturer`)
-                if (user.role == 'staff') res.redirect(`${process.env.CLIENT_URL}/staff`)
-                if (user.role == 'student') res.redirect(`${process.env.CLIENT_URL}/student`)
+                if (user.role == 'admin') res.redirect(`${process.env.CLIENT_URL}?token=${token}`)
+                if (user.role == 'lecturer') res.redirect(`${process.env.CLIENT_URL}?token=${token}`)
+                if (user.role == 'staff') res.redirect(`${process.env.CLIENT_URL}?token=${token}`)
+                if (user.role == 'student') res.redirect(`${process.env.CLIENT_URL}?token=${token}`)
             }
         }
     } catch (err) {
         console.log(err)
         res.json(InternalErrResponse());
     }
+})
+
+router.get('/', (req, res) => {
+    res.redirect(`${process.env.SERVER_URL}/auth/google`)
 })
 
 export default router

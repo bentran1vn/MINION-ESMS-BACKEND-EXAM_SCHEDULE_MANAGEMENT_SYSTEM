@@ -27,12 +27,12 @@ export async function examPhaseCron() {
                     }
                 })
                 if(result[0] == 0) throw new Error('Update ExamPhase fail !')
-                let result2 = await Course.update({ status: 0 }, {
-                    where: {
-                        ePId: item.semId,
-                    }
-                })
-                if(result2[0] == 0) throw new Error('Update ExamPhase fail !')
+                // let result2 = await Course.update({ status: 0 }, {
+                //     where: {
+                //         ePId: item.semId,
+                //     }
+                // })
+                // if(result2[0] == 0) throw new Error('Update ExamPhase fail !')
             },
             {
                 scheduled: true,

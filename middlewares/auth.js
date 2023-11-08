@@ -17,6 +17,7 @@ export function requireRole(role){
     const middleware = (req, res, next) => {
         let token = "";
         token = req.query.token || req.cookies.token || req.headers['authorization'] || req.body.token
+        // console.log(token);
         if(token.includes(" ")){
             const tokenParts = token.split(" ");
             token = tokenParts[1];

@@ -9,6 +9,8 @@ import Room from '../models/Room.js'
 import ExamSlot from '../models/ExamSlot.js'
 import TimeSlot from '../models/TimeSlot.js'
 import Semester from '../models/Semester.js'
+import StudentSubject from '../models/StudentSubject.js'
+import ExamPhase from '../models/ExamPhase.js'
 
 export async function getListOfStu(subCode, roomNum) {
     const subject = await Subject.findOne({
@@ -225,4 +227,39 @@ export async function getScheduleOfStu(userId) {
         schePerSemester.push(s);
     }
     return schePerSemester;
+}
+
+export async function checkClass(courId1, courId2) {
+    let cour1 = await Course.findOne({
+        where: {
+            id: courId1
+        }
+    })
+    let cour2 = await Course.findOne({
+        where: {
+            id: courId2
+        }
+    })
+    let list1 = StudentSubject.findAll(
+        {
+            where: {
+                subjectId : cour1.subId
+            }
+        }
+    )
+    let list2 = StudentSubject.findAll(
+        {
+            where: {
+                subjectId : cour2.subId
+            }
+        }
+    )
+    let check = false
+    for (let i = 0; i < list1.length; i++) {
+        if(list1[i].dataValues.stuId === list2[i].dataValues.stuId){
+            check = true
+            break
+        }
+    }
+    return check
 }
