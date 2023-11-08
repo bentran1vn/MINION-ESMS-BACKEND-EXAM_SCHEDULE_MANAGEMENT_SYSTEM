@@ -272,26 +272,28 @@ export async function getExaminerByPhase(exPhaseId) {
         [1, 'staff'],
         [2, 'volunteer']
     ]);
-    let examinerLists = [];
-    const exPhase = await ExamPhase.findOne({
+
+    const exPhase = await ExamPhase.findOne({//tìm phase hiện tại
         where: {
             id: exPhaseId,
             alive: 1
         }
     })
     if (exPhase) {
-        const examiners = await ExaminerLogTime.findAll({
-            where: {
+        const examiners = await ExaminerLogTime.findAll({//examinerId của 1 user trong 1 phase là riêng biệt, k thể 1 ng có 1 examinerId 1 phase
+            where: { //lấy ra tất cả examiner có logtime trong phase này (đã từng đk, hủy dk trong phase)
                 day: {
-                    [Op.gte]: exPhase.startDay, // Lấy examiner có day lớn hơn hoặc bằng startDay
-                    [Op.lte]: exPhase.endDay,   // và nhỏ hơn hoặc bằng endDay
-                }
+                    [Op.gte]: exPhase.startDay,
+                    [Op.lte]: exPhase.endDay,
+                },
+                status: 0// = 0 tức là nó đk và k hủy lịch thì mới tính
             }
         });
         if (examiners.length == 0) {
             throw new Error('This phase has no examiners')
         }
-        const uniqueExaminers = examiners.reduce((acc, current) => {
+
+        const uniqueExaminers = examiners.reduce((acc, current) => {//lấy examinerId trong logtime lọc lại unique
             const x = acc.find(item => item.examinerId === current.examinerId);
             if (!x) {
                 return acc.concat([current]);
@@ -300,6 +302,7 @@ export async function getExaminerByPhase(exPhaseId) {
             }
         }, []);
 
+        let examinerLists = [];
         for (const item of uniqueExaminers) {
             const examiner = await Examiner.findOne({
                 where: {
@@ -309,6 +312,7 @@ export async function getExaminerByPhase(exPhaseId) {
             });
 
             const ex = {
+                id: item.examinerId,
                 exEmail: examiner.exEmail,
                 exName: examiner.exName,
                 role: statusMap.get(examiner.typeExaminer),
@@ -316,6 +320,7 @@ export async function getExaminerByPhase(exPhaseId) {
             };
             examinerLists.push(ex);
         }
+
         if (examinerLists.length == 0) {
             throw new Error('Not found examiner !')
         }
