@@ -7,6 +7,7 @@ import excel from 'exceljs';
 import multer from 'multer';
 import Course from '../models/Course.js'
 import ExamPhase from '../models/ExamPhase.js'
+import { checkClass } from '../services/studentService.js'
 
 
 const storage = multer.memoryStorage();
@@ -79,6 +80,10 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
     }
+})
+
+router.get('/', async (req, res) => {
+    res.json(checkClass(1, 2));
 })
 
 export default router

@@ -4,8 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server"
+    "start": "node server.js"
   },
+  "engines":{"node": "18.17.x"},
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -52,7 +52,7 @@ passport.use(new GoogleStrategy({
 }))
 server.use(passport.initialize())
 server.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: '*',
     credentials: true,
 }))
 //access to Google
