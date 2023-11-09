@@ -169,9 +169,10 @@ export async function handleFillStuLittle(courId, numOfStu) {
             status: 1
         },
     })
-    if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
+    if (ArrStudentIdInCourse.length == 0) throw new Error('Error in get all student')
 
-    const ePName = ArrStudentIdInCourse[0].ePName
+
+    const ePName = ArrStudentIdInCourse[0].ePName || ArrStudentIdInCourse.ePName || ArrStudentIdInCourse.dataValues.ePName;
     const examPhase = await ExamPhase.findOne({
         where: {
             ePName: ePName
@@ -205,11 +206,13 @@ export async function handleFillStuLittle(courId, numOfStu) {
     })
 
     let arrReversed = [];
+    console.log(subInSlot);
     const examRoom = await ExamRoom.findAll({ // Lấy ra những room tương ứng với slot
         where: {
             sSId: subInSlot.id
         }
     })
+
     if (examRoom.length == 0) {
         throw new Error('Error found in examRoom')
     }
