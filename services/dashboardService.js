@@ -175,7 +175,7 @@ export async function topThreeExaminerDashBoard(exPhaseId) {
     }
     const uniqueValues = [...new Set(Object.values(examinerCount))];
     uniqueValues.sort((a, b) => b - a);
-    const top3UniqueValues = uniqueValues.slice(0, 1);
+    const top3UniqueValues = uniqueValues.slice(0, 3);
 
     const keysWithTopValues = [];
 
