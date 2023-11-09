@@ -145,7 +145,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
             }
         } while (check)
     }
-    if (numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
+    // if (numOdd < 10) throw new Error(`Problem with assign Course! ${numOdd} Students not enough to create a exam room !`)
 }
 
 export async function changeCourseStatus(phaseId, courId) {
