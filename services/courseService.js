@@ -10,6 +10,7 @@ import { autoCreateCourse } from '../utility/courseUtility.js'
 import { handleFillStu, handleFillStuLittle } from './studentExamService.js'
 import { Op } from 'sequelize'
 import Subject from '../models/Subject.js'
+import StudentSubject from '../models/StudentSubject.js'
 
 
 export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
@@ -233,53 +234,64 @@ export async function getCouseByExamPhase(ePId) {
         throw new Error("Phase not exist")
     }
     let listCourse = [];
-    let check;
-    await autoCreateCourse().then(value => check = value);
-    if (check) {
-        const result = await Course.findAll({
-            where: {
-                ePId
-            },
-            include: [{
-                model: Subject,
-                attributes: ['code']
-            }]
-        });
-        const examPhase = await ExamPhase.findOne({
-            where: {
-                id: ePId,
-                alive: 1
-            }
-        })
-        for (const course of result) {
-            if (course.dataValues.status == 1) {
-                const subject = course.subject;
-                const sub = {
-                    courseId: course.dataValues.id,
-                    subCode: subject.code,
-                    numOfStu: course.dataValues.numOfStu,
-                    ePName: examPhase.ePName,
-                    status: 1
-                };
-                listCourse.push(sub);
-            } else {
-                const subject = course.subject;
-                const sub = {
-                    courseId: course.dataValues.id,
-                    subCode: subject.code,
-                    numOfStu: course.dataValues.numOfStu,
-                    ePName: examPhase.ePName,
-                    status: 0
-                };
-                listCourse.push(sub);
-            }
+
+    const exphase = await ExamPhase.findOne({
+        where: {
+            id: ePId
         }
-        if (listCourse.length == 0) {
-            throw new Error("Problem with get Courses!")
-        } else {
-            return listCourse
+    })
+    const stuSub = await StudentSubject.findAll({
+        where: {
+            status: 1,
+            ePName: exphase.ePName
         }
-    } else {
-        throw new Error("Problem with get Courses!")
+    })
+    if (stuSub.length != 0) {
+        await autoCreateCourse()
     }
+
+    const result = await Course.findAll({
+        where: {
+            ePId
+        },
+        include: [{
+            model: Subject,
+            attributes: ['code']
+        }]
+    });
+    const examPhase = await ExamPhase.findOne({
+        where: {
+            id: ePId,
+            alive: 1
+        }
+    })
+    for (const course of result) {
+        if (course.dataValues.status == 1) {
+            const subject = course.subject;
+            const sub = {
+                courseId: course.dataValues.id,
+                subCode: subject.code,
+                numOfStu: course.dataValues.numOfStu,
+                ePName: examPhase.ePName,
+                status: 1
+            };
+            listCourse.push(sub);
+        } else {
+            const subject = course.subject;
+            const sub = {
+                courseId: course.dataValues.id,
+                subCode: subject.code,
+                numOfStu: course.dataValues.numOfStu,
+                ePName: examPhase.ePName,
+                status: 0
+            };
+            listCourse.push(sub);
+        }
+    }
+    if (listCourse.length == 0) {
+        throw new Error("Problem with get Courses!")
+    } else {
+        return listCourse
+    }
+
 }

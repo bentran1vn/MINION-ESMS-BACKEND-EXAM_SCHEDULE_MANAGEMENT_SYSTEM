@@ -12,9 +12,6 @@ export async function autoCreateCourse() {
             status: 1
         }
     })
-    if (stuSub.length == 0) {
-        throw new Error('Not found student in exam Phase');
-    }
     const ePName = stuSub[0].ePName
     const examPhase = await ExamPhase.findOne({
         where: {
