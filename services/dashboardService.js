@@ -206,8 +206,11 @@ export async function topThreeExaminerDashBoard(exPhaseId) {
     }
     if (returnL.length === 0) {
         throw new Error("Can not find top 3 Examiner");
+    } else {
+        returnL.sort((a, b) => b.quantity - a.quantity);
+        return returnL
     }
-    return returnL
+
 }
 
 export async function numberByCourse(ePId) {

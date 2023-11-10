@@ -387,6 +387,25 @@ router.get('/search', async (req, res) => {
     }
 })// Get room by roomNumer or location
 
+router.get("/searchNum", requireRole("admin"), async (req, res) => {
+    try {
+        const roomNum = req.query.roomNum;
+        const rooms = await Room.findAll({
+            where: {
+                roomNum: roomNum
+            }
+        })
+        if (rooms.length == 0) {
+            res.json(NotFoundResponse());
+        } else {
+            res.json(DataResponse(rooms));
+        }
+    } catch (error) {
+        console.log(error);
+        res.json(InternalErrResponse());
+    }
+})
+
 export async function randomRoom() {
     let roomList = await Room.findAll({ where: { status: 1 } })
     let ranId = Math.floor(Math.random() * (roomList.length - 1)) + 1
