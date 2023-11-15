@@ -191,7 +191,7 @@ router.get('/totalExamroomByPhase', requireRole('staff'), async (req, res) => {
     }
 })// Tổng số schedule (examroom) theo ngày trong phase (mảng)
 
-router.get('/percentRegisOnePhase', async (req, res) => {
+router.get('/percentRegisOnePhase', requireRole("admin"), async (req, res) => {
     const ePId = parseInt(req.query.ePId)
     try {
         let arr = await percentRegis(ePId);
