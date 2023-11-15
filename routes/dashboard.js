@@ -5,7 +5,7 @@ import {
     countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase,
     numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase,
     totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec,
-    totalRegistionOfLecOnePhase, topThreeExaminerDashBoard, totalCourseByPhase
+    totalRegistionOfLecOnePhase, topThreeExaminerDashBoard, totalCourseByPhase, percentRegis
 } from '../services/dashboardService.js'
 
 const router = express.Router()
@@ -190,5 +190,16 @@ router.get('/totalExamroomByPhase', requireRole('staff'), async (req, res) => {
         res.json(ErrorResponse(500, error.message))
     }
 })// Tổng số schedule (examroom) theo ngày trong phase (mảng)
+
+router.get('/percentRegisOnePhase', async (req, res) => {
+    const ePId = parseInt(req.query.ePId)
+    try {
+        let arr = await percentRegis(ePId);
+        res.json(DataResponse(arr))
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
 
 export default router

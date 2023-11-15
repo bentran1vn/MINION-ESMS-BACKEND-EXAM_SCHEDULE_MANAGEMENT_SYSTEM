@@ -446,11 +446,7 @@ router.post('/', requireRole('staff'), async (req, res) => {
 
 //require role staff để cái middle ware reqRole đây
 router.post('/auto', requireRole('staff'), async (req, res) => {
-    //lấy id thông qua token
-    const staffId = parseInt(res.locals.userData.id) || 1;
-    // const staffId = 1;
-    const examphaseId = req.body.examphaseId;
-
+    const staffId = parseInt(res.locals.userData.id);
     try {
         //lấy id thông qua token
         const staffId = parseInt(res.locals.userData.id) || 1;

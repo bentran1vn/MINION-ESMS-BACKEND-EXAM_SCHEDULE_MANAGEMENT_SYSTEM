@@ -616,3 +616,42 @@ export async function totalExamroomByPhase(ePId) {
     if (arr.length == 0) throw new Error("Can not find any exam room")
     return arr
 }
+
+export async function percentRegis(ePId) {
+    let countAll = 0;
+    let countNotNull = 0;
+    const examslot = await ExamSlot.findAll({
+        where: {
+            ePId: ePId
+        }
+    })
+    if (examslot.length == 0) {
+        throw new Error("Phase have no exam slot");
+    } else {
+        // console.log("hello");
+        for (const e of examslot) {
+            const subslot = await SubInSlot.findAll({
+                where: {
+                    exSlId: e.dataValues.id
+                }
+            })
+
+            for (const sub of subslot) {
+                const examroom = await ExamRoom.findAll({
+                    where: {
+                        sSId: sub.dataValues.id
+                    }
+                })
+                countAll += examroom.length;
+                for (const eRoom of examroom) {
+                    if (eRoom.dataValues.examinerId != null) {
+                        countNotNull++;
+                    }
+                }
+            }
+        }
+    }
+
+    let roundedRatio = (countNotNull / countAll * 100).toFixed(2);
+    return `${roundedRatio}%`;
+}
