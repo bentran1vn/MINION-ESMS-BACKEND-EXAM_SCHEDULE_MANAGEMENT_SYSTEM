@@ -4,6 +4,7 @@ import Semester from '../models/Semester.js'
 import cron from "node-cron";
 import { modiDays } from '../utility/dayUtility.js';
 import { autoFillLecturerToExamRoom } from './examRoomService.js';
+import {sendEmailToLecturer} from './sendEmailFunc.js'
 
 
 export async function examPhaseCron() {
@@ -27,6 +28,7 @@ export async function examPhaseCron() {
                     }
                 })
                 if(result[0] == 0) throw new Error('Update ExamPhase fail !')
+                await sendEmailToLecturer();
                 // let result2 = await Course.update({ status: 0 }, {
                 //     where: {
                 //         ePId: item.semId,
@@ -65,6 +67,31 @@ export async function lecturerCron() {
             }
         );
         await jobLec.start();
+    }
+}
+
+export async function availableExamCron() {
+    let examPhaseList = await ExamPhase.findAll({
+        where: {
+            status: true,
+            alive: 1
+        }
+    })
+    for (const item of examPhaseList) {
+        let day = modiDays(new Date(item.startDay), 7, 0)
+        let startDay = new Date(day).getDate()
+        let startMonth = new Date(day).getMonth() + 1
+        let jobEmail = new cron.schedule(
+            `0 0 ${startDay} ${startMonth} *`,
+            async () => {
+                await sendEmailToLecturer();
+            },
+            {
+                scheduled: true,
+                timeZone: 'Asia/Ho_Chi_Minh' // Lưu ý set lại time zone cho đúng     
+            }
+        );
+        await jobEmail.start();
     }
 }
 
