@@ -3,7 +3,7 @@ import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
 import { createRoom, deleteRoom, getAllRoom, getRoomFreeSlot, getRoomInUse, getRoomUseSlot, searchRoom, updateRoom } from '../services/roomService.js'
-
+import { Op } from 'sequelize'
 const router = express.Router()
 
 /**
@@ -392,7 +392,9 @@ router.get("/searchNum", requireRole("admin"), async (req, res) => {
         const roomNum = req.query.roomNum;
         const rooms = await Room.findAll({
             where: {
-                roomNum: roomNum
+                roomNum: {
+                    [Op.like]: `%${roomNum}%`
+                }
             }
         })
         if (rooms.length == 0) {
