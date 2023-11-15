@@ -37,6 +37,7 @@ import autoFillStuRouter from './routes/autoFillStu.js'
 import examinerRouter from './routes/examiner.js'
 import examinerLogTimeRouter from './routes/examinerLogTime.js'
 import dashboardRouter from './routes/dashboard.js'
+import sendEmail from './routes/sendEmailFunc.js'
 
 // ===== Config =====
 const server = express()
@@ -87,6 +88,7 @@ server.use('/studentSubjects', studentSubjectRouter)
 server.use('/autoCreateCourses', autoCreateCourseRouter)
 server.use('/autoFillStus', autoFillStuRouter)
 server.use('/dashboard', dashboardRouter);
+server.use('/sendEmail', sendEmail)
 
 // ===== Swagger =====
 const options = {
