@@ -18,6 +18,10 @@ const Subject = sequelize.define(tableName, {
         allowNull: true,
         defaultValue: 1
     },
+    semester: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    }
     //1 là hiện ra
     //0 là ko hiện ra  
 });

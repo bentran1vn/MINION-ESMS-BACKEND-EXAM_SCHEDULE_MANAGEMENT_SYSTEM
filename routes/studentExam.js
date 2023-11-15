@@ -11,6 +11,7 @@ import StaffLogChange from '../models/StaffLogChange.js'
 import StudentSubject from '../models/StudentSubject.js'
 import Subject from '../models/Subject.js'
 import ExamSlot from '../models/ExamSlot.js'
+import { where } from 'sequelize'
 
 
 const router = express.Router()
@@ -107,6 +108,7 @@ router.post('/', async (req, res) => {
 })// Auto fill student to exam room (đã có trong autoFillStu)
 
 router.get('/', async (req, res) => {
+
     try {
         const numOfStuNotShe = []
         function insertNumOfStuNotShe(courID, subCode, numOfStu) {
@@ -117,19 +119,79 @@ router.get('/', async (req, res) => {
         }
 
         const ePId = parseInt(req.query.ePId)
+        const exslotId = parseInt(req.query.exslotId);
+
         const course = await Course.findAll({
             where: {
                 ePId: ePId,
                 status: 1
             }
         });
-        for (let i = 0; i < course.length; i++) {
+
+        let arrCour = [];
+        let arrSem = [];
+        if (course.length == 0) {
+            res.json(MessageResponse('All courses and students are scheduled'))
+            return;
+        } else {
+            const subSlot = await SubInSlot.findAll({
+                where: {
+                    exSlId: exslotId
+                }
+            })
+
+            if (subSlot.length != 0) {
+                for (const i of subSlot) {
+                    const cour = await Course.findOne({
+                        where: {
+                            id: i.dataValues.courId,
+                        },
+                        include: [
+                            { model: Subject }
+                        ]
+                    })
+                    arrSem.push(cour.dataValues.subject.semester); //nhét đc kì nào xếp rồi
+                }
+                for (const c of course) {
+                    for (const i of subSlot) {
+                        if (c.dataValues.id === i.dataValues.courId) {
+                            arrCour.push(c.dataValues.id)
+                        }
+                    }
+                }
+                for (const c of course) {
+                    const cour = await Course.findOne({
+                        where: {
+                            id: c.dataValues.id,
+                        },
+                        include: [
+                            { model: Subject }
+                        ]
+                    })
+                    if (!arrSem.includes(cour.dataValues.subject.semester)) {
+                        arrCour.push(c.dataValues.id)
+                    }
+                }
+            } else {
+                for (const c of course) {
+                    arrCour.push(c.dataValues.id);
+                }
+            }
+        }
+
+        const course2 = await Course.findAll({
+            where: {
+                id: arrCour
+            }
+        })
+
+        for (let i = 0; i < course2.length; i++) {
             const subject = await Subject.findOne({
                 where: {
-                    id: course[i].subId
+                    id: course2[i].subId
                 }
             });
-            insertNumOfStuNotShe(course[i].id, subject.code, course[i].numOfStu)
+            insertNumOfStuNotShe(course2[i].id, subject.code, course2[i].numOfStu)
         }
 
         const coursesWithSlot = [];
@@ -159,7 +221,7 @@ router.get('/', async (req, res) => {
 
                 const exRoom = await ExamRoom.findAll({
                     where: {
-                        sSid: item.dataValues.id
+                        sSId: item.dataValues.id
                     }
                 })
 
@@ -194,8 +256,10 @@ router.get('/', async (req, res) => {
         let newArray = numOfStuNotShe.filter(item => item.numOfStu != 0)
         if (newArray.length != 0) {
             res.json(DataResponse(newArray))
+            return;
         } else {
             res.json(MessageResponse('All courses and students are scheduled'))
+            return;
         }
     } catch (error) {
         console.log(error);
