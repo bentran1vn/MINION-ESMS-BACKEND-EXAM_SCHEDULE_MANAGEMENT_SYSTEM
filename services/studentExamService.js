@@ -169,8 +169,9 @@ export async function handleFillStuLittle(courId, numOfStu) {
             status: 1
         },
     })
-    if (ArrStudentIdInCourse.length == 0) throw new Error('Error in get all student')
-
+    if (ArrStudentIdInCourse.length == 0) {
+        throw new Error('Error in get all student')
+    }
 
     const ePName = ArrStudentIdInCourse[0].ePName || ArrStudentIdInCourse.ePName || ArrStudentIdInCourse.dataValues.ePName;
     const examPhase = await ExamPhase.findOne({

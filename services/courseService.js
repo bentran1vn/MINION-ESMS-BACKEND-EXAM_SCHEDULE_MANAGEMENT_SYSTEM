@@ -128,7 +128,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
                         await handleFillStu(courseId, numStu, examRoom.id)
                         numStu -= 10
                     }
-                    if (numStu < 10) {
+                    if (0 < numStu < 10) {
                         await handleFillStuLittle(courseId, numStu)
                         numStu = 0
                     }
