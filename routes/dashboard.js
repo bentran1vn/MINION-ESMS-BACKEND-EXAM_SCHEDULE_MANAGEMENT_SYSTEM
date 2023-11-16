@@ -129,9 +129,9 @@ router.get('/futureSlotOfLecOnePhase', requireRole('lecturer'), async (req, res)
     }
 })// Số slot chưa đi coi của 1 phase 
 
-router.get('/detailFutureSlotOfLecOnePhase', async (req, res) => {
-    //const userId = parseInt(res.locals.userData.id);//nhận từ token
-    const userId = 331;
+router.get('/detailFutureSlotOfLecOnePhase', requireRole('lecturer'), async (req, res) => {
+    const userId = parseInt(res.locals.userData.id);//nhận từ token
+    //const userId = 331;
     const phaseId = parseInt(req.query.phaseId);
     try {
         let count = await detailFutureSlotOfLecOnePhase(userId, phaseId);
