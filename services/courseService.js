@@ -179,37 +179,13 @@ export async function changeCourseStatus(phaseId, courId) {
         const examRoomList = await ExamRoom.findAll({
             where: {
                 sSId: subInSlotIdList,
-                [Op.or]: [
-                    {
-                        roomId: {
-                            [Op.is]: null
-                        }
-                    },
-                    {
-                        examinerId: {
-                            [Op.is]: null
-                        }
-                    }
-                ]
             }
         })
-
-        const examRoomExist = await ExamRoom.findAll({
-            where: {
-                sSId: subInSlotIdList
-            }
-        })
-        //numOfStu
 
         const roomRequire = Math.ceil(numOfStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
-        if (examRoomList.length == 0 && roomRequire <= examRoomExist.length) {
+        //số phòng cần thiết để thi
+        if (roomRequire <= examRoomList.length) {
             await Course.update({ status: 0 }, {
-                where: {
-                    id: item.id
-                }
-            })
-        } else if (examRoomList.length != 0) {
-            await Course.update({ status: 1 }, {
                 where: {
                     id: item.id
                 }
