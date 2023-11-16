@@ -312,15 +312,6 @@ router.put('/', requireRole('admin'), async (req, res) => {
     }
 })// Update room
 
-router.get('/', requireRole('admin'), async (req, res) => {
-    try {
-        const roomArr = await getAllRoom();
-        res.json(DataResponse(roomArr))
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})// Get all room
 
 router.get('/roomInUse', async (req, res) => {
     const roomId = parseInt(req.query.roomId)
@@ -387,26 +378,33 @@ router.get('/search', async (req, res) => {
     }
 })// Get room by roomNumer or location
 
-router.get("/searchNum", requireRole("admin"), async (req, res) => {
+router.get('/:roomNum', requireRole('admin'), async (req, res) => {
     try {
-        const roomNum = req.query.roomNum;
-        const rooms = await Room.findAll({
-            where: {
-                roomNum: {
-                    [Op.like]: `%${roomNum}%`
+        const roomNum = req.params.roomNum;
+        if (roomNum != null) {
+            const rooms = await Room.findAll({
+                where: {
+                    roomNum: {
+                        [Op.like]: `%${roomNum}%`
+                    }
                 }
+            })
+            if (rooms.length == 0) {
+                res.json(NotFoundResponse());
+                return;
+            } else {
+                res.json(DataResponse(rooms));
+                return;
             }
-        })
-        if (rooms.length == 0) {
-            res.json(NotFoundResponse());
         } else {
-            res.json(DataResponse(rooms));
+            const roomArr = await getAllRoom();
+            res.json(DataResponse(roomArr))
         }
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
-})
+})// Get all room
 
 export async function randomRoom() {
     let roomList = await Room.findAll({ where: { status: 1 } })
