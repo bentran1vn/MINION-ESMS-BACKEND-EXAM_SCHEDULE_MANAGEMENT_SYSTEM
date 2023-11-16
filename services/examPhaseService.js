@@ -293,11 +293,20 @@ export async function findPhaseBySemId(id) {
         detailExamPhase.push(EPDetail)
     }
 
+    const examPhaseslist = await ExamPhase.findAll({
+        where: {
+            semId: id,
+        },
+    })
+
     const examPhases = await ExamPhase.findAll({
         where: {
             semId: id,
-        }
+        },
+        limit: limit,
+        offset: (page_no - 1) * limit
     })
+
 
     for (let i = 0; i < examPhases.length; i++) {
         const course = await Course.findAll({
@@ -319,7 +328,10 @@ export async function findPhaseBySemId(id) {
         }
     }
     if (!detailExamPhase) throw new Error("Can not find exam phases !")
-    return detailExamPhase
+    return {
+        total: examPhaseslist.length,
+        data: detailExamPhase
+    }
 }
 
 export async function findPhaseBySemIdv2(id) {
