@@ -44,11 +44,34 @@ const router = express.Router()
 //     }
 // })
 
+//
 router.post('/excel', upload.single('excelFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json("No file uploaded.");
         }
+
+        function isDateOnlyString(inputString) {
+            const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (dateOnlyRegex.test(inputString)) {
+                const year = inputString.split("-")[0];
+                const month = inputString.split("-")[1];
+                const day = inputString.split("-")[2];
+                let max = 31;
+                if (month == 4 || month == 6 || month == 9 || month == 11) max = 30;
+                else {
+                    if (month == 2) {
+                        if (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) max = 29;
+                        else max = 28;
+                    }
+                }
+                return day <= max;
+            } else {
+                return false;
+            }
+        }
+
+        let dataArr = [];
         const workbook = new excel.Workbook();
         await workbook.xlsx.load(req.file.buffer).then(async () => {
             const worksheet = workbook.getWorksheet(1);
@@ -63,19 +86,56 @@ router.post('/excel', upload.single('excelFile'), async (req, res) => {
                     currentRow++;
                     return;
                 }
+                const start = new Date(row.getCell(4).value);
+                const end = new Date(row.getCell(5).value);
+                const startFormatted = start.toISOString().slice(0, 10);
+                const endFormatted = end.toISOString().slice(0, 10);
+
                 const data = {
                     subjectId: parseInt(row.getCell(1).value),
                     stuId: parseInt(row.getCell(2).value),
                     ePName: row.getCell(3).value,
-                    startDay: row.getCell(4).value,
-                    endDay: row.getCell(5).value,
+                    startDay: startFormatted,
+                    endDay: endFormatted,
                     status: parseInt(row.getCell(6).value),
                 };
-                await StudentSubject.create(data);
+                dataArr.push(data);
+                // await StudentSubject.create(data);
                 currentRow++;
             });
         });
-        res.json(MessageResponse("Import student subject list success"));
+        let errorCheck = 0;
+        if (dataArr.length == 0) {
+            throw new Error("File has no data");
+            return;
+        }
+        for (const item of dataArr) {
+            if (!Number.isInteger(item.subjectId) ||
+                !Number.isInteger(item.stuId) ||
+                item.status != 1 ||
+                !(typeof item.ePName === 'string' && item.ePName.trim() !== '') ||
+                isDateOnlyString(item.startDay) == false ||
+                isDateOnlyString(item.endDay) == false
+            ) {
+                errorCheck++;
+            }
+        }
+        if (errorCheck != 0) {
+            throw new Error("Excel file data is invalid");
+            return;
+        }
+        for (const item of dataArr) {
+            const ex = await StudentSubject.create({
+                subjectId: item.subjectId,
+                stuId: item.stuId,
+                ePName: item.ePName,
+                startDay: item.startDay,
+                endDay: item.endDay,
+                status: item.status
+            })
+        }
+        res.json(MessageResponse("Import data success"));
+        return;
     } catch (error) {
         console.log(error);
         res.json(ErrorResponse(500, error.message))
