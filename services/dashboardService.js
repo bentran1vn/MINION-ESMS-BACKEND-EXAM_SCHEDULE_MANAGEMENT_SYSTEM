@@ -10,6 +10,8 @@ import Semester from "../models/Semester.js";
 import User from "../models/User.js";
 import Course from "../models/Course.js";
 import Subject from "../models/Subject.js";
+import TimeSlot from "../models/TimeSlot.js";
+import Room from "../models/Room.js"
 
 export async function countExaminerInPhase(exPhaseId) {
     const statusMap = new Map([
@@ -445,6 +447,76 @@ export async function futureSlotOfLecOnePhase(userId, phaseId) {
         }
     }
     return count;
+}
+
+export async function detailFutureSlotOfLecOnePhase(userId, phaseId) {
+    const detailExamSlot = []
+    function insertDetailExamSlot(day, room, location, sTime, eTime) {
+        const detail = {
+            day, room, location, sTime, eTime
+        }
+        detailExamSlot.push(detail)
+    }
+
+    const phase = await ExamPhase.findOne({
+        where: {
+            id: phaseId,
+            alive: 1
+        }
+    })
+    if (!phase) throw new Error("Can not find phase")
+    const semester = await Semester.findOne({
+        where: {
+            start: { [Op.lte]: phase.startDay },
+            end: { [Op.gte]: phase.endDay }
+        }
+    })
+    if (!semester) throw new Error("Can not find semester")
+    const examiner = await Examiner.findOne({
+        where: {
+            userId: userId,
+            semesterId: semester.id
+        }
+    })
+    if (!examiner) throw new Error("Can not find examiner")
+    const exslot = await ExamSlot.findAll({
+        where: {
+            ePId: phaseId
+        }
+    })
+    if (!exslot) throw new Error("Can not find exam slot")
+    const time = new Date() //ngày hiện tại
+    var timeFormatted = time.toISOString().slice(0, 10)
+
+    for (const exSl of exslot) {
+        if (exSl.dataValues.day > timeFormatted) {
+            const timeSLot = await TimeSlot.findOne({
+                where: {
+                    id: exSl.dataValues.timeSlotId
+                }
+            })
+            const subSlot = await SubInSlot.findOne({
+                where: {
+                    exSlId: exSl.dataValues.id
+                }
+            })
+            const examRoom = await ExamRoom.findAll({
+                where: {
+                    sSId: subSlot.id,
+                    examinerId: examiner.id
+                }
+            })
+            for (const item of examRoom) {
+                const room = await Room.findOne({
+                    where: {
+                        id: item.roomId
+                    }
+                })
+                insertDetailExamSlot(exSl.day, room.roomNum, room.location, timeSLot.startTime, timeSLot.endTime)
+            }
+        }
+    }
+    return detailExamSlot;
 }
 
 export async function totalRegistionEachPhase(userId, semesterId) {

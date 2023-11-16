@@ -5,7 +5,8 @@ import {
     countExaminerInPhase, countStaff, countTotalSlot, futureSlotOfLecOnePhase,
     numOfCourseNotScheduled, numOfDayRegister, numberByCourse, totalExamSLotByPhase,
     totalExaminerByPhase, totalExamroomByPhase, totalRegistionEachPhase, totalRegistionOfLec,
-    totalRegistionOfLecOnePhase, topThreeExaminerDashBoard, totalCourseByPhase, percentRegis
+    totalRegistionOfLecOnePhase, topThreeExaminerDashBoard, totalCourseByPhase, percentRegis,
+    detailFutureSlotOfLecOnePhase
 } from '../services/dashboardService.js'
 
 const router = express.Router()
@@ -127,6 +128,19 @@ router.get('/futureSlotOfLecOnePhase', requireRole('lecturer'), async (req, res)
         res.json(ErrorResponse(500, error.message))
     }
 })// Số slot chưa đi coi của 1 phase 
+
+router.get('/detailFutureSlotOfLecOnePhase', async (req, res) => {
+    //const userId = parseInt(res.locals.userData.id);//nhận từ token
+    const userId = 331;
+    const phaseId = parseInt(req.query.phaseId);
+    try {
+        let count = await detailFutureSlotOfLecOnePhase(userId, phaseId);
+        res.json(DataResponse(count));
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
 
 router.get('/totalRegistionEachPhase', requireRole('lecturer'), async (req, res) => {
     const userId = parseInt(res.locals.userData.id);//nhận từ token
