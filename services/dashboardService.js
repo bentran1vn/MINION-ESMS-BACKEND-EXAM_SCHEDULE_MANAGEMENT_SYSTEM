@@ -495,24 +495,26 @@ export async function detailFutureSlotOfLecOnePhase(userId, phaseId) {
                     id: exSl.dataValues.timeSlotId
                 }
             })
-            const subSlot = await SubInSlot.findOne({
+            const subSlot = await SubInSlot.findAll({
                 where: {
                     exSlId: exSl.dataValues.id
                 }
             })
-            const examRoom = await ExamRoom.findAll({
-                where: {
-                    sSId: subSlot.id,
-                    examinerId: examiner.id
-                }
-            })
-            for (const item of examRoom) {
-                const room = await Room.findOne({
+            for (const sb of subSlot) {
+                const examRoom = await ExamRoom.findAll({
                     where: {
-                        id: item.roomId
+                        sSId: sb.dataValues.id,
+                        examinerId: examiner.id
                     }
                 })
-                insertDetailExamSlot(exSl.day, room.roomNum, room.location, timeSLot.startTime, timeSLot.endTime)
+                for (const item of examRoom) {
+                    const room = await Room.findOne({
+                        where: {
+                            id: item.roomId
+                        }
+                    })
+                    insertDetailExamSlot(exSl.day, room.roomNum, room.location, timeSLot.startTime, timeSLot.endTime)
+                }
             }
         }
     }
