@@ -284,7 +284,7 @@ export async function checkExamSlotByPhaseId(examPhaseId) {
     return true
 }//return true if have exam slot | false if dont have exam slot
 
-export async function findPhaseBySemId(id) {
+export async function findPhaseBySemId(id, page_no, limit) {
     const detailExamPhase = []
     function insertExamPhase(id, semId, pN, sd, ed, cd, status, des, del) {
         const EPDetail = {
