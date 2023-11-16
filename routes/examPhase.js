@@ -255,10 +255,11 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 })// Delete Exam Phase
 
 router.get('/semId', async (req, res) => {
-
     try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
         const semesterId = parseInt(req.query.semesterId);
-        let returnL = await getExamphasesBySemId(semesterId);
+        let returnL = await getExamphasesBySemId(semesterId, pageNo, limit);
         res.json(DataResponse(returnL));
     } catch (error) {
         console.log(error)

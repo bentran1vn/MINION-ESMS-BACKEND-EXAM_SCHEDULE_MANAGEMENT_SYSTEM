@@ -14,17 +14,11 @@ function roleLevel(role){
 }
 
 export function requireRole(role){
-    const middleware = (req, res, next) => {
+    const middleware = async (req, res, next) => {
         let token = "";
         token = req.query.token || req.cookies.token || req.headers['authorization'] || req.body.token
-        // console.log(token);
-        if(token.includes(" ")){
-            const tokenParts = token.split(" ");
-            token = tokenParts[1];
-        }
-        // console.log(token);
         try{
-            const data = jwt.verify(token, process.env.SECRET)
+            const data = await jwt.verify(token, process.env.SECRET)
             res.locals.userData = data
             if(roleLevel(data.role) >= roleLevel(role)){
                 next()

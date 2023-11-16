@@ -52,13 +52,21 @@ export function checkTime(startDay, endDay) {
 
 }
 
-export async function getExamphasesBySemId(semesterId) {
+export async function getExamphasesBySemId(semesterId, page_no, limit) {
     let returnL = [];
+    const phaseList = await ExamPhase.findAll({
+        where: {
+            semId: semesterId,
+            alive: 1
+        },
+    })
     const phase = await ExamPhase.findAll({
         where: {
             semId: semesterId,
             alive: 1
-        }
+        },
+        limit: limit,
+        offset: (page_no - 1) * limit
     })
     if (!phase || phase.length == 0) throw new Error('Not found!')
     for (const exphase of phase) {
@@ -95,7 +103,10 @@ export async function getExamphasesBySemId(semesterId) {
             returnL.push(r);
         }
     }
-    return returnL
+    return {
+        total: phaseList.length,
+        data: returnL
+    }
 }
 
 export async function deletePhaseBySemId(id, staff) {
