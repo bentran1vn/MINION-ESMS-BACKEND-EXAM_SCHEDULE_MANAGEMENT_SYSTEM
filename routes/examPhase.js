@@ -283,9 +283,11 @@ router.get('/otherRole', async (req, res) => {
 
 router.get('/:id', requireRole("admin"), async (req, res) => {
     try {
+        const pageNo = parseInt(req.query.page_no) || 1
+        const limit = parseInt(req.query.limit) || 20
         const semId = parseInt(req.params.id)
         let phaseList
-        await findPhaseBySemId(semId).then(value => phaseList = value)
+        await findPhaseBySemId(semId, pageNo, limit).then(value => phaseList = value)
         res.json(DataResponse(phaseList))
     } catch (err) {
         console.log(err);
