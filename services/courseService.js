@@ -54,7 +54,7 @@ export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
     } else {
         numRoom = Math.floor(numStu / process.env.NUMBER_OF_STUDENT_IN_ROOM);
     }
-    if (numStu < 10 && checkRoomExist(courseId)) {
+    if (0 < numStu && numStu < 10 && checkRoomExist(courseId)) {
         await handleFillStuLittle(courseId, numStu)
         return
     } else if (numStu < 10 && !checkRoomExist(courseId)) {
@@ -126,10 +126,10 @@ export async function assignCourse(courseId, ExamSlotId, numStu, staff) {
                         numStu -= 15
                     } else if (numStu >= 10) {
                         await handleFillStu(courseId, numStu, examRoom.id)
-                        numStu -= 10
+                        numStu -= numStu
                     }
-                    if (0 < numStu < 10) {
-                        await handleFillStuLittle(courseId, numStu)
+                    if (0 < numStu && numStu < 10) {
+                        await handleFillStuLittle(courseId, numStu, examSlot.dataValues.id)
                         numStu = 0
                     }
 

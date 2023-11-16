@@ -115,7 +115,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
             status: 1
         },
     })
-    if (!ArrStudentIdInCourse) throw new Error('Error in get all student')
+    if (ArrStudentIdInCourse.length == 0) throw new Error('Error in get all student')
 
     const ListStudentIdInCourse = [] // Array tổng số student ID 
     if (ArrStudentIdInCourse.length !== 0) {
@@ -155,7 +155,7 @@ export async function handleFillStu(courId, numOfStu, exRoomId) {
     }
 }
 
-export async function handleFillStuLittle(courId, numOfStu) {
+export async function handleFillStuLittle(courId, numOfStu, examslotId) {
     const subIdInCourse = await Course.findOne({
         where: {
             status: 1,
@@ -182,7 +182,7 @@ export async function handleFillStuLittle(courId, numOfStu) {
 
     const exSlot = await ExamSlot.findOne({
         where: {
-            ePId: examPhase.id
+            id: examslotId
         }
     })
 
