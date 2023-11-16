@@ -2,8 +2,8 @@ import express from 'express'
 import { DataResponse, InternalErrResponse, InvalidTypeResponse, MessageResponse, NotFoundResponse, ErrorResponse } from '../common/reponses.js'
 import { requireRole } from '../middlewares/auth.js'
 import Room from '../models/Room.js'
-import { createRoom, deleteRoom, getAllRoom, getRoomFreeSlot, getRoomInUse, getRoomUseSlot, searchRoom, updateRoom } from '../services/roomService.js'
-
+import { createRoom, deleteRoom, findAll, getAllRoom, getRoomFreeSlot, getRoomInUse, getRoomUseSlot, searchRoom, updateRoom } from '../services/roomService.js'
+import { Op } from 'sequelize'
 const router = express.Router()
 
 /**
@@ -312,15 +312,6 @@ router.put('/', requireRole('admin'), async (req, res) => {
     }
 })// Update room
 
-router.get('/', requireRole('admin'), async (req, res) => {
-    try {
-        const roomArr = await getAllRoom();
-        res.json(DataResponse(roomArr))
-    } catch (error) {
-        console.log(error);
-        res.json(ErrorResponse(500, error.message))
-    }
-})// Get all room
 
 router.get('/roomInUse', async (req, res) => {
     const roomId = parseInt(req.query.roomId)
@@ -387,24 +378,44 @@ router.get('/search', async (req, res) => {
     }
 })// Get room by roomNumer or location
 
-router.get("/searchNum", requireRole("admin"), async (req, res) => {
+
+router.get('/', async (req, res) => {
     try {
-        const roomNum = req.query.roomNum;
+        const roomArr = await Room.findAll();
+        res.json(DataResponse(roomArr))
+
+    } catch (error) {
+        console.log(error);
+        res.json(ErrorResponse(500, error.message))
+    }
+})
+//requireRole("admin")
+router.get('/:roomNum', async (req, res) => {
+    try {
+        const roomNum = req.params.roomNum;
+        console.log(roomNum);
+
         const rooms = await Room.findAll({
             where: {
-                roomNum: roomNum
+                roomNum: {
+                    [Op.like]: `%${roomNum}%`
+                }
             }
         })
         if (rooms.length == 0) {
             res.json(NotFoundResponse());
+            return;
         } else {
             res.json(DataResponse(rooms));
+            return;
         }
+
     } catch (error) {
         console.log(error);
-        res.json(InternalErrResponse());
+        res.json(ErrorResponse(500, error.message))
     }
-})
+})// Get all room
+
 
 export async function randomRoom() {
     let roomList = await Room.findAll({ where: { status: 1 } })
