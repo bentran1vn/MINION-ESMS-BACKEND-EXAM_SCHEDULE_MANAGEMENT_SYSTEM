@@ -21,7 +21,7 @@ export async function getAllUser(pageNo, limit) {
     return count_User
 }
 
-export async function createUser(userData, staff){
+export async function createUser(userData, staff) {
     const user = await User.findOne({
         where: {
             email: userData.email,
@@ -38,15 +38,15 @@ export async function createUser(userData, staff){
                 }
             }
         )
-        if(!result) throw new Error("Can not create User!")
+        if (!result) throw new Error("Can not create User!")
 
-        const checkLogStaff = await StaffLogChange.create({
-            rowId: examRoom.dataValues.id,
-            tableName: 4,
-            userId: staff.id,
-            typeChange: 17,
-        })
-        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+        // const checkLogStaff = await StaffLogChange.create({
+        //     rowId: examRoom.dataValues.id,
+        //     tableName: 4,
+        //     userId: staff.id,
+        //     typeChange: 17,
+        // })
+        // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
         res.json(MessageResponse("Create Successfully !"))
     } else {
@@ -55,11 +55,11 @@ export async function createUser(userData, staff){
             name: userData.name,
             role: userData.role,
         })
-        if(!result) throw new Error("Can not create User!")
+        if (!result) throw new Error("Can not create User!")
     }
 }
 
-export async function searchUser(string, pageNo, limit){
+export async function searchUser(string, pageNo, limit) {
     const users = await User.findAndCountAll({
         where: {
             [Op.or]: {
@@ -75,20 +75,20 @@ export async function searchUser(string, pageNo, limit){
         limit: limit,
         offset: (pageNo - 1) * limit
     })
-    if(!users) throw new Error("Can not find User!")
+    if (!users) throw new Error("Can not find User!")
     const count_User = { Total: users.count, Data: users.rows }
 
     return count_User
 }
 
-export async function deleteUser(email, staff){
+export async function deleteUser(email, staff) {
     const result = await User.update({ status: 0 }, {
         where: {
             email: email,
             status: 1
         }
     })
-    if(!result) throw new Error("Can not delete User!")
+    if (!result) throw new Error("Can not delete User!")
 
     const checkLogStaff = await StaffLogChange.create({
         rowId: examRoom.dataValues.id,

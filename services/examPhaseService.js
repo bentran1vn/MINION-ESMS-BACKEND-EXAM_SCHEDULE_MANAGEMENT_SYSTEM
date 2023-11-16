@@ -126,13 +126,13 @@ export async function deletePhaseBySemId(id, staff) {
             }
         })
         if (result[0] === 1) {
-            const checkLogStaff = await StaffLogChange.create({
-                rowId: examPhase.id,
-                tableName: 6,
-                userId: staff,
-                typeChange: 15,
-            })
-            if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+            // const checkLogStaff = await StaffLogChange.create({
+            //     rowId: examPhase.id,
+            //     tableName: 6,
+            //     userId: staff,
+            //     typeChange: 15,
+            // })
+            // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
             return true
         }
     }
@@ -152,13 +152,13 @@ export async function updatePhase(examPhaseUp, staff) {
         }
     })
 
-    const checkLogStaff = await StaffLogChange.create({
-        rowId: examRoom.dataValues.id,
-        tableName: 6,
-        userId: staff.id,
-        typeChange: 14,
-    })
-    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+    // const checkLogStaff = await StaffLogChange.create({
+    //     rowId: examRoom.dataValues.id,
+    //     tableName: 6,
+    //     userId: staff.id,
+    //     typeChange: 14,
+    // })
+    // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
     if (check[0] !== 1) {
         throw new Error('Update Fail !')
@@ -202,13 +202,13 @@ export async function createPhase(examPhase, staff) {
                     alive: 0
                 }
             })
-        const checkLogStaff = await StaffLogChange.create({
-            rowId: check.dataValues.id,
-            tableName: 6,
-            userId: staff.id,
-            typeChange: 13,
-        })
-        if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+        // const checkLogStaff = await StaffLogChange.create({
+        //     rowId: check.dataValues.id,
+        //     tableName: 6,
+        //     userId: staff.id,
+        //     typeChange: 13,
+        // })
+        // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
         if (!check) {
             throw new Error('Create ExamPhase Fail!')
         }
@@ -232,6 +232,7 @@ export async function createPhase(examPhase, staff) {
                                 endDay: { [Op.between]: [startDay, endDay] },
                             },
                         ],
+                        alive: 1,
                     },
                 });
                 if (examPhase) {
@@ -244,13 +245,13 @@ export async function createPhase(examPhase, staff) {
                         endDay: endDay,
                         des: des
                     })
-                    const checkLogStaff = await StaffLogChange.create({
-                        rowId: result.dataValues.id,
-                        tableName: 6,
-                        userId: staff.id,
-                        typeChange: 13,
-                    })
-                    if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
+                    // const checkLogStaff = await StaffLogChange.create({
+                    //     rowId: result.dataValues.id,
+                    //     tableName: 6,
+                    //     userId: staff.id,
+                    //     typeChange: 13,
+                    // })
+                    // if (!checkLogStaff) throw new Error("Problem with assign Course! Fail to write staff log!")
 
                     if (!result) {
                         throw new Error('Create ExamPhase Fail!')
