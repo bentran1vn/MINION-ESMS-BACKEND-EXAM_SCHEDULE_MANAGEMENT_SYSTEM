@@ -23,7 +23,7 @@ To clone the repository, use the following command in your terminal:
 
 ```bash
 git clone https://github.com/bentran-vn/MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM.git
-
+```
 Clone the repository
 ```sh
 git clone https://github.com/bentran-vn/MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM.git
