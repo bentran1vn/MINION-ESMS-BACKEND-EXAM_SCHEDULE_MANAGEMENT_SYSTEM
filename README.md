@@ -21,6 +21,7 @@ Instructions for installation.
 Details about the project.
 
 # 4. Relational Schema
+![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
 
 <img>https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf</img>
 
