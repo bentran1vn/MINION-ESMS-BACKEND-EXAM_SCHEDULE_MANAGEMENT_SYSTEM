@@ -10,7 +10,7 @@ The software system provides service packages for student apartments. Each apart
 - Customer orders and tracks used services
 # 1. Techstacks
 
-![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
+![Project Relational Schema](https://drive.google.com/uc?id=1TcefZxtdhIYq-qBHkBRXReuckMjZnzwE)
 
 # 2. Installation
 
