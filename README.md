@@ -12,7 +12,7 @@ The software system provides service packages for student apartments. Each apart
 <h2>2. Installation</h2>
 <h2>3. Project Information</h2>
 <h2>4. Relational Schema</h2>
-<h2>4. Team Members</h2>
+<h2>5. Team Members</h2>
 <br></br>
 | Name                    	|     UniID    	|     Role     	| Position                   	| GitUser 	|
 |-------------------------	|:------------:	|:------------:	|----------------------------	|----------------	|
