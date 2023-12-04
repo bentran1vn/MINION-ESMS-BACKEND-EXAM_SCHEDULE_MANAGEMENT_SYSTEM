@@ -14,7 +14,10 @@ The software system provides service packages for student apartments. Each apart
 
 # 2. Installation
 
-Instructions for installation.
+Clone the repository
+```sh
+git clone https://github.com/bentran-vn/MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM.git
+```
 
 # 3. Project Information
 
