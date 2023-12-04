@@ -1,7 +1,7 @@
 <h1> EXAM SCHEDULE MANAGEMENT SYSTEM <br> ỨNG DỤNG QUẢN LÝ COI THI CHO HCM FPTU  ( ESMS ) </h1>
 This is a "<i>Mini Capstone Project</i>" of FPT University Students in semester 5.<br>
 
-<h1>0. Introduction</h2>
+# 0. Introduction
 This software system offers a comprehensive solution for managing examination schedules at FPT University Ho Chi Minh City. The platform caters to four primary actors: Students, Lecturers, Administrators, and Staff. The system encompasses notable features, such as automated exam invigilation schedule registration for lecturers, automatic email notifications, and the ability to automatically close the invigilation registration portal for lecturers.
 
 ### Roles and Responsibilities of Each Actor:
@@ -13,11 +13,15 @@ This software system offers a comprehensive solution for managing examination sc
 - **Lecturer:** Capable of managing personal exam invigilation schedules per term and year. Can register for invigilation schedules.
   
 - **Student:** Has the ability to manage personal exam attendance schedules for each term.
-# 1. Techstacks
+
+# 1. Use case diagram
+![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
+
+# 2. Techstacks
 
 ![Project Relational Schema](https://drive.google.com/uc?id=1TcefZxtdhIYq-qBHkBRXReuckMjZnzwE)
 
-# 2. Installation
+# 3. Installation
 ### Clone the Repository
 
 To clone the repository, use the following command in your terminal:
@@ -40,7 +44,7 @@ Once the dependencies are installed, initiate the project by running the server 
 ```bash
 node server.js
 ```
-# 3. Project Information
+# 4. Project Information
 
 ```sh
 Port: 8080
@@ -49,10 +53,10 @@ Npm: 9.5.1
 Node: v18.16.1
 ```
 
-# 4. Relational Schema
+# 5. Relational Schema
 ![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
 
-# 5. Team Members
+# 6. Team Members
 
 | Name                    	| UniID      	| Role      	| Position                      	|
 |-------------------------	|------------	|------------	|-------------------------------	|
