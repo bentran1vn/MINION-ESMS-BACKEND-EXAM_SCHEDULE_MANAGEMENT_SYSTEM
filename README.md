@@ -22,7 +22,7 @@ Npm Build
 ```sh
 npm i --save
 ```
-Npm Build
+Running Project
 ```sh
 node server.js
 ```
