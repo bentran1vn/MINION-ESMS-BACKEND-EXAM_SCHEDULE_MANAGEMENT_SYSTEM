@@ -2,12 +2,17 @@
 This is a "<i>Mini Capstone Project</i>" of FPT University Students in semester 5.<br>
 
 <h1>0. Introduction</h2>
-The software system provides service packages for student apartments. Each apartment will purchase pre-designed service packages. Each service may include: hourly service, return service, delivery service, ... Each service package has constraints on usage time, repetition period, number of services per cycle... When used up Services in the package can still be ordered, the price of the additional service depends on the type of service package purchased.<br></br>
+This software system offers a comprehensive solution for managing examination schedules at FPT University Ho Chi Minh City. The platform caters to four primary actors: Students, Lecturers, Administrators, and Staff. The system encompasses notable features, such as automated exam invigilation schedule registration for lecturers, automatic email notifications, and the ability to automatically close the invigilation registration portal for lecturers.
 
+### Roles and Responsibilities of Each Actor:
 
-- Admin can manage individual services, service packages (including individual services)...
-- Staff performs work and updates results of services
-- Customer orders and tracks used services
+- **Administrator:** Responsible for managing exam schedules per semester and year. Capable of adding new examination schedules for each term by importing an Excel file.
+
+- **Staff:** Tasked with exam schedule management across different terms and years. Organizes examination schedules for individual lecturers, specific subjects, and students.
+
+- **Lecturer:** Capable of managing personal exam invigilation schedules per term and year. Can register for invigilation schedules.
+  
+- **Student:** Has the ability to manage personal exam attendance schedules for each term.
 # 1. Techstacks
 
 ![Project Relational Schema](https://drive.google.com/uc?id=1TcefZxtdhIYq-qBHkBRXReuckMjZnzwE)
