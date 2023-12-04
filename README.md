@@ -18,6 +18,14 @@ Clone the repository
 ```sh
 git clone https://github.com/bentran-vn/MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM.git
 ```
+Npm Build
+```sh
+npm i --save
+```
+Npm Build
+```sh
+node server.js
+```
 
 # 3. Project Information
 
