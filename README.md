@@ -13,10 +13,6 @@ The software system provides service packages for student apartments. Each apart
 ![Project Relational Schema](https://drive.google.com/uc?id=1TcefZxtdhIYq-qBHkBRXReuckMjZnzwE)
 
 # 2. Installation
-# Instructions
-
-## 1. Installation
-
 ### Clone the Repository
 
 To clone the repository, use the following command in your terminal:
