@@ -27,7 +27,7 @@ Details about the project.
 
 | Name                    	| UniID      	| Role      	| Position                      	|
 |-------------------------	|------------	|------------	|-------------------------------	|
-| [**Trần Đình Thiên Tân**]([URL](https://github.com/bentran-vn)) 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
+| [**Trần Đình Thiên Tân**](https://github.com/bentran-vn) 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
 | **Lại Nguyễn Minh Quân** | **SE170067** 	| **Backend** 	| **Member**                    	|
 | **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend** 	| **Member**                    	|
 | **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
