@@ -14,11 +14,12 @@ The software system provides service packages for student apartments. Each apart
 <h2>4. Relational Schema</h2>
 <h2>5. Team Members</h2>
 <br></br>
-| Name                    	|     UniID    	|     Role     	| Position                   	| GitUser 	|
-|-------------------------	|:------------:	|:------------:	|----------------------------	|----------------	|
-| **Trần Đình Thiên Tân** 	| **SE171757** 	| **Backend**  	| **Team Leader, Backend Leader** 	| **EmTanIT**    	|
-| **Lại Nguyễn Minh Quân**    	| **SE170067** 	| **Backend**  	| **Member**                 	| **jeffySE29**  	|
-| **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend**  	| **Member**                 	| **KhoaHocMai113** 	|
-| **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** 	| **Frontend Leader**        	| **kle1603**    	|
-| **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** 	| **Member**                 	| **lachimo**    	|
+| Name                    	| UniID      	| Role      	| Position                      	| GitUser        	|
+|-------------------------	|------------	|------------	|-------------------------------	|----------------	|
+| **Trần Đình Thiên Tân** 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	| **EmTanIT**    	|
+| **Lại Nguyễn Minh Quân** | **SE170067** 	| **Backend** 	| **Member**                    	| **jeffySE29**  	|
+| **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend** 	| **Member**                    	| **KhoaHocMai113**|
+| **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	| **kle1603**    	|
+| **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** | **Member**                    	| **lachimo**    	|
+
 
