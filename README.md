@@ -2,7 +2,8 @@
 This is a "<i>Mini Capstone Project</i>" of FPT University Students in semester 5.<br>
 
 <h3>0. Introduce</h3>
-The software system provides service packages for student apartments. Each apartment will purchase pre-designed service packages. Each service may include: hourly service, return service, delivery service, ... Each service package has constraints on usage time, repetition period, number of services per cycle... When used up Services in the package can still be ordered, the price of the additional service depends on the type of service package purchased.<br>
+The software system provides service packages for student apartments. Each apartment will purchase pre-designed service packages. Each service may include: hourly service, return service, delivery service, ... Each service package has constraints on usage time, repetition period, number of services per cycle... When used up Services in the package can still be ordered, the price of the additional service depends on the type of service package purchased.<br></br>
+
 
 - Admin can manage individual services, service packages (including individual services)...
 - Staff performs work and updates results of services
