@@ -39,6 +39,7 @@ node server.js
 
 ```sh
 Port: 8080
+MySQL: 8.1
 Npm: 9.5.1
 Node: v18.16.1
 ```
