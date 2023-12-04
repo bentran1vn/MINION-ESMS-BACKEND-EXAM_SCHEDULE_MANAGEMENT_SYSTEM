@@ -22,7 +22,7 @@ Details about the project.
 
 # 4. Relational Schema
 
-Information about the schema.
+<img>https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf</img>
 
 # 5. Team Members
 
