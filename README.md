@@ -18,7 +18,11 @@ Instructions for installation.
 
 # 3. Project Information
 
-Details about the project.
+```sh
+Port: 8080
+Npm: 9.5.1
+Node: v18.16.1
+```
 
 # 4. Relational Schema
 ![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
