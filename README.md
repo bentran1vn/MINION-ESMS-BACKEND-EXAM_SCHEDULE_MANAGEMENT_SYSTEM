@@ -20,16 +20,21 @@ To clone the repository, use the following command in your terminal:
 ```bash
 git clone https://github.com/bentran-vn/MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM.git
 ```
+### Install Dependencies
 
-Npm Build
-```sh
-npm i --save
+After cloning the repository, navigate into the project directory and install the required dependencies using npm:
+
+```bash
+cd MINION-ESMS-BACKEND-EXAM_SCHEDULE_MANAGEMENT_SYSTEM
+npm install --save
 ```
-Running Project
-```sh
+### Running the Project
+
+Once the dependencies are installed, initiate the project by running the server using Node.js:
+
+```bash
 node server.js
 ```
-
 # 3. Project Information
 
 ```sh
