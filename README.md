@@ -8,9 +8,11 @@ The software system provides service packages for student apartments. Each apart
 - Admin can manage individual services, service packages (including individual services)...
 - Staff performs work and updates results of services
 - Customer orders and tracks used services
-
-
-There are five members in our Project <br>
+<h2>1. Techstacks</h2>
+<h2>2. Installation</h2>
+<h2>3. Project Information</h2>
+<h2>4. Relational Schema</h2>
+<h2>4. Team Members</h2>
 | Name                    	|     UniID    	|     Role     	| Position                   	| GitUser 	|
 |-------------------------	|:------------:	|:------------:	|----------------------------	|----------------	|
 | **Trần Đình Thiên Tân** 	| **SE171757** 	| **Backend**  	| **Team Leader, Backend Leader** 	| **EmTanIT**    	|
@@ -19,4 +21,3 @@ There are five members in our Project <br>
 | **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** 	| **Frontend Leader**        	| **kle1603**    	|
 | **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** 	| **Member**                 	| **lachimo**    	|
 
-The technologies which we use in this project are NodeJS Framework for Backend and ReactJS for Frontend
