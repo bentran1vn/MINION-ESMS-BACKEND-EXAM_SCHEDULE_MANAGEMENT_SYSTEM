@@ -10,7 +10,7 @@ The software system provides service packages for student apartments. Each apart
 - Customer orders and tracks used services
 # 1. Techstacks
 
-Information about the tech stacks goes here.
+![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
 
 # 2. Installation
 
@@ -22,8 +22,6 @@ Details about the project.
 
 # 4. Relational Schema
 ![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
-
-<img>https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf</img>
 
 # 5. Team Members
 
