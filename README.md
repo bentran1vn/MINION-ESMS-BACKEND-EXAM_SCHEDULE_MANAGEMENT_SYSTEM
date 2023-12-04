@@ -26,13 +26,13 @@ Information about the schema.
 
 # 5. Team Members
 
-| Name                    	| UniID      	| Role      	| Position                      	| GitUser        	|
-|-------------------------	|------------	|------------	|-------------------------------	|----------------	|
-| **Trần Đình Thiên Tân** 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	| **EmTanIT**    	|
-| **Lại Nguyễn Minh Quân** | **SE170067** 	| **Backend** 	| **Member**                    	| **jeffySE29**  	|
-| **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend** 	| **Member**                    	| **KhoaHocMai113**|
-| **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	| **kle1603**    	|
-| **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** | **Member**                    	| **lachimo**    	|
+| Name                    	| UniID      	| Role      	| Position                      	|
+|-------------------------	|------------	|------------	|-------------------------------	|
+| **Trần Đình Thiên Tân** 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
+| **Lại Nguyễn Minh Quân** | **SE170067** 	| **Backend** 	| **Member**                    	|
+| **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend** 	| **Member**                    	|
+| **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
+| **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** | **Member**                    	|
 
 
 
