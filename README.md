@@ -15,7 +15,7 @@ This software system offers a comprehensive solution for managing examination sc
 - **Student:** Has the ability to manage personal exam attendance schedules for each term.
 
 # 1. Use case diagram
-![Project Relational Schema](https://drive.google.com/uc?id=1neYrND8E90t6hB1EgC9ICQV2IgRseHyf)
+![Project Relational Schema](https://drive.google.com/uc?id=11OStsOL0eOhctb_wo_avuYgPzj-Q3__2)
 
 # 2. Techstacks
 
