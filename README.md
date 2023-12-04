@@ -1,7 +1,8 @@
 <h1> EXAM SCHEDULE MANAGEMENT SYSTEM <br> ỨNG DỤNG QUẢN LÝ COI THI CHO FU HCM ( ESMS ) </h1>
 This is a "<i>Mini Capstone Project</i>" of FPT University Students in semester 5.<br>
 
-<h3>0. Introduce</h3>
+<h3>0. Introduce</h3><br>
+
 
 There are five members in our Project <br>
 | Name                    	|     UniID    	|     Role     	| Position                   	| GitUser 	|
