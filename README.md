@@ -28,10 +28,11 @@ Details about the project.
 | Name                    	| UniID      	| Role      	| Position                      	|
 |-------------------------	|------------	|------------	|-------------------------------	|
 | [**Trần Đình Thiên Tân**](https://github.com/bentran-vn) 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
-| **Lại Nguyễn Minh Quân** | **SE170067** 	| **Backend** 	| **Member**                    	|
-| **Đỗ Dương Đăng Khoa**  	| **SE170285** 	| **Backend** 	| **Member**                    	|
-| **Lê Bảo Khang**        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
-| **Phạm Thị Ngọc Anh**   	| **SE171173** 	| **Frontend** | **Member**                    	|
+| [**Lại Nguyễn Minh Quân**](https://github.com/jeffySE29) | **SE170067** 	| **Backend** 	| **Member**                    	|
+| [**Đỗ Dương Đăng Khoa**](https://github.com/KhoaHocMai113)  	| **SE170285** 	| **Backend** 	| **Member**                    	|
+| [**Lê Bảo Khang**](https://github.com/kle1603)        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
+| [**Phạm Thị Ngọc Anh**](https://github.com/lachimo)   	| **SE171173** 	| **Frontend** | **Member**                    	|
+
 
 
 
