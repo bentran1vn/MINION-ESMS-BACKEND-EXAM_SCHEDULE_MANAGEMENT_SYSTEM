@@ -66,6 +66,4 @@ Node: v18.16.1
 | [**Lê Bảo Khang**](https://github.com/kle1603)        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
 | [**Phạm Thị Ngọc Anh**](https://github.com/lachimo)   	| **SE171173** 	| **Frontend** | **Member**                    	|
 
-
-
-
+#### © 2023 bentran-vn
