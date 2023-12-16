@@ -60,7 +60,7 @@ Node: v18.16.1
 
 | Name                    	| UniID      	| Role      	| Position                      	|
 |-------------------------	|------------	|------------	|-------------------------------	|
-| [**Trần Đình Thiên Tân**](https://github.com/bentran-vn) 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
+| [**Trần Đình Thiên Tân**](https://github.com/bentran1vn) 	| **SE171757** 	| **Backend** 	| **Team Leader, Backend Leader** 	|
 | [**Lại Nguyễn Minh Quân**](https://github.com/jeffySE29) | **SE170067** 	| **Backend** 	| **Member**                    	|
 | [**Đỗ Dương Đăng Khoa**](https://github.com/khoahocmai)  	| **SE170285** 	| **Backend** 	| **Member**                    	|
 | [**Lê Bảo Khang**](https://github.com/kle1603)        	| **SE171164** 	| **Frontend** | **Frontend Leader**           	|
